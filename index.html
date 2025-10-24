@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Café Owner Dashboard AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              'brand-primary': '#4a2c2a',
+              'brand-secondary': '#eaddc7',
+              'brand-accent': '#a27b5c',
+              'brand-text': '#dcd0c0',
+              'brand-bg': '#1e1b18',
+            },
+            keyframes: {
+              'fade-in': {
+                '0%': { opacity: '0' },
+                '100%': { opacity: '1' },
+              },
+              'scale-up': {
+                '0%': { transform: 'scale(0.95)', opacity: '0' },
+                '100%': { transform: 'scale(1)', opacity: '1' },
+              },
+               'fade-in-up': {
+                '0%': { opacity: '0', transform: 'translateY(10px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              },
+            },
+            animation: {
+              'fade-in': 'fade-in 0.3s ease-out',
+              'scale-up': 'scale-up 0.3s ease-out',
+              'fade-in-up': 'fade-in-up 0.3s ease-out forwards',
+            },
+          }
+        }
+      }
+    </script>
+    <style>
+        @media print {
+            body {
+                background-color: white;
+                color: black;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .printable-area {
+                box-shadow: none !important;
+                border: none !important;
+            }
+        }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.27.0",
+    "@supabase/supabase-js": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm",
+    "jspdf": "https://esm.sh/jspdf@2.5.1",
+    "html2canvas": "https://esm.sh/html2canvas@1.4.1"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body class="bg-brand-bg text-brand-text antialiased">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>

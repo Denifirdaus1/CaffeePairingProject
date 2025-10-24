@@ -1,0 +1,5 @@
+{
+  "name": "Café Owner Dashboard AI",
+  "description": "An AI-powered dashboard for café owners to generate optimal coffee and pastry pairings using data-driven insights and real-time web grounding.",
+  "requestFramePermissions": []
+}
