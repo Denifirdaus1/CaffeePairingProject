@@ -55,14 +55,16 @@ AI-powered dashboard untuk membantu pemilik café menemukan pairing kopi dan pas
    - Import project dari GitHub
    - Vercel akan otomatis detect Vite framework
 
-3. **Setup Environment Variables di Vercel (Optional):**
-   - Project sudah dikonfigurasi dengan API keys yang sudah di-set
-   - Jika ingin menggunakan environment variables sendiri di Vercel:
-   - Di Vercel dashboard, go ke project settings
-   - Tambahkan environment variables:
-     - `VITE_GEMINI_API_KEY`: `your_gemini_api_key_here`
-     - `VITE_SUPABASE_URL`: `your_supabase_project_url_here`
-     - `VITE_SUPABASE_ANON_KEY`: `your_supabase_anon_key_here`
+3. **Setup Environment Variables di Vercel:**
+   - **WAJIB:** Tambahkan environment variables berikut di Vercel dashboard:
+   
+   | Variable | Value | Description |
+   |----------|-------|-------------|
+   | `VITE_GEMINI_API_KEY` | `AIzaSyBqEXLaxl6AqUZcY5qLxFPDaX77Wt8swyc` | Google Gemini API Key |
+   | `VITE_SUPABASE_URL` | `https://jjbvliewmcadmxmmcckl.supabase.co` | Supabase Project URL |
+   | `VITE_SUPABASE_ANON_KEY` | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` | Supabase Anonymous Key |
+   
+   **📋 Panduan Lengkap:** Lihat file `VERCEL_ENV_VARIABLES.md` untuk step-by-step setup environment variables di Vercel.
 
 4. **Deploy:**
    - Vercel akan otomatis deploy setiap kali ada push ke main branch
