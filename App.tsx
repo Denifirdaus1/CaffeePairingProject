@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, lazy, Suspense } from 'react';
 import { Header } from './components/Header';
-import { PairingResults } from './components/PairingResults';
 import { generatePairings } from './services/geminiService';
 import type { Coffee, Pastry, PairingResponse, Tenant } from './types';
 import { CoffeeIcon } from './components/icons/CoffeeIcon';
@@ -9,9 +8,13 @@ import { supabase, uploadImage, deleteImage } from './services/supabaseClient';
 import type { CoffeeInsert, PastryInsert, CoffeeUpdate, PastryUpdate } from './services/supabaseClient';
 import { Spinner } from './components/Spinner';
 import { InventoryItem } from './components/InventoryItem';
-import { EditModal } from './components/EditModal';
-import { AddModal } from './components/AddModal';
+import { LazyImage } from './components/LazyImage';
 import { Toast } from './components/Toast';
+
+// Lazy load heavy components
+const EditModal = lazy(() => import('./components/EditModal').then(module => ({ default: module.EditModal })));
+const AddModal = lazy(() => import('./components/AddModal').then(module => ({ default: module.AddModal })));
+const PairingResults = lazy(() => import('./components/PairingResults').then(module => ({ default: module.PairingResults })));
 
 function App() {
   const [tenantId, setTenantId] = useState<string | null>(null);
@@ -230,7 +233,7 @@ function App() {
     }
   };
 
-  const handleGeneratePairings = async () => {
+  const handleGeneratePairings = useCallback(async () => {
     if (!selectedCoffee) return;
     setIsLoading(true);
     setError(null);
@@ -246,18 +249,80 @@ function App() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [selectedCoffee, pastries]);
   
-  const handleSelectCoffee = (coffee: Coffee) => {
+  const handleSelectCoffee = useCallback((coffee: Coffee) => {
     setSelectedCoffee(prev => (prev?.id === coffee.id ? null : coffee));
     setPairingResult(null);
     setError(null);
-  };
+  }, []);
   
-  const openAddModal = (type: 'coffee' | 'pastry') => {
+  const openAddModal = useCallback((type: 'coffee' | 'pastry') => {
     setAddModalType(type);
     setIsAddModalOpen(true);
-  }
+  }, []);
+
+  // Memoized coffee list untuk performa
+  const coffeeList = useMemo(() => {
+    if (inventoryLoading) return <Spinner/>;
+    if (inventoryError) return <p className="text-red-400">{inventoryError}</p>;
+    if (coffees.length === 0) return <p className="text-brand-text/70 text-sm italic p-4 text-center">No coffees added yet.</p>;
+    
+    return coffees.map(coffee => (
+      <InventoryItem 
+        key={coffee.id} 
+        item={coffee} 
+        type="coffee"
+        onEdit={() => setEditingCoffee(coffee)}
+        onDelete={() => handleDeleteCoffee(coffee.id, coffee.name)}
+      />
+    ));
+  }, [coffees, inventoryLoading, inventoryError]);
+
+  // Memoized pastry list untuk performa
+  const pastryList = useMemo(() => {
+    if (inventoryLoading) return <Spinner/>;
+    if (inventoryError) return <p className="text-red-400">{inventoryError}</p>;
+    if (pastries.length === 0) return <p className="text-brand-text/70 text-sm italic p-4 text-center">No pastries added yet.</p>;
+    
+    return pastries.map(pastry => (
+      <InventoryItem 
+        key={pastry.id} 
+        item={pastry} 
+        type="pastry"
+        onEdit={() => setEditingPastry(pastry)}
+        onDelete={() => handleDeletePastry(pastry.id, pastry.name)}
+      />
+    ));
+  }, [pastries, inventoryLoading, inventoryError]);
+
+  // Memoized coffee selection list
+  const coffeeSelectionList = useMemo(() => {
+    if (inventoryLoading) return <Spinner />;
+    if (coffees.length === 0) return <p className="text-brand-text/70 text-sm italic p-4 text-center w-full">Add a coffee to your inventory to start pairing.</p>;
+    
+    return coffees.map(coffee => (
+      <div
+        key={coffee.id}
+        role="button"
+        tabIndex={0}
+        onClick={() => handleSelectCoffee(coffee)}
+        onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleSelectCoffee(coffee)}
+        className={`flex-shrink-0 w-32 p-2 rounded-lg cursor-pointer transition-all duration-200 border-2 ${
+          selectedCoffee?.id === coffee.id 
+          ? 'border-brand-accent bg-brand-accent/20 scale-105' 
+          : 'border-transparent hover:border-brand-accent/50 hover:bg-brand-bg/10'
+        }`}
+      >
+        <LazyImage 
+          src={coffee.image_url} 
+          alt={coffee.name} 
+          className="w-full h-24 object-cover rounded-md mb-2 shadow-lg" 
+        />
+        <p className="text-center text-xs font-semibold text-white truncate">{coffee.name}</p>
+      </div>
+    ));
+  }, [coffees, selectedCoffee, inventoryLoading, handleSelectCoffee]);
 
   return (
     <div className="min-h-screen w-full">
@@ -276,17 +341,7 @@ function App() {
                 <div className="space-y-2 flex-grow flex flex-col">
                     <h3 className="font-semibold text-white border-b border-brand-accent/30 pb-2">Current Coffees: {coffees.length}</h3>
                      <div className="flex-grow overflow-y-auto max-h-60 pr-2 space-y-2">
-                         {inventoryLoading ? <Spinner/> : inventoryError ? <p className="text-red-400">{inventoryError}</p> :
-                            coffees.length > 0 ? coffees.map(coffee => (
-                                <InventoryItem 
-                                    key={coffee.id} 
-                                    item={coffee} 
-                                    type="coffee"
-                                    onEdit={() => setEditingCoffee(coffee)}
-                                    onDelete={() => handleDeleteCoffee(coffee.id, coffee.name)}
-                                />
-                            )) : <p className="text-brand-text/70 text-sm italic p-4 text-center">No coffees added yet.</p>
-                         }
+                         {coffeeList}
                      </div>
                 </div>
             </div>
@@ -302,17 +357,7 @@ function App() {
                 <div className="space-y-2 flex-grow flex flex-col">
                     <h3 className="font-semibold text-white border-b border-brand-accent/30 pb-2">Current Pastries: {pastries.length}</h3>
                      <div className="flex-grow overflow-y-auto max-h-60 pr-2 space-y-2">
-                        {inventoryLoading ? <Spinner/> : inventoryError ? <p className="text-red-400">{inventoryError}</p> :
-                            pastries.length > 0 ? pastries.map(pastry => (
-                                <InventoryItem 
-                                    key={pastry.id} 
-                                    item={pastry} 
-                                    type="pastry"
-                                    onEdit={() => setEditingPastry(pastry)}
-                                    onDelete={() => handleDeletePastry(pastry.id, pastry.name)}
-                                />
-                            )) : <p className="text-brand-text/70 text-sm italic p-4 text-center">No pastries added yet.</p>
-                        }
+                        {pastryList}
                     </div>
                 </div>
             </div>
@@ -324,27 +369,7 @@ function App() {
             <p className="text-sm text-brand-text/80 mb-4">Select a coffee from your inventory to begin.</p>
             
             <div className="flex overflow-x-auto gap-4 py-2 px-2 -mx-2 mb-4">
-                {inventoryLoading ? <Spinner /> : coffees.length > 0 ? (
-                    coffees.map(coffee => (
-                        <div
-                            key={coffee.id}
-                            role="button"
-                            tabIndex={0}
-                            onClick={() => handleSelectCoffee(coffee)}
-                            onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleSelectCoffee(coffee)}
-                            className={`flex-shrink-0 w-32 p-2 rounded-lg cursor-pointer transition-all duration-200 border-2 ${
-                                selectedCoffee?.id === coffee.id 
-                                ? 'border-brand-accent bg-brand-accent/20 scale-105' 
-                                : 'border-transparent hover:border-brand-accent/50 hover:bg-brand-bg/10'
-                            }`}
-                        >
-                            <img src={coffee.image_url} alt={coffee.name} className="w-full h-24 object-cover rounded-md mb-2 shadow-lg" />
-                            <p className="text-center text-xs font-semibold text-white truncate">{coffee.name}</p>
-                        </div>
-                    ))
-                ) : (
-                     <p className="text-brand-text/70 text-sm italic p-4 text-center w-full">Add a coffee to your inventory to start pairing.</p>
-                )}
+                {coffeeSelectionList}
             </div>
 
             <div className="mt-4 flex flex-col items-center">
@@ -361,29 +386,35 @@ function App() {
         </div>
 
 
-        <PairingResults 
-          result={pairingResult}
-          isLoading={isLoading}
-          error={error}
-        />
+        <Suspense fallback={<div className="mt-8 bg-brand-primary/50 rounded-lg p-6 shadow-xl text-center"><Spinner /></div>}>
+          <PairingResults 
+            result={pairingResult}
+            isLoading={isLoading}
+            error={error}
+          />
+        </Suspense>
         
         {(editingCoffee || editingPastry) && (
-            <EditModal
-                item={editingCoffee || editingPastry}
-                type={editingCoffee ? 'coffee' : 'pastry'}
-                onClose={() => { setEditingCoffee(null); setEditingPastry(null); }}
-                onSaveCoffee={handleUpdateCoffee}
-                onSavePastry={handleUpdatePastry}
-            />
+            <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center"><Spinner /></div>}>
+                <EditModal
+                    item={editingCoffee || editingPastry}
+                    type={editingCoffee ? 'coffee' : 'pastry'}
+                    onClose={() => { setEditingCoffee(null); setEditingPastry(null); }}
+                    onSaveCoffee={handleUpdateCoffee}
+                    onSavePastry={handleUpdatePastry}
+                />
+            </Suspense>
         )}
         
         {isAddModalOpen && (
-            <AddModal
-                type={addModalType}
-                onClose={() => setIsAddModalOpen(false)}
-                onAddCoffee={handleAddCoffee}
-                onAddPastry={handleAddPastry}
-            />
+            <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center"><Spinner /></div>}>
+                <AddModal
+                    type={addModalType}
+                    onClose={() => setIsAddModalOpen(false)}
+                    onAddCoffee={handleAddCoffee}
+                    onAddPastry={handleAddPastry}
+                />
+            </Suspense>
         )}
 
 

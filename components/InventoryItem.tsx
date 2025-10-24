@@ -10,7 +10,7 @@ interface InventoryItemProps {
   onDelete: () => void;
 }
 
-export const InventoryItem: React.FC<InventoryItemProps> = ({ item, type, onEdit, onDelete }) => {
+export const InventoryItem: React.FC<InventoryItemProps> = React.memo(({ item, type, onEdit, onDelete }) => {
   const details = type === 'coffee'
     ? (item as Coffee).flavor_notes
     : `${(item as Pastry).flavor_tags} | ${(item as Pastry).texture_tags}`;
@@ -39,4 +39,4 @@ export const InventoryItem: React.FC<InventoryItemProps> = ({ item, type, onEdit
       </div>
     </div>
   );
-};
+});

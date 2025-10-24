@@ -4,6 +4,7 @@ import { FlavorIcon } from './icons/FlavorIcon';
 import { TextureIcon } from './icons/TextureIcon';
 import { PopularityIcon } from './icons/PopularityIcon';
 import { SeasonIcon } from './icons/SeasonIcon';
+import { LazyImage } from './LazyImage';
 
 interface PairingCardProps {
   pairing: Pairing;
@@ -59,7 +60,11 @@ export const PairingCard: React.FC<PairingCardProps> = ({ pairing, rank }) => {
       <div className="flex-grow p-4 pt-0 grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Left Side: Image & Tags */}
         <div className="flex flex-col gap-4">
-             <img src={pairing.pastry.image} alt={pairing.pastry.name} className="w-full h-40 rounded-lg object-cover" />
+             <LazyImage 
+                src={pairing.pastry.image} 
+                alt={pairing.pastry.name} 
+                className="w-full h-40 rounded-lg object-cover" 
+            />
              <div>
                 <h4 className="font-semibold text-white text-sm mb-2">Flavor Profile</h4>
                 <div className="flex flex-wrap gap-1.5">
