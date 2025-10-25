@@ -75,10 +75,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signUp = async (data: any) => {
     setLoading(true);
     try {
-      await authService.signUp(data);
-      const currentUser = await authService.getCurrentUser();
-      setUser(currentUser);
+      const result = await authService.signUp(data);
+      // Don't try to get current user immediately, let the auth state change handle it
+      console.log('Signup successful:', result);
     } catch (error) {
+      console.error('Signup error:', error);
       throw error;
     } finally {
       setLoading(false);

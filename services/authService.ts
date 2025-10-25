@@ -46,8 +46,14 @@ export const authService = {
       }
     });
 
-    if (authError) throw authError;
+    if (authError) {
+      console.error('Auth signup error:', authError);
+      throw authError;
+    }
     if (!authData.user) throw new Error('User creation failed');
+
+    // Wait a bit for the user to be fully created
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     // Create café profile
     const { data: profileData, error: profileError } = await supabase
@@ -65,7 +71,10 @@ export const authService = {
       .select()
       .single();
 
-    if (profileError) throw profileError;
+    if (profileError) {
+      console.error('Profile creation error:', profileError);
+      throw profileError;
+    }
 
     return { user: authData.user, profile: profileData };
   },
