@@ -203,22 +203,44 @@ export const authService = {
   },
 
   async getCurrentUser(): Promise<User | null> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return null;
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.log('No authenticated user found');
+        return null;
+      }
 
-    // Get café profile
-    const { data: profile } = await supabase
-      .from('cafe_profiles')
-      .select('*')
-      .eq('user_id', user.id)
-      .single();
+      console.log('Found authenticated user:', user.id);
 
-    return {
-      id: user.id,
-      email: user.email!,
-      full_name: user.user_metadata?.full_name || '',
-      cafe_profile: profile
-    };
+      // Get café profile
+      const { data: profile, error: profileError } = await supabase
+        .from('cafe_profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (profileError) {
+        console.log('Profile not found for user:', user.id, profileError.message);
+        // Return user without profile if profile doesn't exist
+        return {
+          id: user.id,
+          email: user.email!,
+          full_name: user.user_metadata?.full_name || '',
+          cafe_profile: null
+        };
+      }
+
+      console.log('Found profile for user:', profile.id);
+      return {
+        id: user.id,
+        email: user.email!,
+        full_name: user.user_metadata?.full_name || '',
+        cafe_profile: profile
+      };
+    } catch (error) {
+      console.error('Error in getCurrentUser:', error);
+      return null;
+    }
   },
 
   async updateCafeProfile(profileData: Partial<CafeProfile>) {

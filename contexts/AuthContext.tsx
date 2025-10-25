@@ -30,18 +30,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    
     const checkAuth = async () => {
       try {
+        console.log('Checking auth state...');
         const currentUser = await authService.getCurrentUser();
+        console.log('Auth check result:', currentUser ? 'User found' : 'No user');
         setUser(currentUser);
       } catch (error) {
         console.error('Auth check failed:', error);
+        setUser(null);
       } finally {
         setLoading(false);
       }
     };
 
+    // Add timeout to prevent infinite loading
+    timeoutId = setTimeout(() => {
+      console.log('Auth check timeout, setting loading to false');
+      setLoading(false);
+    }, 5000);
+
     checkAuth();
+
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
