@@ -163,13 +163,15 @@ export const MainShotManager: React.FC<MainShotManagerProps> = ({
         
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-brand-text/90 mb-2">
+            <label htmlFor="coffee-select" className="block text-sm font-medium text-brand-text/90 mb-2">
               Select Coffee
             </label>
             <select
+              id="coffee-select"
               value={selectedCoffee}
               onChange={(e) => setSelectedCoffee(e.target.value)}
               className="w-full px-4 py-3 rounded-xl bg-brand-bg border border-brand-border focus:ring-2 focus:ring-brand-accent focus:border-transparent text-white"
+              aria-label="Select coffee for main shot"
             >
               <option value="">Choose a coffee...</option>
               {coffees.map(coffee => (
@@ -181,15 +183,17 @@ export const MainShotManager: React.FC<MainShotManagerProps> = ({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-brand-text/90 mb-2">
+            <label htmlFor="main-shot-until" className="block text-sm font-medium text-brand-text/90 mb-2">
               Main Shot Until
             </label>
             <input
+              id="main-shot-until"
               type="date"
               value={mainShotUntil}
               onChange={(e) => setMainShotUntil(e.target.value)}
               min={new Date().toISOString().split('T')[0]}
               className="w-full px-4 py-3 rounded-xl bg-brand-bg border border-brand-border focus:ring-2 focus:ring-brand-accent focus:border-transparent text-white"
+              aria-label="Set expiration date for main shot"
             />
           </div>
 
