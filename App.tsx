@@ -271,7 +271,7 @@ function App() {
   }, []);
 
 
-  // Memoized coffee list untuk performa
+  // Memoized coffee list for performance
   const coffeeList = useMemo(() => {
     if (inventoryLoading) return <div className="flex w-full justify-center py-6"><Spinner /></div>;
     if (inventoryError) return <p className="rounded-2xl bg-red-900/40 p-4 text-sm text-red-200">{inventoryError}</p>;
@@ -288,7 +288,7 @@ function App() {
     ));
   }, [coffees, inventoryLoading, inventoryError]);
 
-  // Memoized pastry list untuk performa
+  // Memoized pastry list for performance
   const pastryList = useMemo(() => {
     if (inventoryLoading) return <div className="flex w-full justify-center py-6"><Spinner /></div>;
     if (inventoryError) return <p className="rounded-2xl bg-red-900/40 p-4 text-sm text-red-200">{inventoryError}</p>;
@@ -359,7 +359,7 @@ function App() {
                 </div>
                 <div>
                   <h2 className="text-lg font-semibold text-white">Coffee Inventory</h2>
-                  <p className="text-xs text-brand-text/60">Kelola varian kopi kamu lengkap dengan flavor notes.</p>
+                  <p className="text-xs text-brand-text/60">Manage your coffee variants with complete flavor notes.</p>
                 </div>
               </div>
               <button
@@ -389,7 +389,7 @@ function App() {
                 </div>
                 <div>
                   <h2 className="text-lg font-semibold text-white">Pastry Inventory</h2>
-                  <p className="text-xs text-brand-text/60">Tetapkan tekstur & allergen untuk rekomendasi yang tepat.</p>
+                  <p className="text-xs text-brand-text/60">Set texture & allergen for accurate recommendations.</p>
                 </div>
               </div>
               <button
