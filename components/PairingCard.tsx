@@ -42,14 +42,21 @@ const ReasoningItem: React.FC<{ icon: React.ReactNode, title: string, text: stri
 
 export const PairingCard: React.FC<PairingCardProps> = ({ pairing, rank }) => {
   return (
-    <div className="bg-brand-primary/80 rounded-xl overflow-hidden shadow-2xl flex flex-col transform transition-transform duration-300 hover:scale-[1.02] relative border border-brand-primary">
+    <div className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-surface/90 to-brand-surface/60 shadow-2xl transition-all duration-500 hover:scale-[1.02] hover:shadow-3xl hover:shadow-brand-accent/20 border border-brand-border/50 backdrop-blur-sm">
         {/* Header */}
-        <div className="p-4 flex justify-between items-start">
-            <div>
-                 <h3 className="text-xl font-bold text-white mb-1">#{rank}: {pairing.pastry.name}</h3>
+        <div className="relative p-6 flex justify-between items-start">
+            <div className="flex-1">
+                 <div className="flex items-center gap-3 mb-3">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-brand-accent to-brand-accent-light text-sm font-bold text-white shadow-lg">
+                        #{rank}
+                    </div>
+                    <h3 className="text-xl font-bold text-white">{pairing.pastry.name}</h3>
+                 </div>
                  <div className="flex flex-wrap gap-2">
                     {pairing.badges?.map(badge => (
-                        <span key={badge} className="text-xs font-semibold bg-brand-accent/30 text-brand-accent px-2 py-0.5 rounded-full">{badge}</span>
+                        <span key={badge} className="inline-flex items-center rounded-full bg-brand-accent/20 px-3 py-1 text-xs font-medium text-brand-accent ring-1 ring-brand-accent/30">
+                            {badge}
+                        </span>
                     ))}
                  </div>
             </div>
@@ -57,26 +64,33 @@ export const PairingCard: React.FC<PairingCardProps> = ({ pairing, rank }) => {
         </div>
 
       {/* Body */}
-      <div className="flex-grow p-4 pt-0 grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="flex-grow px-6 pb-6 grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Left Side: Image & Tags */}
         <div className="flex flex-col gap-4">
-             <LazyImage 
-                src={pairing.pastry.image} 
-                alt={pairing.pastry.name} 
-                className="w-full h-40 rounded-lg object-cover" 
-            />
+             <div className="relative overflow-hidden rounded-2xl">
+                <LazyImage 
+                    src={pairing.pastry.image} 
+                    alt={pairing.pastry.name} 
+                    className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-105" 
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+             </div>
              <div>
-                <h4 className="font-semibold text-white text-sm mb-2">Flavor Profile</h4>
-                <div className="flex flex-wrap gap-1.5">
+                <h4 className="font-semibold text-white text-sm mb-3">Flavor Profile</h4>
+                <div className="flex flex-wrap gap-2">
                     {pairing.flavor_tags_standardized?.map(tag => (
-                        <span key={tag} className="text-xs bg-brand-bg text-brand-text px-2 py-1 rounded">{tag}</span>
+                        <span key={tag} className="inline-flex items-center rounded-full bg-brand-accent/10 px-3 py-1 text-xs font-medium text-brand-accent ring-1 ring-brand-accent/20">
+                            {tag}
+                        </span>
                     ))}
                 </div>
              </div>
               {pairing.allergen_info && (
                  <div>
                     <h4 className="font-semibold text-white text-sm mb-2">Allergen Info</h4>
-                    <span className="text-xs bg-red-900/50 border border-red-700 text-red-300 px-2 py-1 rounded">{pairing.allergen_info}</span>
+                    <span className="inline-flex items-center rounded-full bg-red-500/10 px-3 py-1 text-xs font-medium text-red-400 ring-1 ring-red-500/20">
+                        {pairing.allergen_info}
+                    </span>
                  </div>
               )}
         </div>
@@ -114,8 +128,11 @@ export const PairingCard: React.FC<PairingCardProps> = ({ pairing, rank }) => {
       </div>
       
       {/* Footer */}
-      <div className="bg-black/20 p-4 mt-auto">
-        <p className="text-md font-semibold text-brand-accent italic">"{pairing.why_marketing}"</p>
+      <div className="relative overflow-hidden bg-gradient-to-r from-brand-accent/10 to-brand-accent/5 p-6 mt-auto">
+        <div className="relative z-10">
+            <p className="text-lg font-semibold text-brand-accent italic leading-relaxed">"{pairing.why_marketing}"</p>
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-r from-brand-accent/5 to-transparent" />
       </div>
 
     </div>

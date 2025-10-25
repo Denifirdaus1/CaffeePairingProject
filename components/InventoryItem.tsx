@@ -16,27 +16,30 @@ export const InventoryItem: React.FC<InventoryItemProps> = React.memo(({ item, t
     : `${(item as Pastry).flavor_tags} | ${(item as Pastry).texture_tags}`;
 
   return (
-    <div className="bg-brand-bg/60 p-3 rounded-lg flex items-center justify-between gap-4 transition-colors hover:bg-brand-bg">
-      <div className="flex-grow truncate">
-        <p className="font-bold text-white truncate">{item.name}</p>
-        <p className="text-xs text-brand-text/80 truncate">{details}</p>
+    <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-r from-brand-surface/60 to-brand-surface/40 p-4 transition-all duration-300 hover:bg-gradient-to-r hover:from-brand-surface/80 hover:to-brand-surface/60 hover:shadow-lg hover:shadow-brand-accent/10">
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex-grow min-w-0">
+          <p className="font-semibold text-white truncate text-sm">{item.name}</p>
+          <p className="text-xs text-brand-text-muted truncate mt-1">{details}</p>
+        </div>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={onEdit}
+            className="rounded-xl bg-brand-accent/10 p-2 text-brand-accent transition-all duration-200 hover:bg-brand-accent/20 hover:scale-105 hover:shadow-md"
+            aria-label={`Edit ${item.name}`}
+          >
+            <PencilIcon className="w-4 h-4" />
+          </button>
+          <button
+            onClick={onDelete}
+            className="rounded-xl bg-red-500/10 p-2 text-red-400 transition-all duration-200 hover:bg-red-500/20 hover:scale-105 hover:shadow-md"
+            aria-label={`Delete ${item.name}`}
+          >
+            <TrashIcon className="w-4 h-4" />
+          </button>
+        </div>
       </div>
-      <div className="flex-shrink-0 flex items-center gap-2">
-        <button
-          onClick={onEdit}
-          className="p-2 text-brand-text hover:text-white hover:bg-brand-accent/50 rounded-full transition-colors"
-          aria-label={`Edit ${item.name}`}
-        >
-          <PencilIcon className="w-4 h-4" />
-        </button>
-        <button
-          onClick={onDelete}
-          className="p-2 text-red-400 hover:text-white hover:bg-red-500/50 rounded-full transition-colors"
-          aria-label={`Delete ${item.name}`}
-        >
-          <TrashIcon className="w-4 h-4" />
-        </button>
-      </div>
+      <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-brand-accent/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
     </div>
   );
 });

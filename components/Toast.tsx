@@ -17,10 +17,10 @@ export const Toast: React.FC<ToastProps> = ({ message, type, onClose }) => {
     };
   }, [onClose]);
 
-  const baseClasses = "fixed bottom-5 right-5 max-w-sm rounded-lg shadow-2xl p-4 flex items-center gap-3 z-50 animate-fade-in-up";
+  const baseClasses = "fixed bottom-6 right-6 max-w-sm rounded-2xl shadow-2xl p-5 flex items-center gap-4 z-50 animate-fade-in-up backdrop-blur-sm border";
   const typeClasses = {
-    success: "bg-green-800 border-green-600 text-white",
-    error: "bg-red-800 border-red-600 text-white",
+    success: "bg-success/10 border-success/30 text-success ring-1 ring-success/20",
+    error: "bg-error/10 border-error/30 text-error ring-1 ring-error/20",
   };
 
   const Icon = () => {
@@ -40,9 +40,14 @@ export const Toast: React.FC<ToastProps> = ({ message, type, onClose }) => {
 
   return (
     <div className={`${baseClasses} ${typeClasses[type]}`}>
-      <Icon />
-      <p className="text-sm font-medium">{message}</p>
-      <button onClick={onClose} className="ml-auto -mx-1.5 -my-1.5 p-1.5 rounded-full hover:bg-white/20 transition-colors">
+      <div className="flex-shrink-0">
+        <Icon />
+      </div>
+      <p className="text-sm font-medium flex-1">{message}</p>
+      <button 
+        onClick={onClose} 
+        className="flex-shrink-0 p-1.5 rounded-xl hover:bg-white/10 transition-all duration-200 hover:scale-105"
+      >
         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
         </svg>

@@ -4,36 +4,80 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Café Owner Dashboard AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
         theme: {
           extend: {
+            fontFamily: {
+              'sans': ['Inter', 'system-ui', 'sans-serif'],
+              'mono': ['JetBrains Mono', 'monospace'],
+            },
             colors: {
-              'brand-primary': '#4a2c2a',
-              'brand-secondary': '#eaddc7',
-              'brand-accent': '#a27b5c',
-              'brand-text': '#dcd0c0',
-              'brand-bg': '#1e1b18',
+              'brand-primary': '#1a1a1a',
+              'brand-secondary': '#f8f9fa',
+              'brand-accent': '#6366f1',
+              'brand-accent-light': '#818cf8',
+              'brand-accent-dark': '#4f46e5',
+              'brand-text': '#e5e7eb',
+              'brand-text-muted': '#9ca3af',
+              'brand-bg': '#0f0f0f',
+              'brand-surface': '#1f1f1f',
+              'brand-border': '#374151',
+              'success': '#10b981',
+              'warning': '#f59e0b',
+              'error': '#ef4444',
+            },
+            backgroundImage: {
+              'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+              'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
             },
             keyframes: {
               'fade-in': {
                 '0%': { opacity: '0' },
                 '100%': { opacity: '1' },
               },
-              'scale-up': {
-                '0%': { transform: 'scale(0.95)', opacity: '0' },
+              'fade-in-up': {
+                '0%': { opacity: '0', transform: 'translateY(20px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              },
+              'fade-in-down': {
+                '0%': { opacity: '0', transform: 'translateY(-20px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              },
+              'scale-in': {
+                '0%': { transform: 'scale(0.9)', opacity: '0' },
                 '100%': { transform: 'scale(1)', opacity: '1' },
               },
-               'fade-in-up': {
-                '0%': { opacity: '0', transform: 'translateY(10px)' },
-                '100%': { opacity: '1', transform: 'translateY(0)' },
+              'slide-in-right': {
+                '0%': { transform: 'translateX(100%)', opacity: '0' },
+                '100%': { transform: 'translateX(0)', opacity: '1' },
+              },
+              'slide-in-left': {
+                '0%': { transform: 'translateX(-100%)', opacity: '0' },
+                '100%': { transform: 'translateX(0)', opacity: '1' },
+              },
+              'pulse-glow': {
+                '0%, 100%': { boxShadow: '0 0 20px rgba(99, 102, 241, 0.3)' },
+                '50%': { boxShadow: '0 0 30px rgba(99, 102, 241, 0.6)' },
+              },
+              'float': {
+                '0%, 100%': { transform: 'translateY(0px)' },
+                '50%': { transform: 'translateY(-10px)' },
               },
             },
             animation: {
-              'fade-in': 'fade-in 0.3s ease-out',
-              'scale-up': 'scale-up 0.3s ease-out',
-              'fade-in-up': 'fade-in-up 0.3s ease-out forwards',
+              'fade-in': 'fade-in 0.4s ease-out',
+              'fade-in-up': 'fade-in-up 0.5s ease-out',
+              'fade-in-down': 'fade-in-down 0.5s ease-out',
+              'scale-in': 'scale-in 0.3s ease-out',
+              'slide-in-right': 'slide-in-right 0.4s ease-out',
+              'slide-in-left': 'slide-in-left 0.4s ease-out',
+              'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
+              'float': 'float 3s ease-in-out infinite',
             },
           }
         }
@@ -69,7 +113,7 @@
 </script>
 <link rel="stylesheet" href="/index.css">
 </head>
-  <body class="bg-brand-bg text-brand-text antialiased">
+  <body class="text-brand-text antialiased selection:bg-brand-accent/40 bg-gradient-to-br from-brand-bg via-brand-primary to-brand-surface min-h-screen">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>

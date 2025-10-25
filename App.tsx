@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, lazy, Suspense } from 'react';
 import { Header } from './components/Header';
 import { generatePairings } from './services/geminiService';
-import type { Coffee, Pastry, PairingResponse, Tenant } from './types';
+import type { Coffee, Pastry, PairingResponse } from './types';
 import { CoffeeIcon } from './components/icons/CoffeeIcon';
 import { PastryIcon } from './components/icons/PastryIcon';
 import { supabase, uploadImage, deleteImage } from './services/supabaseClient';
@@ -15,6 +15,12 @@ import { Toast } from './components/Toast';
 const EditModal = lazy(() => import('./components/EditModal').then(module => ({ default: module.EditModal })));
 const AddModal = lazy(() => import('./components/AddModal').then(module => ({ default: module.AddModal })));
 const PairingResults = lazy(() => import('./components/PairingResults').then(module => ({ default: module.PairingResults })));
+
+const SparkleIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M12 3v3.4a1 1 0 0 0 1 1h3.4M12 21v-3.4a1 1 0 0 0-1-1H7.6M5.6 5.6 7.4 7.4M16.6 16.6l1.8 1.8M19 12h-3.4a1 1 0 0 0-1 1V16.4M5 12h3.4a1 1 0 0 0 1-1V7.6" />
+  </svg>
+);
 
 function App() {
   const [tenantId, setTenantId] = useState<string | null>(null);
@@ -40,6 +46,8 @@ function App() {
     setToast({ message, type });
     setTimeout(() => setToast(null), 4000);
   };
+
+  const formatNumber = useCallback((value: number) => value.toLocaleString('id-ID'), []);
 
   // Effect to initialize tenant
   useEffect(() => {
@@ -262,11 +270,12 @@ function App() {
     setIsAddModalOpen(true);
   }, []);
 
+
   // Memoized coffee list untuk performa
   const coffeeList = useMemo(() => {
-    if (inventoryLoading) return <Spinner/>;
-    if (inventoryError) return <p className="text-red-400">{inventoryError}</p>;
-    if (coffees.length === 0) return <p className="text-brand-text/70 text-sm italic p-4 text-center">No coffees added yet.</p>;
+    if (inventoryLoading) return <div className="flex w-full justify-center py-6"><Spinner /></div>;
+    if (inventoryError) return <p className="rounded-2xl bg-red-900/40 p-4 text-sm text-red-200">{inventoryError}</p>;
+    if (coffees.length === 0) return <p className="rounded-2xl bg-brand-bg/40 p-4 text-sm text-brand-text/60">Belum ada kopi yang ditambahkan.</p>;
     
     return coffees.map(coffee => (
       <InventoryItem 
@@ -281,9 +290,9 @@ function App() {
 
   // Memoized pastry list untuk performa
   const pastryList = useMemo(() => {
-    if (inventoryLoading) return <Spinner/>;
-    if (inventoryError) return <p className="text-red-400">{inventoryError}</p>;
-    if (pastries.length === 0) return <p className="text-brand-text/70 text-sm italic p-4 text-center">No pastries added yet.</p>;
+    if (inventoryLoading) return <div className="flex w-full justify-center py-6"><Spinner /></div>;
+    if (inventoryError) return <p className="rounded-2xl bg-red-900/40 p-4 text-sm text-red-200">{inventoryError}</p>;
+    if (pastries.length === 0) return <p className="rounded-2xl bg-brand-bg/40 p-4 text-sm text-brand-text/60">Belum ada pastry yang ditambahkan.</p>;
     
     return pastries.map(pastry => (
       <InventoryItem 
@@ -298,131 +307,201 @@ function App() {
 
   // Memoized coffee selection list
   const coffeeSelectionList = useMemo(() => {
-    if (inventoryLoading) return <Spinner />;
-    if (coffees.length === 0) return <p className="text-brand-text/70 text-sm italic p-4 text-center w-full">Add a coffee to your inventory to start pairing.</p>;
+    if (inventoryLoading) return <div className="flex w-full justify-center py-6"><Spinner /></div>;
+    if (coffees.length === 0) return <p className="w-full rounded-2xl bg-brand-bg/40 p-4 text-center text-sm text-brand-text/60">Tambahkan kopi ke inventori untuk mulai pairing.</p>;
     
-    return coffees.map(coffee => (
-      <div
-        key={coffee.id}
-        role="button"
-        tabIndex={0}
-        onClick={() => handleSelectCoffee(coffee)}
-        onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleSelectCoffee(coffee)}
-        className={`flex-shrink-0 w-32 p-2 rounded-lg cursor-pointer transition-all duration-200 border-2 ${
-          selectedCoffee?.id === coffee.id 
-          ? 'border-brand-accent bg-brand-accent/20 scale-105' 
-          : 'border-transparent hover:border-brand-accent/50 hover:bg-brand-bg/10'
-        }`}
-      >
-        <LazyImage 
-          src={coffee.image_url} 
-          alt={coffee.name} 
-          className="w-full h-24 object-cover rounded-md mb-2 shadow-lg" 
-        />
-        <p className="text-center text-xs font-semibold text-white truncate">{coffee.name}</p>
-      </div>
-    ));
+    return coffees.map(coffee => {
+      const isActive = selectedCoffee?.id === coffee.id;
+      const baseClasses = 'group relative flex-shrink-0 snap-center rounded-2xl border px-3 pb-3 pt-3 transition-all duration-200 sm:w-36 w-32';
+      const activeClasses = isActive
+        ? 'border-brand-accent/70 bg-brand-accent/20 shadow-[0_18px_45px_-18px_rgba(162,123,92,0.9)]'
+        : 'border-white/10 bg-white/5 hover:border-brand-accent/40 hover:bg-brand-accent/10';
+      return (
+        <div
+          key={coffee.id}
+          role="button"
+          tabIndex={0}
+          onClick={() => handleSelectCoffee(coffee)}
+          onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleSelectCoffee(coffee)}
+          className={[baseClasses, activeClasses].join(' ')}
+        >
+          <LazyImage 
+            src={coffee.image_url} 
+            alt={coffee.name} 
+            className="mb-3 h-24 w-full rounded-xl object-cover shadow-lg transition-transform duration-300 group-hover:scale-[1.02]" 
+          />
+          <div className="space-y-1">
+            <p className="text-xs font-semibold text-white line-clamp-2 text-left">{coffee.name}</p>
+            <p className="text-[11px] text-brand-text/60 line-clamp-2 text-left">{coffee.flavor_notes}</p>
+          </div>
+          {isActive && <span className="absolute -right-1 -top-1 h-3.5 w-3.5 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.8)]" />}
+        </div>
+      );
+    });
   }, [coffees, selectedCoffee, inventoryLoading, handleSelectCoffee]);
 
   return (
-    <div className="min-h-screen w-full">
+    <div className="relative min-h-screen w-full overflow-x-hidden">
+      <div className="pointer-events-none fixed inset-0 -z-10">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.05),_transparent_60%)]" />
+      </div>
+
       <Header />
-      <main className="container mx-auto p-4 md:p-8">
-        
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-            {/* Coffee Management */}
-            <div className="bg-brand-primary/50 rounded-lg p-6 shadow-xl flex flex-col">
-                 <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-xl font-bold text-white flex items-center gap-2"><CoffeeIcon className="w-6 h-6"/>Coffee Inventory</h2>
-                    <button onClick={() => openAddModal('coffee')} className="bg-brand-accent/80 text-white font-bold py-2 px-4 rounded-lg shadow-lg hover:bg-brand-accent transition-colors disabled:bg-gray-500">
-                        Add Coffee
-                    </button>
-                 </div>
-                <div className="space-y-2 flex-grow flex flex-col">
-                    <h3 className="font-semibold text-white border-b border-brand-accent/30 pb-2">Current Coffees: {coffees.length}</h3>
-                     <div className="flex-grow overflow-y-auto max-h-60 pr-2 space-y-2">
-                         {coffeeList}
-                     </div>
+
+      <main className="relative z-10 mx-auto w-full max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
+        <section className="mb-12 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {statsCards.map(card => (
+            <div
+              key={card.key}
+              className="glass-panel--subtle fade-border relative overflow-hidden rounded-2xl p-5 transition-transform duration-300 ease-out hover:-translate-y-1 hover:shadow-2xl"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div className="space-y-3">
+                  <p className="text-[11px] uppercase tracking-[0.32em] text-brand-text/55">{card.label}</p>
+                  <h3 className="text-2xl font-semibold text-white">{card.value}</h3>
+                  <p className="text-xs leading-relaxed text-brand-text/70">{card.description}</p>
                 </div>
-            </div>
-
-            {/* Pastry Management */}
-            <div className="bg-brand-primary/50 rounded-lg p-6 shadow-xl flex flex-col">
-                 <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-xl font-bold text-white flex items-center gap-2"><PastryIcon className="w-6 h-6"/>Pastry Inventory</h2>
-                    <button onClick={() => openAddModal('pastry')} className="bg-brand-accent/80 text-white font-bold py-2 px-4 rounded-lg shadow-lg hover:bg-brand-accent transition-colors disabled:bg-gray-500">
-                        Add Pastry
-                    </button>
-                 </div>
-                <div className="space-y-2 flex-grow flex flex-col">
-                    <h3 className="font-semibold text-white border-b border-brand-accent/30 pb-2">Current Pastries: {pastries.length}</h3>
-                     <div className="flex-grow overflow-y-auto max-h-60 pr-2 space-y-2">
-                        {pastryList}
-                    </div>
+                <div className="rounded-2xl bg-brand-bg/60 p-3 text-brand-accent shadow-inner ring-1 ring-brand-accent/20">
+                  {card.icon}
                 </div>
+              </div>
             </div>
-        </div>
+          ))}
+        </section>
 
-        {/* Pairing Generation */}
-        <div className="bg-brand-primary/50 rounded-lg p-6 shadow-xl">
-            <h2 className="text-xl font-bold text-white mb-1">Generate Smart Pairings</h2>
-            <p className="text-sm text-brand-text/80 mb-4">Select a coffee from your inventory to begin.</p>
-            
-            <div className="flex overflow-x-auto gap-4 py-2 px-2 -mx-2 mb-4">
-                {coffeeSelectionList}
+        <section className="grid gap-6 lg:grid-cols-2">
+          <div className="glass-panel rounded-3xl p-6 lg:p-7">
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="rounded-2xl bg-brand-bg/70 p-3 text-brand-accent shadow-inner ring-1 ring-brand-accent/20">
+                  <CoffeeIcon className="h-6 w-6" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-white">Coffee Inventory</h2>
+                  <p className="text-xs text-brand-text/60">Kelola varian kopi kamu lengkap dengan flavor notes.</p>
+                </div>
+              </div>
+              <button
+                onClick={() => openAddModal('coffee')}
+                className="button-primary-pulse inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-brand-accent via-brand-accent/80 to-amber-400/70 px-4 py-2 text-sm font-semibold text-white shadow-lg transition hover:brightness-110"
+              >
+                <span className="inline-flex h-2 w-2 rounded-full bg-white/70" />
+                Add Coffee
+              </button>
             </div>
-
-            <div className="mt-4 flex flex-col items-center">
-                <button
-                    onClick={handleGeneratePairings}
-                    disabled={!selectedCoffee || pastries.length === 0 || isLoading}
-                    className="bg-brand-accent text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:bg-opacity-80 disabled:bg-gray-500 disabled:cursor-not-allowed transition-all transform hover:scale-105 disabled:scale-100"
-                >
-                    {isLoading ? 'Thinking...' : 'Smart Pair with Pastry'}
-                </button>
-                {!selectedCoffee && pastries.length > 0 && coffees.length > 0 && <p className="text-sm text-brand-accent mt-2 animate-fade-in">Please select a coffee to begin.</p>}
-                {pastries.length === 0 && coffees.length > 0 && <p className="text-sm text-red-400 mt-2">Please add at least one pastry to enable pairing.</p>}
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center justify-between text-xs uppercase tracking-[0.26em] text-brand-text/50">
+                <span>Current Coffees</span>
+                <span>{coffees.length}</span>
+              </div>
+              <div className="flex-grow space-y-3 overflow-y-auto pr-1" style={{ maxHeight: '22rem' }}>
+                {coffeeList}
+              </div>
             </div>
-        </div>
+          </div>
 
+          <div className="glass-panel rounded-3xl p-6 lg:p-7">
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="rounded-2xl bg-brand-bg/70 p-3 text-brand-accent shadow-inner ring-1 ring-brand-accent/20">
+                  <PastryIcon className="h-6 w-6" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-white">Pastry Inventory</h2>
+                  <p className="text-xs text-brand-text/60">Tetapkan tekstur & allergen untuk rekomendasi yang tepat.</p>
+                </div>
+              </div>
+              <button
+                onClick={() => openAddModal('pastry')}
+                className="button-primary-pulse inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-brand-accent via-brand-accent/80 to-amber-400/70 px-4 py-2 text-sm font-semibold text-white shadow-lg transition hover:brightness-110"
+              >
+                <span className="inline-flex h-2 w-2 rounded-full bg-white/70" />
+                Add Pastry
+              </button>
+            </div>
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center justify-between text-xs uppercase tracking-[0.26em] text-brand-text/50">
+                <span>Current Pastries</span>
+                <span>{pastries.length}</span>
+              </div>
+              <div className="flex-grow space-y-3 overflow-y-auto pr-1" style={{ maxHeight: '22rem' }}>
+                {pastryList}
+              </div>
+            </div>
+          </div>
+        </section>
 
-        <Suspense fallback={<div className="mt-8 bg-brand-primary/50 rounded-lg p-6 shadow-xl text-center"><Spinner /></div>}>
-          <PairingResults 
+        <section className="glass-panel mt-10 rounded-3xl p-6 lg:p-8">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <h2 className="text-2xl font-semibold text-white">Generate Smart Pairings</h2>
+              <p className="text-sm text-brand-text/70">Pilih kopi favoritmu, lalu biarkan AI mencari pastry pendamping terbaik.</p>
+            </div>
+            <div className="flex flex-col items-start gap-3 text-xs text-brand-text/60 lg:items-end">
+              <p>Tip: gunakan foto berkualitas agar tampilan kartu pairing lebih menggoda.</p>
+              <p className="rounded-full border border-brand-accent/30 px-3 py-1 text-[11px] uppercase tracking-[0.24em] text-brand-text/50">drag untuk melihat semua kopi</p>
+            </div>
+          </div>
+
+          <div className="mt-6 flex snap-x snap-mandatory gap-4 overflow-x-auto rounded-2xl bg-white/5 p-4">
+            {coffeeSelectionList}
+          </div>
+
+          <div className="mt-8 flex flex-col items-center gap-4">
+            <button
+              onClick={handleGeneratePairings}
+              disabled={!selectedCoffee || pastries.length === 0 || isLoading}
+              className="button-primary-pulse inline-flex items-center gap-3 rounded-2xl bg-gradient-to-r from-brand-accent via-brand-accent/90 to-amber-400/70 px-8 py-3 text-sm font-semibold text-white shadow-xl transition-all hover:shadow-[0_30px_60px_-25px_rgba(162,123,92,0.85)] disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-brand-text/50"
+            >
+              {isLoading ? 'Thinking...' : 'Smart Pair with Pastry'}
+            </button>
+            {!selectedCoffee && pastries.length > 0 && coffees.length > 0 && (
+              <p className="text-sm text-brand-accent">Pilih dulu kopi yang mau di-highlight.</p>
+            )}
+            {pastries.length === 0 && coffees.length > 0 && (
+              <p className="text-sm text-red-300">Tambah minimal satu pastry agar pairing bisa jalan.</p>
+            )}
+          </div>
+        </section>
+
+        <Suspense fallback={<div className="mt-10 text-center"><Spinner /></div>}>
+          <PairingResults
             result={pairingResult}
             isLoading={isLoading}
             error={error}
           />
         </Suspense>
-        
+
         {(editingCoffee || editingPastry) && (
-            <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center"><Spinner /></div>}>
-                <EditModal
-                    item={editingCoffee || editingPastry}
-                    type={editingCoffee ? 'coffee' : 'pastry'}
-                    onClose={() => { setEditingCoffee(null); setEditingPastry(null); }}
-                    onSaveCoffee={handleUpdateCoffee}
-                    onSavePastry={handleUpdatePastry}
-                />
-            </Suspense>
+          <Suspense fallback={<div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur"><Spinner /></div>}>
+            <EditModal
+              item={editingCoffee || editingPastry}
+              type={editingCoffee ? 'coffee' : 'pastry'}
+              onClose={() => {
+                setEditingCoffee(null);
+                setEditingPastry(null);
+              }}
+              onSaveCoffee={handleUpdateCoffee}
+              onSavePastry={handleUpdatePastry}
+            />
+          </Suspense>
         )}
-        
+
         {isAddModalOpen && (
-            <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center"><Spinner /></div>}>
-                <AddModal
-                    type={addModalType}
-                    onClose={() => setIsAddModalOpen(false)}
-                    onAddCoffee={handleAddCoffee}
-                    onAddPastry={handleAddPastry}
-                />
-            </Suspense>
+          <Suspense fallback={<div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur"><Spinner /></div>}>
+            <AddModal
+              type={addModalType}
+              onClose={() => setIsAddModalOpen(false)}
+              onAddCoffee={handleAddCoffee}
+              onAddPastry={handleAddPastry}
+            />
+          </Suspense>
         )}
-
-
       </main>
-      
+
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
-      <footer className="text-center py-6 text-xs text-brand-text/50 no-print">
+      <footer className="relative z-10 py-8 text-center text-[11px] uppercase tracking-[0.3em] text-brand-text/40">
         <p>Café Owner AI Dashboard | Powered by Gemini & Supabase</p>
       </footer>
     </div>
