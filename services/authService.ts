@@ -32,8 +32,23 @@ export interface SignUpData {
   website?: string;
 }
 
+// Rate limiting protection
+let lastSignupAttempt = 0;
+const SIGNUP_COOLDOWN = 6000; // 6 seconds cooldown
+
 export const authService = {
   async signUp(data: SignUpData) {
+    // Check rate limiting
+    const now = Date.now();
+    const timeSinceLastAttempt = now - lastSignupAttempt;
+    
+    if (timeSinceLastAttempt < SIGNUP_COOLDOWN) {
+      const waitTime = SIGNUP_COOLDOWN - timeSinceLastAttempt;
+      throw new Error(`Please wait ${Math.ceil(waitTime / 1000)} seconds before trying again.`);
+    }
+    
+    lastSignupAttempt = now;
+
     // Sign up user with Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: data.email,
@@ -48,6 +63,10 @@ export const authService = {
 
     if (authError) {
       console.error('Auth signup error:', authError);
+      // Handle rate limiting error specifically
+      if (authError.message.includes('5 seconds')) {
+        throw new Error('Please wait 5 seconds before trying to sign up again.');
+      }
       throw authError;
     }
     if (!authData.user) throw new Error('User creation failed');
