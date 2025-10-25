@@ -111,36 +111,23 @@ export const PublicShopsSection: React.FC = () => {
 
             <div className="text-center">
               <div className="glass-panel rounded-2xl p-8 max-w-2xl mx-auto">
-                <h3 className="text-2xl font-bold text-white mb-4">How to Access Public Shops</h3>
-                <div className="space-y-4 text-left">
-                  <div className="flex items-start gap-3">
-                    <div className="bg-brand-accent text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">1</div>
-                    <div>
-                      <p className="text-white font-medium">Direct URL Access</p>
-                      <p className="text-brand-text-muted text-sm">
-                        Use the format: <code className="bg-brand-primary px-2 py-1 rounded text-brand-accent">/s/[shop-slug]</code>
-                      </p>
-                    </div>
+                <h3 className="text-2xl font-bold text-white mb-4">Discover Perfect Coffee Pairings</h3>
+                <p className="text-brand-text-muted mb-6">
+                  Each café showcases their unique coffee collection with AI-powered pairing recommendations. 
+                  Browse, search, and discover your perfect coffee experience.
+                </p>
+                <div className="flex flex-wrap justify-center gap-4">
+                  <div className="flex items-center gap-2 text-sm text-brand-text-muted">
+                    <span className="w-2 h-2 bg-brand-accent rounded-full"></span>
+                    Search & Filter
                   </div>
-                  
-                  <div className="flex items-start gap-3">
-                    <div className="bg-brand-accent text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">2</div>
-                    <div>
-                      <p className="text-white font-medium">QR Code Scanning</p>
-                      <p className="text-brand-text-muted text-sm">
-                        Cafés can generate QR codes that link directly to their public pages
-                      </p>
-                    </div>
+                  <div className="flex items-center gap-2 text-sm text-brand-text-muted">
+                    <span className="w-2 h-2 bg-brand-accent rounded-full"></span>
+                    AI Pairing Recommendations
                   </div>
-                  
-                  <div className="flex items-start gap-3">
-                    <div className="bg-brand-accent text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">3</div>
-                    <div>
-                      <p className="text-white font-medium">Search & Discovery</p>
-                      <p className="text-brand-text-muted text-sm">
-                        Customers can search for specific coffees and discover perfect pairings
-                      </p>
-                    </div>
+                  <div className="flex items-center gap-2 text-sm text-brand-text-muted">
+                    <span className="w-2 h-2 bg-brand-accent rounded-full"></span>
+                    Mobile Friendly
                   </div>
                 </div>
               </div>

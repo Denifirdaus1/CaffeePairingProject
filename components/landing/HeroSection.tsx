@@ -26,7 +26,7 @@ export const HeroSection: React.FC = () => {
         </h1>
 
         <p className="mx-auto mb-8 max-w-3xl text-xl text-brand-text/80">
-          Discover the perfect coffee-pastry combinations using AI-powered analysis. 
+          For café owners: Discover the perfect coffee-pastry combinations using AI-powered analysis. 
           Manage your inventory, optimize your menu, and create unforgettable customer experiences.
         </p>
 
@@ -35,7 +35,7 @@ export const HeroSection: React.FC = () => {
             to="/register"
             className="button-primary-pulse inline-flex items-center gap-3 rounded-2xl bg-gradient-to-r from-brand-accent via-brand-accent/90 to-amber-400/70 px-8 py-4 text-lg font-semibold text-white shadow-xl transition-all hover:shadow-[0_30px_60px_-25px_rgba(162,123,92,0.85)]"
           >
-            <span>Start Free Trial</span>
+            <span>Start Free Trial (Café Owners)</span>
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
             </svg>
@@ -45,7 +45,7 @@ export const HeroSection: React.FC = () => {
             to="/login"
             className="inline-flex items-center gap-3 rounded-2xl border border-brand-accent/30 bg-brand-surface/40 px-8 py-4 text-lg font-semibold text-brand-text transition-all hover:bg-brand-surface/60 hover:text-white"
           >
-            <span>Sign In</span>
+            <span>Sign In (Café Owners)</span>
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
             </svg>
@@ -76,9 +76,10 @@ export const HeroSection: React.FC = () => {
         {/* Demo Public Shops */}
         <div className="mt-16">
           <div className="glass-panel rounded-2xl p-8 max-w-4xl mx-auto">
-            <h3 className="text-2xl font-bold text-white mb-4 text-center">Try Our Demo Shops</h3>
+            <h3 className="text-2xl font-bold text-white mb-4 text-center">For Customers: Try Our Demo Shops</h3>
             <p className="text-brand-text-muted text-center mb-6">
-              Experience how customers discover coffee pairings in our partner cafés
+              Experience how customers discover coffee pairings in our partner cafés. 
+              No signup required - just browse and explore!
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Link
