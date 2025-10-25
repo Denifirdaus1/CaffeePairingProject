@@ -76,8 +76,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setLoading(true);
     try {
       const result = await authService.signUp(data);
-      // Don't try to get current user immediately, let the auth state change handle it
       console.log('Signup successful:', result);
+      // Set user immediately after successful signup
+      setUser({
+        id: result.user.id,
+        email: result.user.email!,
+        full_name: result.user.user_metadata?.full_name || '',
+        cafe_profile: result.profile
+      });
     } catch (error) {
       console.error('Signup error:', error);
       throw error;
