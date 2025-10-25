@@ -1,0 +1,264 @@
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../services/supabaseClient';
+import { CoffeeIcon } from './icons/CoffeeIcon';
+import { Spinner } from './Spinner';
+import { Toast } from './Toast';
+
+interface Coffee {
+  id: string;
+  name: string;
+  flavor_notes?: string;
+  image_url?: string;
+  is_main_shot: boolean;
+  main_shot_until?: string;
+}
+
+interface MainShotManagerProps {
+  coffees: Coffee[];
+  onUpdate: () => void;
+}
+
+export const MainShotManager: React.FC<MainShotManagerProps> = ({
+  coffees,
+  onUpdate
+}) => {
+  const [loading, setLoading] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [selectedCoffee, setSelectedCoffee] = useState<string>('');
+  const [mainShotUntil, setMainShotUntil] = useState<string>('');
+
+  // Get current main shot
+  const currentMainShot = coffees.find(coffee => coffee.is_main_shot);
+
+  useEffect(() => {
+    if (currentMainShot?.main_shot_until) {
+      setMainShotUntil(currentMainShot.main_shot_until);
+    } else {
+      // Default to tomorrow
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      setMainShotUntil(tomorrow.toISOString().split('T')[0]);
+    }
+  }, [currentMainShot]);
+
+  const handleSetMainShot = async (coffeeId: string) => {
+    setLoading(coffeeId);
+    try {
+      // First, clear any existing main shot
+      if (currentMainShot) {
+        await supabase
+          .from('coffees')
+          .update({ is_main_shot: false, main_shot_until: null })
+          .eq('id', currentMainShot.id);
+      }
+
+      // Set new main shot
+      const { error } = await supabase
+        .from('coffees')
+        .update({
+          is_main_shot: true,
+          main_shot_until: mainShotUntil
+        })
+        .eq('id', coffeeId);
+
+      if (error) throw error;
+
+      setToast({ message: 'Main shot updated successfully!', type: 'success' });
+      onUpdate();
+    } catch (error) {
+      console.error('Error setting main shot:', error);
+      setToast({ message: 'Failed to update main shot', type: 'error' });
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const handleRemoveMainShot = async () => {
+    if (!currentMainShot) return;
+    
+    setLoading(currentMainShot.id);
+    try {
+      const { error } = await supabase
+        .from('coffees')
+        .update({
+          is_main_shot: false,
+          main_shot_until: null
+        })
+        .eq('id', currentMainShot.id);
+
+      if (error) throw error;
+
+      setToast({ message: 'Main shot removed successfully!', type: 'success' });
+      onUpdate();
+    } catch (error) {
+      console.error('Error removing main shot:', error);
+      setToast({ message: 'Failed to remove main shot', type: 'error' });
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const isExpired = (untilDate?: string) => {
+    if (!untilDate) return false;
+    return new Date(untilDate) < new Date();
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Current Main Shot */}
+      {currentMainShot && (
+        <div className="glass-panel rounded-2xl p-6 border-2 border-brand-accent">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="bg-brand-accent text-white px-3 py-1 rounded-full text-sm font-semibold">
+              Current Main Shot
+            </div>
+            {isExpired(currentMainShot.main_shot_until) && (
+              <div className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                Expired
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center gap-4 mb-4">
+            {currentMainShot.image_url && (
+              <img
+                src={currentMainShot.image_url}
+                alt={currentMainShot.name}
+                className="w-16 h-16 rounded-lg object-cover"
+              />
+            )}
+            <div className="flex-1">
+              <h3 className="text-xl font-semibold text-white">{currentMainShot.name}</h3>
+              {currentMainShot.flavor_notes && (
+                <p className="text-brand-text-muted text-sm">{currentMainShot.flavor_notes}</p>
+              )}
+              {currentMainShot.main_shot_until && (
+                <p className="text-brand-text-muted text-sm">
+                  Until: {new Date(currentMainShot.main_shot_until).toLocaleDateString()}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="flex gap-2">
+            <button
+              onClick={handleRemoveMainShot}
+              disabled={loading === currentMainShot.id}
+              className="flex-1 flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 disabled:bg-red-600/50 text-white px-4 py-2 rounded-lg transition-colors"
+            >
+              {loading === currentMainShot.id ? (
+                <Spinner />
+              ) : (
+                <span>✕</span>
+              )}
+              Remove Main Shot
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Set New Main Shot */}
+      <div className="glass-panel rounded-2xl p-6">
+        <h3 className="text-xl font-semibold text-white mb-4">Set New Main Shot</h3>
+        
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-brand-text/90 mb-2">
+              Select Coffee
+            </label>
+            <select
+              value={selectedCoffee}
+              onChange={(e) => setSelectedCoffee(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl bg-brand-bg border border-brand-border focus:ring-2 focus:ring-brand-accent focus:border-transparent text-white"
+            >
+              <option value="">Choose a coffee...</option>
+              {coffees.map(coffee => (
+                <option key={coffee.id} value={coffee.id}>
+                  {coffee.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-brand-text/90 mb-2">
+              Main Shot Until
+            </label>
+            <input
+              type="date"
+              value={mainShotUntil}
+              onChange={(e) => setMainShotUntil(e.target.value)}
+              min={new Date().toISOString().split('T')[0]}
+              className="w-full px-4 py-3 rounded-xl bg-brand-bg border border-brand-border focus:ring-2 focus:ring-brand-accent focus:border-transparent text-white"
+            />
+          </div>
+
+          <button
+            onClick={() => selectedCoffee && handleSetMainShot(selectedCoffee)}
+            disabled={!selectedCoffee || loading !== null}
+            className="w-full flex items-center justify-center gap-2 bg-brand-accent hover:bg-brand-accent/90 disabled:bg-brand-accent/50 text-white px-4 py-3 rounded-lg transition-colors"
+          >
+            {loading ? (
+              <Spinner />
+            ) : (
+              <>
+                <CoffeeIcon className="h-4 w-4" />
+                Set as Main Shot
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Coffee List */}
+      <div className="glass-panel rounded-2xl p-6">
+        <h3 className="text-xl font-semibold text-white mb-4">Available Coffees</h3>
+        
+        {coffees.length === 0 ? (
+          <p className="text-brand-text-muted text-center py-8">
+            No coffees available. Add some coffees to set a main shot.
+          </p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {coffees.map(coffee => (
+              <div
+                key={coffee.id}
+                className={`p-4 rounded-xl border transition-colors cursor-pointer ${
+                  coffee.is_main_shot
+                    ? 'border-brand-accent bg-brand-accent/10'
+                    : 'border-brand-border bg-brand-surface/40 hover:border-brand-accent/50'
+                }`}
+                onClick={() => setSelectedCoffee(coffee.id)}
+              >
+                <div className="flex items-center gap-3">
+                  {coffee.image_url && (
+                    <img
+                      src={coffee.image_url}
+                      alt={coffee.name}
+                      className="w-12 h-12 rounded-lg object-cover"
+                    />
+                  )}
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-white">{coffee.name}</h4>
+                    {coffee.flavor_notes && (
+                      <p className="text-sm text-brand-text-muted line-clamp-1">
+                        {coffee.flavor_notes}
+                      </p>
+                    )}
+                    {coffee.is_main_shot && (
+                      <span className="text-xs text-brand-accent font-semibold">
+                        Current Main Shot
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+    </div>
+  );
+};

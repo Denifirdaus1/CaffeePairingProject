@@ -10,6 +10,8 @@ import { Spinner } from './Spinner';
 import { InventoryItem } from './InventoryItem';
 import { LazyImage } from './LazyImage';
 import { Toast } from './Toast';
+import { ApprovalWorkflow } from './ApprovalWorkflow';
+import { MainShotManager } from './MainShotManager';
 import { useAuth } from '../contexts/AuthContext';
 
 // Lazy load heavy components
@@ -45,6 +47,11 @@ export const Dashboard: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
+  // Approval workflow state
+  const [pairings, setPairings] = useState<any[]>([]);
+  const [pairingsLoading, setPairingsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'inventory' | 'pairings' | 'approvals' | 'mainshot'>('inventory');
+
   // Get café ID from user context
   const getCafeId = async () => {
     if (!user?.cafe_profile?.id) {
@@ -52,6 +59,32 @@ export const Dashboard: React.FC = () => {
     }
     return user.cafe_profile.id;
   };
+
+  // Fetch pairings for approval workflow
+  const fetchPairings = useCallback(async () => {
+    if (!user?.cafe_profile?.id) return;
+    
+    setPairingsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('pairings')
+        .select(`
+          *,
+          coffees (id, name, image_url),
+          pastries (id, name, image_url)
+        `)
+        .eq('cafe_id', user.cafe_profile.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setPairings(data || []);
+    } catch (error) {
+      console.error('Error fetching pairings:', error);
+      setToast({ message: 'Failed to load pairings', type: 'error' });
+    } finally {
+      setPairingsLoading(false);
+    }
+  }, [user?.cafe_profile?.id]);
 
   useEffect(() => {
     const fetchTenant = async () => {
@@ -62,6 +95,7 @@ export const Dashboard: React.FC = () => {
           setInventoryLoading(false);
           return;
         }
+        await fetchPairings();
       } catch (error: any) {
         console.error('Error fetching café:', error);
         setInventoryError(`Error fetching café: ${error.message}`);
@@ -70,7 +104,7 @@ export const Dashboard: React.FC = () => {
     };
 
     fetchTenant();
-  }, [user]);
+  }, [user, fetchPairings]);
 
   const fetchInventory = async () => {
     try {
@@ -231,12 +265,37 @@ export const Dashboard: React.FC = () => {
     try {
       const result = await generatePairings(selectedCoffee, pastries);
       setPairingResult(result);
+      
+      // Save pairings to database for approval workflow
+      if (result.pairs && result.pairs.length > 0) {
+        const cafeId = await getCafeId();
+        const pairingInserts = result.pairs.map(pair => ({
+          cafe_id: cafeId,
+          coffee_id: selectedCoffee.id,
+          pastry_id: pair.pastry.id,
+          score: pair.score,
+          why: pair.why_marketing,
+          status: 'pending',
+          is_approved: false
+        }));
+
+        const { error } = await supabase
+          .from('pairings')
+          .insert(pairingInserts);
+
+        if (error) {
+          console.error('Error saving pairings:', error);
+        } else {
+          // Refresh pairings list
+          await fetchPairings();
+        }
+      }
     } catch (error: any) {
       setError(error.message);
     } finally {
       setIsLoading(false);
     }
-  }, [selectedCoffee, pastries]);
+  }, [selectedCoffee, pastries, getCafeId, fetchPairings]);
 
   const handleSelectCoffee = useCallback((coffee: Coffee) => {
     setSelectedCoffee(prev => (prev?.id === coffee.id ? null : coffee));
@@ -336,7 +395,61 @@ export const Dashboard: React.FC = () => {
 
       <main className="relative z-10 mx-auto w-full max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
 
-        <section className="grid gap-6 lg:grid-cols-2">
+        {/* Tab Navigation */}
+        <div className="mb-8">
+          <div className="flex space-x-1 rounded-xl bg-brand-surface/40 p-1">
+            <button
+              onClick={() => setActiveTab('inventory')}
+              className={`flex-1 rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+                activeTab === 'inventory'
+                  ? 'bg-brand-accent text-white shadow-lg'
+                  : 'text-brand-text-muted hover:text-white hover:bg-brand-surface/60'
+              }`}
+            >
+              Inventory
+            </button>
+            <button
+              onClick={() => setActiveTab('pairings')}
+              className={`flex-1 rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+                activeTab === 'pairings'
+                  ? 'bg-brand-accent text-white shadow-lg'
+                  : 'text-brand-text-muted hover:text-white hover:bg-brand-surface/60'
+              }`}
+            >
+              Pairings
+            </button>
+            <button
+              onClick={() => setActiveTab('approvals')}
+              className={`flex-1 rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+                activeTab === 'approvals'
+                  ? 'bg-brand-accent text-white shadow-lg'
+                  : 'text-brand-text-muted hover:text-white hover:bg-brand-surface/60'
+              }`}
+            >
+              Approvals
+              {pairings.filter(p => !p.is_approved).length > 0 && (
+                <span className="ml-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                  {pairings.filter(p => !p.is_approved).length}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setActiveTab('mainshot')}
+              className={`flex-1 rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+                activeTab === 'mainshot'
+                  ? 'bg-brand-accent text-white shadow-lg'
+                  : 'text-brand-text-muted hover:text-white hover:bg-brand-surface/60'
+              }`}
+            >
+              Main Shot
+            </button>
+          </div>
+        </div>
+
+        {/* Tab Content */}
+        {activeTab === 'inventory' && (
+          <>
+          <section className="grid gap-6 lg:grid-cols-2">
           <div className="glass-panel rounded-3xl p-6 lg:p-7">
             <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-3">
@@ -434,6 +547,73 @@ export const Dashboard: React.FC = () => {
         <Suspense fallback={<div className="mt-10 text-center"><Spinner /></div>}>
           <PairingResults result={pairingResult} isLoading={isLoading} error={error} />
         </Suspense>
+        </>
+        )}
+
+        {/* Pairings Tab */}
+        {activeTab === 'pairings' && (
+          <section className="glass-panel rounded-3xl p-6 lg:p-8">
+            <h2 className="text-2xl font-semibold text-white mb-6">Generate Smart Pairings</h2>
+            <p className="text-sm text-brand-text/70 mb-6">Choose your favorite coffee, then let AI find the best pastry pairings.</p>
+            
+            <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto rounded-2xl bg-white/5 p-4 mb-6">
+              {coffeeSelectionList}
+            </div>
+
+            <div className="flex flex-col items-center gap-4">
+              <button
+                onClick={handleGeneratePairings}
+                disabled={!selectedCoffee || pastries.length === 0 || isLoading}
+                className="button-primary-pulse inline-flex items-center gap-3 rounded-2xl bg-gradient-to-r from-brand-accent via-brand-accent/90 to-amber-400/70 px-8 py-3 text-sm font-semibold text-white shadow-xl transition-all hover:shadow-[0_30px_60px_-25px_rgba(162,123,92,0.85)] disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-brand-text/50"
+              >
+                {isLoading ? 'Thinking...' : 'Smart Pair with Pastry'}
+              </button>
+              {!selectedCoffee && pastries.length > 0 && coffees.length > 0 && (
+                <p className="text-sm text-brand-accent">Please select a coffee first.</p>
+              )}
+              {pastries.length === 0 && coffees.length > 0 && (
+                <p className="text-sm text-red-300">Add at least one pastry to enable pairing.</p>
+              )}
+            </div>
+
+            <Suspense fallback={<div className="mt-10 text-center"><Spinner /></div>}>
+              <PairingResults result={pairingResult} isLoading={isLoading} error={error} />
+            </Suspense>
+          </section>
+        )}
+
+        {/* Approvals Tab */}
+        {activeTab === 'approvals' && (
+          <section className="glass-panel rounded-3xl p-6 lg:p-8">
+            <h2 className="text-2xl font-semibold text-white mb-6">Pairing Approvals</h2>
+            <p className="text-sm text-brand-text/70 mb-6">Review and approve AI-generated pairings before they appear on your public shop.</p>
+            
+            {pairingsLoading ? (
+              <div className="text-center py-12">
+                <Spinner />
+                <p className="text-brand-text-muted mt-4">Loading pairings...</p>
+              </div>
+            ) : (
+              <ApprovalWorkflow 
+                pairings={pairings} 
+                onApprovalChange={fetchPairings} 
+              />
+            )}
+          </section>
+        )}
+
+        {/* Main Shot Tab */}
+        {activeTab === 'mainshot' && (
+          <section className="glass-panel rounded-3xl p-6 lg:p-8">
+            <h2 className="text-2xl font-semibold text-white mb-6">Today's Main Shot</h2>
+            <p className="text-sm text-brand-text/70 mb-6">Set your featured coffee for today. This will be highlighted on your public shop page.</p>
+            
+            <MainShotManager 
+              coffees={coffees} 
+              onUpdate={fetchInventory} 
+            />
+          </section>
+        )}
 
         {(editingCoffee || editingPastry) && (
           <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center"><Spinner /></div>}>

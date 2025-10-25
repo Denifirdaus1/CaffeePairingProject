@@ -1,5 +1,6 @@
 import { GoogleGenAI } from '@google/genai';
 import type { Coffee, Pastry, PairingResponse } from '../types';
+import { calculateBunamoScore } from './bunamoService';
 
 if (!import.meta.env.VITE_GEMINI_API_KEY) {
     throw new Error("VITE_GEMINI_API_KEY environment variable is not set.");
@@ -85,27 +86,160 @@ export const generatePairings = async (
   allPastries: Pastry[]
 ): Promise<PairingResponse> => {
   try {
-    const response = await ai.models.generateContent({
-        model: 'gemini-2.5-pro',
-        contents: generatePairingPrompt(selectedCoffee, allPastries),
-        config: {
-            thinkingConfig: { thinkingBudget: 32768 },
-            tools: [{ googleSearch: {} }],
-        }
-    });
+    // First, calculate Bunamo scores for all pastries
+    const bunamoScores = allPastries.map(pastry => ({
+      pastry,
+      bunamoScore: calculateBunamoScore(selectedCoffee, pastry)
+    }));
 
-    // The response may be wrapped in markdown JSON backticks, so clean it before parsing.
-    let jsonText = response.text.trim();
-    if (jsonText.startsWith('```json')) {
-      jsonText = jsonText.substring(7, jsonText.length - 3).trim();
-    } else if (jsonText.startsWith('```')) {
-      jsonText = jsonText.substring(3, jsonText.length - 3).trim();
-    }
-    const result = JSON.parse(jsonText);
-    return result as PairingResponse;
+    // Sort by Bunamo overall score and take top 3
+    const topPairings = bunamoScores
+      .sort((a, b) => b.bunamoScore.overall - a.bunamoScore.overall)
+      .slice(0, 3);
+
+    // Generate AI-enhanced explanations for top pairings
+    const enhancedPairings = await Promise.all(
+      topPairings.map(async ({ pastry, bunamoScore }) => {
+        try {
+          const aiPrompt = `
+            You are a coffee expert. Provide a brief, marketing-friendly explanation for why this coffee-pastry pairing works well.
+            
+            Coffee: ${selectedCoffee.name}
+            Coffee Notes: ${selectedCoffee.flavor_notes || 'No notes'}
+            Pastry: ${pastry.name}
+            Pastry Flavors: ${pastry.flavor_tags || 'No tags'}
+            Pastry Textures: ${pastry.texture_tags || 'No tags'}
+            
+            Bunamo Score: ${Math.round(bunamoScore.overall * 100)}%
+            Flavor Score: ${Math.round(bunamoScore.flavor * 100)}%
+            Texture Score: ${Math.round(bunamoScore.texture * 100)}%
+            
+            Provide:
+            1. A short marketing tagline (max 20 words)
+            2. A brief explanation of why this pairing works (max 50 words)
+            3. 2-3 flavor tags that describe this combination
+            4. Any allergen information if relevant
+            
+            Format as JSON:
+            {
+              "marketing_tagline": "...",
+              "explanation": "...",
+              "flavor_tags": ["tag1", "tag2", "tag3"],
+              "allergen_info": "..."
+            }
+          `;
+
+          const aiResponse = await ai.models.generateContent({
+            model: 'gemini-2.5-pro',
+            contents: aiPrompt,
+            config: {
+              thinkingConfig: { thinkingBudget: 8192 }
+            }
+          });
+
+          let aiData;
+          try {
+            let jsonText = aiResponse.text.trim();
+            if (jsonText.startsWith('```json')) {
+              jsonText = jsonText.substring(7, jsonText.length - 3).trim();
+            } else if (jsonText.startsWith('```')) {
+              jsonText = jsonText.substring(3, jsonText.length - 3).trim();
+            }
+            aiData = JSON.parse(jsonText);
+          } catch {
+            aiData = {
+              marketing_tagline: "Perfect pairing discovered",
+              explanation: bunamoScore.explanation,
+              flavor_tags: ["Harmonious", "Balanced"],
+              allergen_info: "Check ingredients"
+            };
+          }
+
+          return {
+            pastry: {
+              id: pastry.id,
+              name: pastry.name,
+              image: pastry.image_url || ''
+            },
+            score: bunamoScore.overall,
+            score_breakdown: {
+              flavor: bunamoScore.flavor,
+              texture: bunamoScore.texture,
+              popularity: bunamoScore.popularity,
+              season: bunamoScore.seasonal
+            },
+            reasoning: {
+              flavor: `Flavor compatibility score: ${Math.round(bunamoScore.flavor * 100)}%`,
+              texture: `Texture balance score: ${Math.round(bunamoScore.texture * 100)}%`,
+              popularity: `Popularity alignment: ${Math.round(bunamoScore.popularity * 100)}%`,
+              season: `Seasonal relevance: ${Math.round(bunamoScore.seasonal * 100)}%`,
+              fallback_note: "Bunamo scoring model used for analysis"
+            },
+            why_marketing: aiData.marketing_tagline || "Perfect pairing discovered",
+            facts: [
+              {
+                summary: aiData.explanation || bunamoScore.explanation,
+                source_url: "https://bunamo-model.com"
+              }
+            ],
+            badges: ["Bunamo", "AI-Enhanced"],
+            flavor_tags_standardized: aiData.flavor_tags || ["Harmonious", "Balanced"],
+            allergen_info: aiData.allergen_info || "Check ingredients"
+          };
+        } catch (aiError) {
+          console.error("Error enhancing pairing with AI:", aiError);
+          // Fallback to Bunamo-only data
+          return {
+            pastry: {
+              id: pastry.id,
+              name: pastry.name,
+              image: pastry.image_url || ''
+            },
+            score: bunamoScore.overall,
+            score_breakdown: {
+              flavor: bunamoScore.flavor,
+              texture: bunamoScore.texture,
+              popularity: bunamoScore.popularity,
+              season: bunamoScore.seasonal
+            },
+            reasoning: {
+              flavor: `Flavor compatibility: ${Math.round(bunamoScore.flavor * 100)}%`,
+              texture: `Texture balance: ${Math.round(bunamoScore.texture * 100)}%`,
+              popularity: `Popularity match: ${Math.round(bunamoScore.popularity * 100)}%`,
+              season: `Seasonal fit: ${Math.round(bunamoScore.seasonal * 100)}%`,
+              fallback_note: "Bunamo scoring model analysis"
+            },
+            why_marketing: "Perfect pairing discovered",
+            facts: [
+              {
+                summary: bunamoScore.explanation,
+                source_url: "https://bunamo-model.com"
+              }
+            ],
+            badges: ["Bunamo"],
+            flavor_tags_standardized: ["Harmonious", "Balanced"],
+            allergen_info: "Check ingredients"
+          };
+        }
+      })
+    );
+
+    return {
+      coffee: {
+        id: selectedCoffee.id,
+        name: selectedCoffee.name,
+        image: selectedCoffee.image_url || ''
+      },
+      pairs: enhancedPairings,
+      ui: {
+        layout: 'cards',
+        show_downloads: ['pdf'],
+        notes: "Top 3 pairings using advanced Bunamo scoring model with AI enhancement."
+      }
+    };
 
   } catch (error) {
-    console.error("Error generating pairings with Gemini:", error);
+    console.error("Error generating pairings with Bunamo:", error);
     // Create a dummy error response that fits the schema
     const errorResponse: PairingResponse = {
         coffee: {
@@ -117,7 +251,7 @@ export const generatePairings = async (
         ui: {
             layout: 'error',
             show_downloads: [],
-            notes: "An error occurred while generating pairings. The AI model might be unavailable or the request failed. Please check the console for details and try again.",
+            notes: "An error occurred while generating pairings. The Bunamo scoring model might be unavailable. Please try again.",
         },
     };
     return errorResponse;
