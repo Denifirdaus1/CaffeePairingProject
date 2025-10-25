@@ -349,25 +349,6 @@ function App() {
       <Header />
 
       <main className="relative z-10 mx-auto w-full max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
-        <section className="mb-12 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {statsCards.map(card => (
-            <div
-              key={card.key}
-              className="glass-panel--subtle fade-border relative overflow-hidden rounded-2xl p-5 transition-transform duration-300 ease-out hover:-translate-y-1 hover:shadow-2xl"
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div className="space-y-3">
-                  <p className="text-[11px] uppercase tracking-[0.32em] text-brand-text/55">{card.label}</p>
-                  <h3 className="text-2xl font-semibold text-white">{card.value}</h3>
-                  <p className="text-xs leading-relaxed text-brand-text/70">{card.description}</p>
-                </div>
-                <div className="rounded-2xl bg-brand-bg/60 p-3 text-brand-accent shadow-inner ring-1 ring-brand-accent/20">
-                  {card.icon}
-                </div>
-              </div>
-            </div>
-          ))}
-        </section>
 
         <section className="grid gap-6 lg:grid-cols-2">
           <div className="glass-panel rounded-3xl p-6 lg:p-7">
