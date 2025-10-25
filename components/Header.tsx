@@ -33,8 +33,8 @@ export const Header: React.FC = () => {
                 Café Owner AI Dashboard
               </h1>
               <p className="text-sm text-brand-text/80 md:text-base">
-                Kendalikan inventori kopi & pastry kamu, lalu biarkan Gemini memadukannya menjadi pengalaman pelanggan yang
-                unforgettable. Semua insight real-time ada di satu dashboard yang sleek.
+                Manage your coffee & pastry inventory, then let Gemini create unforgettable customer experiences.
+                All real-time insights in one sleek dashboard.
               </p>
             </div>
           </div>
@@ -44,7 +44,7 @@ export const Header: React.FC = () => {
           <p className="text-xs uppercase tracking-[0.25em] text-brand-text/50">Live system status</p>
           <div className="flex items-center gap-3 rounded-2xl bg-brand-bg/60 px-4 py-2 text-xs font-semibold text-white shadow-inner ring-1 ring-white/10">
             <span className="inline-flex h-2.5 w-2.5 animate-pulse rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.65)]" />
-            Smart pairing service beroperasi 24/7
+            Smart pairing service operating 24/7
           </div>
           <p className="text-xs text-brand-text/50">Powered by Gemini & Supabase</p>
         </div>

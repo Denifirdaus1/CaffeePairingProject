@@ -275,7 +275,7 @@ function App() {
   const coffeeList = useMemo(() => {
     if (inventoryLoading) return <div className="flex w-full justify-center py-6"><Spinner /></div>;
     if (inventoryError) return <p className="rounded-2xl bg-red-900/40 p-4 text-sm text-red-200">{inventoryError}</p>;
-    if (coffees.length === 0) return <p className="rounded-2xl bg-brand-bg/40 p-4 text-sm text-brand-text/60">Belum ada kopi yang ditambahkan.</p>;
+    if (coffees.length === 0) return <p className="rounded-2xl bg-brand-bg/40 p-4 text-sm text-brand-text/60">No coffees added yet.</p>;
     
     return coffees.map(coffee => (
       <InventoryItem 
@@ -292,7 +292,7 @@ function App() {
   const pastryList = useMemo(() => {
     if (inventoryLoading) return <div className="flex w-full justify-center py-6"><Spinner /></div>;
     if (inventoryError) return <p className="rounded-2xl bg-red-900/40 p-4 text-sm text-red-200">{inventoryError}</p>;
-    if (pastries.length === 0) return <p className="rounded-2xl bg-brand-bg/40 p-4 text-sm text-brand-text/60">Belum ada pastry yang ditambahkan.</p>;
+    if (pastries.length === 0) return <p className="rounded-2xl bg-brand-bg/40 p-4 text-sm text-brand-text/60">No pastries added yet.</p>;
     
     return pastries.map(pastry => (
       <InventoryItem 
@@ -308,7 +308,7 @@ function App() {
   // Memoized coffee selection list
   const coffeeSelectionList = useMemo(() => {
     if (inventoryLoading) return <div className="flex w-full justify-center py-6"><Spinner /></div>;
-    if (coffees.length === 0) return <p className="w-full rounded-2xl bg-brand-bg/40 p-4 text-center text-sm text-brand-text/60">Tambahkan kopi ke inventori untuk mulai pairing.</p>;
+    if (coffees.length === 0) return <p className="w-full rounded-2xl bg-brand-bg/40 p-4 text-center text-sm text-brand-text/60">Add coffee to your inventory to start pairing.</p>;
     
     return coffees.map(coffee => {
       const isActive = selectedCoffee?.id === coffee.id;
@@ -416,11 +416,11 @@ function App() {
           <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <h2 className="text-2xl font-semibold text-white">Generate Smart Pairings</h2>
-              <p className="text-sm text-brand-text/70">Pilih kopi favoritmu, lalu biarkan AI mencari pastry pendamping terbaik.</p>
+              <p className="text-sm text-brand-text/70">Choose your favorite coffee, then let AI find the best pastry pairings.</p>
             </div>
             <div className="flex flex-col items-start gap-3 text-xs text-brand-text/60 lg:items-end">
-              <p>Tip: gunakan foto berkualitas agar tampilan kartu pairing lebih menggoda.</p>
-              <p className="rounded-full border border-brand-accent/30 px-3 py-1 text-[11px] uppercase tracking-[0.24em] text-brand-text/50">drag untuk melihat semua kopi</p>
+              <p>Tip: use high-quality photos for better pairing card presentation.</p>
+              <p className="rounded-full border border-brand-accent/30 px-3 py-1 text-[11px] uppercase tracking-[0.24em] text-brand-text/50">drag to see all coffees</p>
             </div>
           </div>
 
@@ -437,10 +437,10 @@ function App() {
               {isLoading ? 'Thinking...' : 'Smart Pair with Pastry'}
             </button>
             {!selectedCoffee && pastries.length > 0 && coffees.length > 0 && (
-              <p className="text-sm text-brand-accent">Pilih dulu kopi yang mau di-highlight.</p>
+              <p className="text-sm text-brand-accent">Please select a coffee first.</p>
             )}
             {pastries.length === 0 && coffees.length > 0 && (
-              <p className="text-sm text-red-300">Tambah minimal satu pastry agar pairing bisa jalan.</p>
+              <p className="text-sm text-red-300">Add at least one pastry to enable pairing.</p>
             )}
           </div>
         </section>
