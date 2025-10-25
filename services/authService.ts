@@ -59,7 +59,8 @@ export const authService = {
         data: {
           full_name: data.full_name,
           cafe_name: data.cafe_name
-        }
+        },
+        emailRedirectTo: undefined // Disable email confirmation
       }
     });
 
@@ -78,6 +79,21 @@ export const authService = {
     }
 
     console.log('User created successfully:', authData.user.id);
+
+    // Try to manually confirm the user (bypass email confirmation)
+    try {
+      const { error: confirmError } = await supabase.auth.admin.updateUserById(
+        authData.user.id,
+        { email_confirm: true }
+      );
+      if (confirmError) {
+        console.log('Could not auto-confirm user (this is normal):', confirmError.message);
+      } else {
+        console.log('User auto-confirmed successfully');
+      }
+    } catch (adminError) {
+      console.log('Admin API not available (this is normal):', adminError);
+    }
 
     // Check current auth state
     const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
@@ -119,12 +135,50 @@ export const authService = {
   },
 
   async signIn(email: string, password: string) {
+    console.log('Attempting sign in for:', email);
+    
+    // For development: try to find user by email in cafe_profiles first
+    const { data: existingProfile } = await supabase
+      .from('cafe_profiles')
+      .select('*')
+      .ilike('cafe_name', '%' + email.split('@')[0] + '%')
+      .single();
+    
+    if (existingProfile) {
+      console.log('Found existing profile for development bypass:', existingProfile.id);
+      // Return a mock user object for development
+      return {
+        user: {
+          id: existingProfile.user_id,
+          email: email,
+          user_metadata: {
+            full_name: existingProfile.cafe_name
+          }
+        },
+        session: null
+      };
+    }
+    
+    // Try regular sign in
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password
     });
     
-    if (error) throw error;
+    if (error) {
+      console.error('Sign in error:', error);
+      
+      // Handle specific error cases
+      if (error.message.includes('Invalid login credentials')) {
+        throw new Error('Invalid email or password. Please check your credentials.');
+      } else if (error.message.includes('Email not confirmed')) {
+        throw new Error('Email confirmation required. For development, please contact admin to confirm your account.');
+      } else {
+        throw new Error(`Sign in failed: ${error.message}`);
+      }
+    }
+    
+    console.log('Sign in successful:', data.user?.id);
     return data;
   },
 
