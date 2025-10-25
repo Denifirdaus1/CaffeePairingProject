@@ -5,6 +5,8 @@ import { LandingPage } from './pages/LandingPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { DashboardPage } from './pages/DashboardPage';
+import { PublicShopPage } from './pages/PublicShopPage';
+import { PublicCoffeePage } from './pages/PublicCoffeePage';
 import { AuthGuard } from './components/auth/AuthGuard';
 
 function App() {
@@ -23,6 +25,9 @@ function App() {
               </AuthGuard>
             } 
           />
+          {/* Public Shop Routes */}
+          <Route path="/s/:shop" element={<PublicShopPage />} />
+          <Route path="/s/:shop/coffee/:slug" element={<PublicCoffeePage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
