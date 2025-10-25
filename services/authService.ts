@@ -79,11 +79,20 @@ export const authService = {
 
     console.log('User created successfully:', authData.user.id);
 
+    // Check current auth state
+    const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
+    console.log('Current user check:', { currentUser: currentUser?.id, userError });
+    
     // Small delay to ensure auth state is set
     await new Promise(resolve => setTimeout(resolve, 500));
 
     // Create café profile immediately with the returned user
     console.log('Creating café profile...');
+    console.log('Inserting data:', {
+      user_id: authData.user.id,
+      cafe_name: data.cafe_name
+    });
+    
     const { data: profileData, error: profileError } = await supabase
       .from('cafe_profiles')
       .insert({
