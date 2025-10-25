@@ -138,25 +138,40 @@ export const authService = {
     console.log('Attempting sign in for:', email);
     
     // For development: try to find user by email in cafe_profiles first
-    const { data: existingProfile } = await supabase
+    // Use a simpler query to avoid 406 error
+    const { data: existingProfiles, error: profileError } = await supabase
       .from('cafe_profiles')
       .select('*')
-      .ilike('cafe_name', '%' + email.split('@')[0] + '%')
-      .single();
+      .not('user_id', 'is', null);
     
-    if (existingProfile) {
-      console.log('Found existing profile for development bypass:', existingProfile.id);
-      // Return a mock user object for development
-      return {
-        user: {
-          id: existingProfile.user_id,
-          email: email,
-          user_metadata: {
-            full_name: existingProfile.cafe_name
-          }
-        },
-        session: null
-      };
+    if (profileError) {
+      console.log('Profile lookup error:', profileError);
+    }
+    
+    // Find profile by matching user_id with auth users
+    if (existingProfiles && existingProfiles.length > 0) {
+      console.log('Found profiles, checking for email match...');
+      
+      // For development: try to find profile by email pattern
+      const emailPrefix = email.split('@')[0];
+      const matchingProfile = existingProfiles.find(profile => 
+        profile.cafe_name && profile.cafe_name.toLowerCase().includes(emailPrefix.toLowerCase())
+      );
+      
+      if (matchingProfile) {
+        console.log('Found matching profile for development bypass:', matchingProfile.id);
+        // Return a mock user object for development
+        return {
+          user: {
+            id: matchingProfile.user_id,
+            email: email,
+            user_metadata: {
+              full_name: matchingProfile.cafe_name
+            }
+          },
+          session: null
+        };
+      }
     }
     
     // Try regular sign in
