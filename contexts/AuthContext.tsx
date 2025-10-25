@@ -84,6 +84,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         full_name: result.user.user_metadata?.full_name || '',
         cafe_profile: result.profile
       });
+      console.log('User state set:', result.user.id);
     } catch (error) {
       console.error('Signup error:', error);
       throw error;

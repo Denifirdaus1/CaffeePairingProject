@@ -49,6 +49,8 @@ export const authService = {
     
     lastSignupAttempt = now;
 
+    console.log('Starting signup process...');
+
     // Sign up user with Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: data.email,
@@ -69,22 +71,23 @@ export const authService = {
       }
       throw authError;
     }
-    if (!authData.user) throw new Error('User creation failed');
-
-    // Wait for auth state to be properly set
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    // Check if user is authenticated
-    const { data: { user: currentUser } } = await supabase.auth.getUser();
-    if (!currentUser) {
-      throw new Error('User authentication failed');
+    
+    if (!authData.user) {
+      console.error('No user returned from signup');
+      throw new Error('User creation failed');
     }
 
-    // Create café profile with authenticated user
+    console.log('User created successfully:', authData.user.id);
+
+    // Small delay to ensure auth state is set
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Create café profile immediately with the returned user
+    console.log('Creating café profile...');
     const { data: profileData, error: profileError } = await supabase
       .from('cafe_profiles')
       .insert({
-        user_id: currentUser.id,
+        user_id: authData.user.id,
         cafe_name: data.cafe_name,
         cafe_description: data.cafe_description,
         address: data.address,
@@ -98,10 +101,12 @@ export const authService = {
 
     if (profileError) {
       console.error('Profile creation error:', profileError);
-      throw profileError;
+      throw new Error(`Profile creation failed: ${profileError.message}`);
     }
 
-    return { user: currentUser, profile: profileData };
+    console.log('Profile created successfully:', profileData.id);
+
+    return { user: authData.user, profile: profileData };
   },
 
   async signIn(email: string, password: string) {
