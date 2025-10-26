@@ -93,17 +93,17 @@ export class BunamoScoringModel {
     pastry: { flavor_tags?: string; texture_tags?: string; popularity_hint: number }
   ): BunamoScore {
     // Parse flavor profiles
-    const coffeeFlavors = this.parseFlavors(coffee.flavor_notes || '');
-    const pastryFlavors = this.parseFlavors(pastry.flavor_tags || '');
-    const pastryTextures = this.parseTextures(pastry.texture_tags || '');
+    const coffeeFlavors = BunamoScoringModel.parseFlavors(coffee.flavor_notes || '');
+    const pastryFlavors = BunamoScoringModel.parseFlavors(pastry.flavor_tags || '');
+    const pastryTextures = BunamoScoringModel.parseTextures(pastry.texture_tags || '');
 
     // Calculate individual scores
-    const flavorScore = this.calculateFlavorScore(coffeeFlavors, pastryFlavors);
-    const textureScore = this.calculateTextureScore(coffee, pastryTextures);
-    const seasonalScore = this.calculateSeasonalScore(coffee.season_hint);
-    const popularityScore = this.calculatePopularityScore(coffee.popularity_hint, pastry.popularity_hint);
-    const balanceScore = this.calculateBalanceScore(flavorScore, textureScore);
-    const complexityScore = this.calculateComplexityScore(coffeeFlavors, pastryFlavors);
+    const flavorScore = BunamoScoringModel.calculateFlavorScore(coffeeFlavors, pastryFlavors);
+    const textureScore = BunamoScoringModel.calculateTextureScore(coffee, pastryTextures);
+    const seasonalScore = BunamoScoringModel.calculateSeasonalScore(coffee.season_hint);
+    const popularityScore = BunamoScoringModel.calculatePopularityScore(coffee.popularity_hint, pastry.popularity_hint);
+    const balanceScore = BunamoScoringModel.calculateBalanceScore(flavorScore, textureScore);
+    const complexityScore = BunamoScoringModel.calculateComplexityScore(coffeeFlavors, pastryFlavors);
 
     // Calculate overall score with weighted factors
     const overall = (
@@ -116,7 +116,7 @@ export class BunamoScoringModel {
     );
 
     // Generate explanation
-    const explanation = this.generateExplanation({
+    const explanation = BunamoScoringModel.generateExplanation({
       flavorScore,
       textureScore,
       seasonalScore,
@@ -173,7 +173,7 @@ export class BunamoScoringModel {
     let matches = 0;
 
     for (const coffeeFlavor of coffeeFlavors) {
-      const compatibleFlavors = this.flavorCompatibility[coffeeFlavor] || [];
+      const compatibleFlavors = BunamoScoringModel.flavorCompatibility[coffeeFlavor] || [];
       for (const pastryFlavor of pastryFlavors) {
         if (compatibleFlavors.includes(pastryFlavor)) {
           totalScore += 1;
@@ -192,8 +192,8 @@ export class BunamoScoringModel {
     if (pastryTextures.length === 0) return 0.5;
 
     // Determine coffee body from flavor notes
-    const coffeeBody = this.determineCoffeeBody(coffee.flavor_notes || '');
-    const compatibleTextures = this.textureCompatibility[coffeeBody] || [];
+    const coffeeBody = BunamoScoringModel.determineCoffeeBody(coffee.flavor_notes || '');
+    const compatibleTextures = BunamoScoringModel.textureCompatibility[coffeeBody] || [];
 
     let totalScore = 0;
     let matches = 0;
@@ -219,13 +219,13 @@ export class BunamoScoringModel {
   private static calculateSeasonalScore(seasonHint?: string): number {
     if (!seasonHint) return 1.0;
     const season = seasonHint.toLowerCase();
-    return this.seasonalFactors[season]?.multiplier || 1.0;
+    return BunamoScoringModel.seasonalFactors[season]?.multiplier || 1.0;
   }
 
   private static calculatePopularityScore(coffeePopularity: number, pastryPopularity: number): number {
     const avgPopularity = (coffeePopularity + pastryPopularity) / 2;
     const rounded = Math.round(avgPopularity * 10) / 10;
-    return this.popularityFactors[rounded]?.multiplier || 1.0;
+    return BunamoScoringModel.popularityFactors[rounded]?.multiplier || 1.0;
   }
 
   private static calculateBalanceScore(flavorScore: number, textureScore: number): number {
