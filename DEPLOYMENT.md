@@ -8,9 +8,9 @@
 4. Tambahkan variables berikut:
 
 ### Production Environment:
-- **VITE_GEMINI_API_KEY**: `AIzaSyBqEXLaxl6AqUZcY5qLxFPDaX77Wt8swyc`
-- **VITE_SUPABASE_URL**: `https://jjbvliewmcadmxmmcckl.supabase.co`
-- **VITE_SUPABASE_ANON_KEY**: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqYnZsaWV3bWNhZG14bW1jY2tsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEyODI1NDMsImV4cCI6MjA3Njg1ODU0M30._5DeurOWNpd08Iq-5hEqh4j2Nsout2AzpRpea8hcaQY`
+- **VITE_GEMINI_API_KEY**: `your_gemini_api_key_here`
+- **VITE_SUPABASE_URL**: `your_supabase_project_url_here`
+- **VITE_SUPABASE_ANON_KEY**: `your_supabase_anon_key_here`
 
 ### Preview Environment (optional):
 - Copy same values untuk preview deployments

@@ -60,9 +60,9 @@ AI-powered dashboard untuk membantu pemilik café menemukan pairing kopi dan pas
    
    | Variable | Value | Description |
    |----------|-------|-------------|
-   | `VITE_GEMINI_API_KEY` | `AIzaSyBqEXLaxl6AqUZcY5qLxFPDaX77Wt8swyc` | Google Gemini API Key |
-   | `VITE_SUPABASE_URL` | `https://jjbvliewmcadmxmmcckl.supabase.co` | Supabase Project URL |
-   | `VITE_SUPABASE_ANON_KEY` | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` | Supabase Anonymous Key |
+   | `VITE_GEMINI_API_KEY` | `your_gemini_api_key_here` | Google Gemini API Key |
+   | `VITE_SUPABASE_URL` | `your_supabase_project_url_here` | Supabase Project URL |
+   | `VITE_SUPABASE_ANON_KEY` | `your_supabase_anon_key_here` | Supabase Anonymous Key |
    
    **📋 Panduan Lengkap:** Lihat file `VERCEL_ENV_VARIABLES.md` untuk step-by-step setup environment variables di Vercel.
 

@@ -8,9 +8,9 @@ export default defineConfig(({ mode }) => {
     
     // Fallback to hardcoded values if environment variables are not loaded
     const env = {
-        VITE_GEMINI_API_KEY: envFromFile.VITE_GEMINI_API_KEY || 'AIzaSyBqEXLaxl6AqUZcY5qLxFPDaX77Wt8swyc',
-        VITE_SUPABASE_URL: envFromFile.VITE_SUPABASE_URL || 'https://jjbvliewmcadmxmmcckl.supabase.co',
-        VITE_SUPABASE_ANON_KEY: envFromFile.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqYnZsaWV3bWNhZG14bW1jY2tsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEyODI1NDMsImV4cCI6MjA3Njg1ODU0M30._5DeurOWNpd08Iq-5hEqh4j2Nsout2AzpRpea8hcaQY'
+        VITE_GEMINI_API_KEY: envFromFile.VITE_GEMINI_API_KEY || '',
+        VITE_SUPABASE_URL: envFromFile.VITE_SUPABASE_URL || '',
+        VITE_SUPABASE_ANON_KEY: envFromFile.VITE_SUPABASE_ANON_KEY || ''
     };
     
     console.log('Environment variables loaded:', {

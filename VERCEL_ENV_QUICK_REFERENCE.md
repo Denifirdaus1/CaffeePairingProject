@@ -4,17 +4,17 @@
 
 ### **1. VITE_GEMINI_API_KEY**
 ```
-AIzaSyBqEXLaxl6AqUZcY5qLxFPDaX77Wt8swyc
+your_gemini_api_key_here
 ```
 
 ### **2. VITE_SUPABASE_URL**
 ```
-https://jjbvliewmcadmxmmcckl.supabase.co
+your_supabase_project_url_here
 ```
 
 ### **3. VITE_SUPABASE_ANON_KEY**
 ```
-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqYnZsaWV3bWNhZG14bW1jY2tsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEyODI1NDMsImV4cCI6MjA3Njg1ODU0M30._5DeurOWNpd08Iq-5hEqh4j2Nsout2AzpRpea8hcaQY
+your_supabase_anon_key_here
 ```
 
 ## 🚀 Langkah Cepat:
