@@ -8,6 +8,7 @@ interface SliderProps {
   onChange: (value: number) => void;
   label?: string;
   description?: string;
+  displayValue?: number; // Allow custom display value
 }
 
 export const Slider: React.FC<SliderProps> = ({
@@ -17,15 +18,18 @@ export const Slider: React.FC<SliderProps> = ({
   max,
   onChange,
   label,
-  description
+  description,
+  displayValue
 }) => {
+  const display = displayValue !== undefined ? displayValue : value;
+  
   return (
     <div>
       <div className="flex items-center justify-between mb-2">
         <label htmlFor={name} className="block text-sm font-medium text-brand-text/90">
           {label || name}
         </label>
-        <span className="text-sm font-semibold text-brand-accent">{value}</span>
+        <span className="text-sm font-semibold text-brand-accent">{display.toFixed(1)}</span>
       </div>
       <div className="flex items-center gap-2">
         <span className="text-xs text-brand-text/50">{min}</span>

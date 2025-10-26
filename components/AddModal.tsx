@@ -280,7 +280,8 @@ export const AddModal: React.FC<AddModalProps> = ({ type, onClose, onAddCoffee, 
             <div>
                 <Slider
                     name="popularity_hint"
-                    value={formData.popularity_hint || 0.3}
+                    value={(formData.popularity_hint || 0.3) * 10}
+                    displayValue={formData.popularity_hint || 0.3}
                     min={0}
                     max={10}
                     onChange={(value) => handleSliderChange('popularity_hint', value / 10)}
@@ -357,6 +358,7 @@ export const AddModal: React.FC<AddModalProps> = ({ type, onClose, onAddCoffee, 
             <Slider
                 name="popularity_hint_pastry"
                 value={formData.popularity_hint ? formData.popularity_hint * 10 : 3}
+                displayValue={formData.popularity_hint || 0.3}
                 min={0}
                 max={10}
                 onChange={(value) => handleSliderChange('popularity_hint', value / 10)}
