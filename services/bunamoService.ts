@@ -40,29 +40,54 @@ export interface TextureProfile {
 }
 
 export class BunamoScoringModel {
-  // Flavor compatibility matrix
+  // Flavor compatibility matrix with synonyms
   private static flavorCompatibility: Record<string, string[]> = {
-    // Coffee flavors -> Compatible pastry flavors
-    'chocolate': ['vanilla', 'caramel', 'nuts', 'cinnamon', 'cocoa'],
-    'vanilla': ['chocolate', 'caramel', 'cream', 'honey', 'almond'],
-    'caramel': ['chocolate', 'vanilla', 'nuts', 'honey', 'toffee'],
-    'nuts': ['chocolate', 'vanilla', 'honey', 'almond', 'walnut'],
-    'cinnamon': ['chocolate', 'vanilla', 'apple', 'pumpkin', 'spice'],
-    'citrus': ['lemon', 'orange', 'berry', 'cream', 'honey'],
-    'berry': ['chocolate', 'vanilla', 'cream', 'citrus', 'honey'],
-    'floral': ['honey', 'vanilla', 'cream', 'lemon', 'almond'],
-    'spice': ['chocolate', 'vanilla', 'cinnamon', 'nuts', 'honey'],
-    'smoky': ['chocolate', 'nuts', 'caramel', 'vanilla', 'spice'],
-    'earthy': ['nuts', 'chocolate', 'honey', 'vanilla', 'spice'],
-    'fruity': ['cream', 'vanilla', 'honey', 'citrus', 'berry'],
-    'creamy': ['vanilla', 'chocolate', 'honey', 'nuts', 'caramel'],
-    'honey': ['vanilla', 'cream', 'nuts', 'citrus', 'floral'],
-    'almond': ['vanilla', 'chocolate', 'honey', 'nuts', 'cream']
+    // Coffee flavors -> Compatible pastry flavors (with synonyms)
+    'chocolate': ['vanilla', 'caramel', 'nuts', 'cinnamon', 'cocoa', 'nutty', 'almond', 'hazelnut', 'walnut'],
+    'cocoa': ['chocolate', 'vanilla', 'caramel', 'nuts', 'nutty', 'almond'],
+    'vanilla': ['chocolate', 'caramel', 'cream', 'honey', 'almond', 'cocoa', 'creamy'],
+    'caramel': ['chocolate', 'vanilla', 'nuts', 'honey', 'toffee', 'nutty', 'almond'],
+    'nuts': ['chocolate', 'vanilla', 'honey', 'almond', 'walnut', 'nutty', 'cocoa', 'hazelnut'],
+    'nutty': ['chocolate', 'cocoa', 'nuts', 'almond', 'walnut', 'hazelnut', 'vanilla'],
+    'cinnamon': ['chocolate', 'vanilla', 'apple', 'pumpkin', 'spice', 'cocoa'],
+    'citrus': ['lemon', 'orange', 'berry', 'cream', 'honey', 'creamy', 'floral'],
+    'lemon': ['citrus', 'berry', 'cream', 'honey', 'floral', 'orange'],
+    'orange': ['citrus', 'berry', 'cream', 'honey', 'lemon', 'floral'],
+    'berry': ['chocolate', 'vanilla', 'cream', 'citrus', 'honey', 'creamy', 'jam'],
+    'jam': ['berry', 'vanilla', 'chocolate', 'cream', 'citrus'],
+    'floral': ['honey', 'vanilla', 'cream', 'lemon', 'almond', 'citrus'],
+    'spice': ['chocolate', 'vanilla', 'cinnamon', 'nuts', 'honey', 'cocoa'],
+    'smoky': ['chocolate', 'nuts', 'caramel', 'vanilla', 'spice', 'cocoa'],
+    'earthy': ['nuts', 'chocolate', 'honey', 'vanilla', 'spice', 'nutty'],
+    'fruity': ['cream', 'vanilla', 'honey', 'citrus', 'berry', 'creamy', 'jam'],
+    'creamy': ['vanilla', 'chocolate', 'honey', 'nuts', 'caramel', 'cocoa', 'cream'],
+    'honey': ['vanilla', 'cream', 'nuts', 'citrus', 'floral', 'creamy', 'almond'],
+    'almond': ['vanilla', 'chocolate', 'honey', 'nuts', 'cream', 'nutty', 'cocoa'],
+    'hazelnut': ['chocolate', 'cocoa', 'vanilla', 'nutty', 'nuts'],
+    'walnut': ['chocolate', 'nuts', 'honey', 'nutty', 'cocoa'],
+    'apple': ['cinnamon', 'caramel', 'spice', 'nuts', 'honey'],
+    'pumpkin': ['cinnamon', 'spice', 'caramel', 'honey', 'nuts']
+  };
+
+  // Origin affinity matrix
+  private static originCompatibility: Record<string, string[]> = {
+    'brazil': ['chocolate', 'nuts', 'nutty', 'caramel', 'cocoa', 'almond'],
+    'colombia': ['nuts', 'caramel', 'chocolate', 'citrus', 'berry'],
+    'ethiopia': ['citrus', 'berry', 'floral', 'lemon', 'orange', 'jam'],
+    'kenya': ['citrus', 'berry', 'floral', 'lemon', 'orange', 'jam'],
+    'guatemala': ['chocolate', 'nuts', 'citrus', 'berry', 'honey'],
+    'costa rica': ['nuts', 'caramel', 'chocolate', 'citrus', 'citrus'],
+    'honduras': ['nuts', 'chocolate', 'caramel', 'citrus'],
+    'peru': ['nuts', 'chocolate', 'berry', 'caramel'],
+    'tanzania': ['citrus', 'berry', 'floral', 'lemon'],
+    'rwanda': ['berry', 'citrus', 'floral', 'lemon'],
+    'sumatra': ['earthy', 'nuts', 'chocolate', 'cocoa'],
+    'java': ['earthy', 'nuts', 'chocolate', 'cocoa'],
+    'mexico': ['nuts', 'chocolate', 'citrus', 'berry']
   };
 
   // Texture compatibility matrix
   private static textureCompatibility: Record<string, string[]> = {
-    // Coffee body -> Compatible pastry textures
     'light': ['flaky', 'airy', 'delicate', 'crispy', 'light'],
     'medium': ['flaky', 'creamy', 'moist', 'tender', 'balanced'],
     'full': ['dense', 'rich', 'chewy', 'creamy', 'substantial'],
@@ -71,65 +96,91 @@ export class BunamoScoringModel {
 
   // Seasonal factors
   private static seasonalFactors: Record<string, { multiplier: number; description: string }> = {
-    'spring': { multiplier: 1.1, description: 'Fresh, light pairings preferred' },
-    'summer': { multiplier: 0.9, description: 'Cool, refreshing pairings preferred' },
-    'autumn': { multiplier: 1.2, description: 'Warm, spiced pairings preferred' },
-    'winter': { multiplier: 1.3, description: 'Rich, hearty pairings preferred' },
-    'all-year': { multiplier: 1.0, description: 'Balanced pairings work well' }
+    'fall': { multiplier: 1.05, description: 'Autumn boost for seasonal pairings' },
+    'autumn': { multiplier: 1.05, description: 'Autumn boost for seasonal pairings' },
+    'winter': { multiplier: 1.0, description: 'Winter pairings' },
+    'spring': { multiplier: 1.0, description: 'Spring pairings' },
+    'summer': { multiplier: 0.95, description: 'Summer pairings' }
   };
 
   // Popularity boost factors
   private static popularityFactors: Record<number, { multiplier: number; description: string }> = {
-    0.9: { multiplier: 1.3, description: 'Highly popular combination' },
-    0.8: { multiplier: 1.2, description: 'Very popular combination' },
-    0.7: { multiplier: 1.1, description: 'Popular combination' },
-    0.6: { multiplier: 1.0, description: 'Moderately popular' },
-    0.5: { multiplier: 0.9, description: 'Less popular' },
-    0.4: { multiplier: 0.8, description: 'Unpopular combination' }
+    0.9: { multiplier: 1.05, description: 'Highly popular combination' },
+    0.8: { multiplier: 1.04, description: 'Very popular combination' },
+    0.7: { multiplier: 1.03, description: 'Popular combination' },
+    0.6: { multiplier: 1.02, description: 'Moderately popular' },
+    0.5: { multiplier: 1.01, description: 'Average popularity' },
+    0.4: { multiplier: 1.0, description: 'Less popular' },
+    0.3: { multiplier: 0.99, description: 'Unpopular combination' }
   };
 
   static calculateBunamoScore(
-    coffee: { flavor_notes?: string; season_hint?: string; popularity_hint: number },
-    pastry: { flavor_tags?: string; texture_tags?: string; popularity_hint: number }
+    coffee: { 
+      flavor_notes?: string; 
+      season_hint?: string; 
+      popularity_hint: number;
+      origin?: string;
+      acidity?: number;
+      roast_type?: string;
+    },
+    pastry: { 
+      flavor_tags?: string; 
+      texture_tags?: string; 
+      popularity_hint: number;
+      sweetness?: number;
+      richness?: number;
+    }
   ): BunamoScore {
     // Parse flavor profiles
     const coffeeFlavors = BunamoScoringModel.parseFlavors(coffee.flavor_notes || '');
     const pastryFlavors = BunamoScoringModel.parseFlavors(pastry.flavor_tags || '');
     const pastryTextures = BunamoScoringModel.parseTextures(pastry.texture_tags || '');
 
-    // Calculate individual scores
+    // Calculate individual scores using NEW formula
+    // 45% FlavorMatch, 20% OriginAffinity, 20% AcidityBalance, 10% RoastTextureHarmony, 5% Popularity
     const flavorScore = BunamoScoringModel.calculateFlavorScore(coffeeFlavors, pastryFlavors);
-    const textureScore = BunamoScoringModel.calculateTextureScore(coffee, pastryTextures);
-    const seasonalScore = BunamoScoringModel.calculateSeasonalScore(coffee.season_hint);
+    const originScore = BunamoScoringModel.calculateOriginAffinity(coffee.origin || '', pastryFlavors);
+    const acidityScore = BunamoScoringModel.calculateAcidityBalance(coffee.acidity, pastry.sweetness, pastry.richness);
+    const roastTextureScore = BunamoScoringModel.calculateRoastTextureHarmony(coffee.roast_type, pastryTextures);
     const popularityScore = BunamoScoringModel.calculatePopularityScore(coffee.popularity_hint, pastry.popularity_hint);
+
+    // Apply seasonal boost if applicable (max 1.0)
+    let seasonalMultiplier = BunamoScoringModel.calculateSeasonalBoost(coffee.season_hint);
+    
+    // Calculate overall score with NEW weighted formula
+    const rawOverall = (
+      flavorScore * 0.45 +
+      originScore * 0.20 +
+      acidityScore * 0.20 +
+      roastTextureScore * 0.10 +
+      popularityScore * 0.05
+    ) * seasonalMultiplier;
+
+    // Clamp between 0 and 1
+    const overall = Math.min(Math.max(rawOverall, 0), 1);
+
+    // Legacy scores for backward compatibility
+    const textureScore = roastTextureScore;
+    const seasonalScore = seasonalMultiplier;
     const balanceScore = BunamoScoringModel.calculateBalanceScore(flavorScore, textureScore);
     const complexityScore = BunamoScoringModel.calculateComplexityScore(coffeeFlavors, pastryFlavors);
-
-    // Calculate overall score with weighted factors
-    const overall = (
-      flavorScore * 0.25 +
-      textureScore * 0.20 +
-      seasonalScore * 0.15 +
-      popularityScore * 0.20 +
-      balanceScore * 0.10 +
-      complexityScore * 0.10
-    );
 
     // Generate explanation
     const explanation = BunamoScoringModel.generateExplanation({
       flavorScore,
-      textureScore,
-      seasonalScore,
+      originScore,
+      acidityScore,
+      roastTextureScore,
       popularityScore,
-      balanceScore,
-      complexityScore,
+      seasonalMultiplier,
       coffeeFlavors,
       pastryFlavors,
-      pastryTextures
+      pastryTextures,
+      coffeeOrigin: coffee.origin
     });
 
     return {
-      overall: Math.min(Math.max(overall, 0), 1),
+      overall,
       flavor: flavorScore,
       texture: textureScore,
       seasonal: seasonalScore,
@@ -188,6 +239,85 @@ export class BunamoScoringModel {
     return matches > 0 ? Math.min(totalScore / Math.max(coffeeFlavors.length, pastryFlavors.length), 1) : 0.3;
   }
 
+  private static calculateOriginAffinity(origin: string, pastryFlavors: string[]): number {
+    if (!origin || pastryFlavors.length === 0) return 0.5;
+
+    const originLower = origin.toLowerCase().trim();
+    const expectedFlavors = BunamoScoringModel.originCompatibility[originLower];
+    
+    if (!expectedFlavors) return 0.5; // Unknown origin, neutral score
+
+    // Count matches
+    let matches = 0;
+    for (const flavor of pastryFlavors) {
+      if (expectedFlavors.includes(flavor)) {
+        matches++;
+      }
+    }
+
+    // Return score based on match ratio
+    return Math.min(matches / Math.max(expectedFlavors.length, 1), 1);
+  }
+
+  private static calculateAcidityBalance(coffeeAcidity?: number, pastrySweetness?: number, pastryRichness?: number): number {
+    // Default values if not provided
+    const acidity = coffeeAcidity || 3;
+    const sweetness = pastrySweetness || 3;
+    const richness = pastryRichness || 3;
+
+    // High acidity (4-5) pairs well with high sweetness (4-5) and creamy textures
+    if (acidity >= 4) {
+      if (sweetness >= 4 && richness >= 3) return 1.0;
+      if (sweetness >= 3 && richness >= 3) return 0.8;
+      if (sweetness >= 2) return 0.6;
+      return 0.4;
+    }
+    
+    // Medium acidity (2-3) is flexible
+    if (acidity === 3) {
+      return 0.9; // Always good
+    }
+    
+    // Low acidity (1-2) pairs well with buttery/laminated/rich pastries
+    if (acidity <= 2) {
+      if (richness >= 4) return 1.0;
+      if (richness >= 3) return 0.8;
+      if (richness >= 2) return 0.6;
+      return 0.4;
+    }
+
+    return 0.7; // Default neutral score
+  }
+
+  private static calculateRoastTextureHarmony(roastType?: string, pastryTextures: string[]): number {
+    if (!roastType || pastryTextures.length === 0) return 0.5;
+
+    const roast = roastType.toLowerCase();
+
+    // Dark/Espresso roasts pair well with dense/fudgy/buttery textures
+    if (roast.includes('dark') || roast.includes('espresso')) {
+      const compatibleTextures = ['dense', 'rich', 'chewy', 'creamy', 'substantial', 'buttery', 'fudgy', 'laminated'];
+      let matches = 0;
+      for (const texture of pastryTextures) {
+        if (compatibleTextures.includes(texture)) matches++;
+      }
+      return matches > 0 ? Math.min(matches / pastryTextures.length, 1) : 0.3;
+    }
+
+    // Light/Filter roasts pair well with flaky/airy/fruity textures
+    if (roast.includes('light') || roast.includes('filter')) {
+      const compatibleTextures = ['flaky', 'airy', 'delicate', 'light', 'crispy', 'fruity'];
+      let matches = 0;
+      for (const texture of pastryTextures) {
+        if (compatibleTextures.includes(texture)) matches++;
+      }
+      return matches > 0 ? Math.min(matches / pastryTextures.length, 1) : 0.3;
+    }
+
+    // Medium roasts are flexible
+    return 0.7;
+  }
+
   private static calculateTextureScore(coffee: any, pastryTextures: string[]): number {
     if (pastryTextures.length === 0) return 0.5;
 
@@ -216,7 +346,7 @@ export class BunamoScoringModel {
     return 'medium'; // default
   }
 
-  private static calculateSeasonalScore(seasonHint?: string): number {
+  private static calculateSeasonalBoost(seasonHint?: string): number {
     if (!seasonHint) return 1.0;
     const season = seasonHint.toLowerCase();
     return BunamoScoringModel.seasonalFactors[season]?.multiplier || 1.0;
@@ -225,7 +355,10 @@ export class BunamoScoringModel {
   private static calculatePopularityScore(coffeePopularity: number, pastryPopularity: number): number {
     const avgPopularity = (coffeePopularity + pastryPopularity) / 2;
     const rounded = Math.round(avgPopularity * 10) / 10;
-    return BunamoScoringModel.popularityFactors[rounded]?.multiplier || 1.0;
+    const factor = BunamoScoringModel.popularityFactors[rounded];
+    
+    // Return normalized score (0-1 range)
+    return (factor?.multiplier || 1.0) * 0.5 + 0.5;
   }
 
   private static calculateBalanceScore(flavorScore: number, textureScore: number): number {
@@ -254,30 +387,32 @@ export class BunamoScoringModel {
       explanations.push('Flavor profiles may not complement each other well');
     }
 
-    if (factors.textureScore > 0.8) {
-      explanations.push('Perfect texture balance');
-    } else if (factors.textureScore > 0.6) {
-      explanations.push('Good texture contrast');
-    } else {
-      explanations.push('Texture pairing could be improved');
+    if (factors.originScore > 0.7) {
+      explanations.push(`Strong origin affinity with ${factors.coffeeOrigin || 'regional'} flavors`);
+    } else if (factors.originScore > 0.5) {
+      explanations.push('Moderate origin compatibility');
     }
 
-    if (factors.seasonalScore > 1.1) {
-      explanations.push('Seasonally perfect timing');
-    } else if (factors.seasonalScore < 0.9) {
-      explanations.push('Consider seasonal preferences');
+    if (factors.acidityScore > 0.8) {
+      explanations.push('Perfect acidity-sweetness balance');
+    } else if (factors.acidityScore > 0.6) {
+      explanations.push('Good acidity complement');
     }
 
-    if (factors.popularityScore > 1.1) {
+    if (factors.roastTextureScore > 0.8) {
+      explanations.push('Excellent roast-texture harmony');
+    } else if (factors.roastTextureScore > 0.6) {
+      explanations.push('Good texture pairing');
+    }
+
+    if (factors.popularityScore > 0.9) {
       explanations.push('Highly popular combination');
-    } else if (factors.popularityScore < 0.9) {
+    } else if (factors.popularityScore < 0.5) {
       explanations.push('Less popular but potentially unique');
     }
 
-    if (factors.balanceScore > 0.8) {
-      explanations.push('Well-balanced pairing');
-    } else {
-      explanations.push('Balance could be improved');
+    if (factors.seasonalMultiplier > 1.0) {
+      explanations.push('Seasonally enhanced pairing');
     }
 
     return explanations.join('. ') + '.';
