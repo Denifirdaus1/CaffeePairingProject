@@ -35,7 +35,7 @@ export const HeroSection: React.FC = () => {
             to="/register"
             className="button-primary-pulse inline-flex items-center gap-3 rounded-2xl bg-gradient-to-r from-brand-accent via-brand-accent/90 to-amber-400/70 px-8 py-4 text-lg font-semibold text-white shadow-xl transition-all hover:shadow-[0_30px_60px_-25px_rgba(162,123,92,0.85)]"
           >
-            <span>Start Free Trial (Café Owners)</span>
+            <span>Create Your Café Account</span>
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
             </svg>
@@ -45,7 +45,7 @@ export const HeroSection: React.FC = () => {
             to="/login"
             className="inline-flex items-center gap-3 rounded-2xl border border-brand-accent/30 bg-brand-surface/40 px-8 py-4 text-lg font-semibold text-brand-text transition-all hover:bg-brand-surface/60 hover:text-white"
           >
-            <span>Sign In (Café Owners)</span>
+            <span>Sign In to Dashboard</span>
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
             </svg>
@@ -57,19 +57,19 @@ export const HeroSection: React.FC = () => {
             <svg className="h-5 w-5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
             </svg>
-            <span>Free 14-day trial</span>
+            <span>100% Free Service</span>
           </div>
           <div className="flex items-center gap-2">
             <svg className="h-5 w-5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
             </svg>
-            <span>No credit card required</span>
+            <span>Powered by AI</span>
           </div>
           <div className="flex items-center gap-2">
             <svg className="h-5 w-5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
             </svg>
-            <span>Cancel anytime</span>
+            <span>Easy to Use</span>
           </div>
         </div>
       </div>
