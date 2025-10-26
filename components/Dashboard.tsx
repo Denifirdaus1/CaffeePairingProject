@@ -12,6 +12,7 @@ import { LazyImage } from './LazyImage';
 import { Toast } from './Toast';
 import { ApprovalWorkflow } from './ApprovalWorkflow';
 import { MainShotManager } from './MainShotManager';
+import { QRGenerator } from './QRGenerator';
 import { useAuth } from '../contexts/AuthContext';
 
 // Lazy load heavy components
@@ -50,7 +51,7 @@ export const Dashboard: React.FC = () => {
   // Approval workflow state
   const [pairings, setPairings] = useState<any[]>([]);
   const [pairingsLoading, setPairingsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'inventory' | 'pairings' | 'approvals' | 'mainshot'>('inventory');
+  const [activeTab, setActiveTab] = useState<'inventory' | 'pairings' | 'approvals' | 'mainshot' | 'qrgenerator'>('inventory');
 
   // Get café ID from user context
   const getCafeId = async () => {
@@ -443,6 +444,16 @@ export const Dashboard: React.FC = () => {
             >
               Main Shot
             </button>
+            <button
+              onClick={() => setActiveTab('qrgenerator')}
+              className={`flex-1 rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+                activeTab === 'qrgenerator'
+                  ? 'bg-brand-accent text-white shadow-lg'
+                  : 'text-brand-text-muted hover:text-white hover:bg-brand-surface/60'
+              }`}
+            >
+              QR Generator
+            </button>
           </div>
         </div>
 
@@ -612,6 +623,13 @@ export const Dashboard: React.FC = () => {
               coffees={coffees} 
               onUpdate={fetchInventory} 
             />
+          </section>
+        )}
+
+        {/* QR Generator Tab */}
+        {activeTab === 'qrgenerator' && (
+          <section className="glass-panel rounded-3xl p-6 lg:p-8">
+            <QRGenerator />
           </section>
         )}
 

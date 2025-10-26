@@ -30,10 +30,31 @@ interface Coffee {
   online_shop_url?: string;
 }
 
+interface Pastry {
+  id: string;
+  name: string;
+  flavor_tags?: string;
+  texture_tags?: string;
+  image_url?: string;
+}
+
+interface PublishedPairing {
+  id: string;
+  coffee_id: string;
+  pastry_id: string;
+  score: number;
+  why: string;
+  pairing_slug: string;
+  coffees: Coffee;
+  pastries: Pastry;
+}
+
 export const PublicShopPage: React.FC = () => {
   const { shop } = useParams<{ shop: string }>();
   const [shopData, setShopData] = useState<ShopData | null>(null);
   const [coffees, setCoffees] = useState<Coffee[]>([]);
+  const [pastries, setPastries] = useState<Pastry[]>([]);
+  const [publishedPairings, setPublishedPairings] = useState<PublishedPairing[]>([]);
   const [displayCoffees, setDisplayCoffees] = useState<Coffee[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -73,6 +94,37 @@ export const PublicShopPage: React.FC = () => {
         } else {
           setCoffees(coffeesData || []);
           setDisplayCoffees(coffeesData || []);
+        }
+
+        // Fetch pastries for this shop
+        const { data: pastriesData, error: pastriesError } = await supabase
+          .from('pastries')
+          .select('*')
+          .eq('cafe_id', shopData.id)
+          .order('popularity_hint', { ascending: false });
+
+        if (pastriesError) {
+          console.error('Error fetching pastries:', pastriesError);
+        } else {
+          setPastries(pastriesData || []);
+        }
+
+        // Fetch published pairings for this shop
+        const { data: pairingsData, error: pairingsError } = await supabase
+          .from('pairings')
+          .select(`
+            *,
+            coffees (*),
+            pastries (*)
+          `)
+          .eq('cafe_id', shopData.id)
+          .eq('is_published', true)
+          .order('score', { ascending: false });
+
+        if (pairingsError) {
+          console.error('Error fetching pairings:', pairingsError);
+        } else {
+          setPublishedPairings(pairingsData || []);
         }
       } catch (error) {
         console.error('Error fetching shop data:', error);
@@ -158,7 +210,7 @@ export const PublicShopPage: React.FC = () => {
             <CoffeeSearch
               coffees={coffees}
               onCoffeeSelect={handleCoffeeSelect}
-              placeholder="Search our coffee collection..."
+              placeholder="Search coffees and pastries..."
             />
           </div>
         </div>
@@ -261,6 +313,91 @@ export const PublicShopPage: React.FC = () => {
           )}
         </div>
       </section>
+
+      {/* Pastries Section */}
+      {pastries.length > 0 && (
+        <section className="py-12 px-4">
+          <div className="max-w-7xl mx-auto">
+            <h2 className="text-3xl font-bold text-white mb-8 text-center">
+              Our Pastries
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {pastries.map(pastry => (
+                <div
+                  key={pastry.id}
+                  className="glass-panel rounded-2xl p-6"
+                >
+                  {pastry.image_url && (
+                    <img
+                      src={pastry.image_url}
+                      alt={pastry.name}
+                      className="w-full h-48 object-cover rounded-lg mb-4"
+                    />
+                  )}
+                  <h3 className="text-xl font-semibold text-white mb-2">{pastry.name}</h3>
+                  {pastry.flavor_tags && (
+                    <p className="text-brand-text-muted text-sm">{pastry.flavor_tags}</p>
+                  )}
+                  {pastry.texture_tags && (
+                    <p className="text-brand-text-muted text-xs mt-2">Texture: {pastry.texture_tags}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Published Pairings Section */}
+      {publishedPairings.length > 0 && (
+        <section className="py-12 px-4">
+          <div className="max-w-7xl mx-auto">
+            <h2 className="text-3xl font-bold text-white mb-8 text-center">
+              Recommended Pairings
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {publishedPairings.map(pairing => (
+                <div
+                  key={pairing.id}
+                  className="glass-panel rounded-2xl p-6 hover:scale-105 transition-transform border-2 border-brand-accent/20"
+                  onClick={() => window.location.href = `/s/${shop}/pairing/${pairing.pairing_slug}`}
+                >
+                  <div className="flex items-center gap-4 mb-4">
+                    {pairing.coffees.image_url && (
+                      <img
+                        src={pairing.coffees.image_url}
+                        alt={pairing.coffees.name}
+                        className="w-16 h-16 rounded-lg object-cover"
+                      />
+                    )}
+                    {pairing.pastries.image_url && (
+                      <img
+                        src={pairing.pastries.image_url}
+                        alt={pairing.pastries.name}
+                        className="w-16 h-16 rounded-lg object-cover"
+                      />
+                    )}
+                  </div>
+                  <h3 className="text-lg font-semibold text-white mb-2">
+                    {pairing.coffees.name} + {pairing.pastries.name}
+                  </h3>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-brand-accent font-bold">
+                      {Math.round(pairing.score * 100)}% Match
+                    </span>
+                  </div>
+                  {pairing.why && (
+                    <p className="text-brand-text-muted text-sm line-clamp-2">{pairing.why}</p>
+                  )}
+                  <div className="mt-4 flex items-center justify-end">
+                    <span className="text-brand-text-muted text-sm">View Details →</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Footer */}
       <footer className="border-t border-brand-border/30 bg-brand-primary/50 py-12">
