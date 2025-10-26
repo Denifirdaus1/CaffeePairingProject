@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { CoffeeInsert, PastryInsert } from '../services/supabaseClient';
 
-const initialCoffeeState: Omit<CoffeeInsert, 'tenant_id' | 'image_path' | 'image_url'> = {
+const initialCoffeeState: Omit<CoffeeInsert, 'cafe_id' | 'image_path' | 'image_url'> = {
     name: '',
     is_core: true,
     is_guest: false,
@@ -10,7 +10,7 @@ const initialCoffeeState: Omit<CoffeeInsert, 'tenant_id' | 'image_path' | 'image
     popularity_hint: 0.3
 };
 
-const initialPastryState: Omit<PastryInsert, 'tenant_id' | 'image_path' | 'image_url'> = {
+const initialPastryState: Omit<PastryInsert, 'cafe_id' | 'image_path' | 'image_url'> = {
     name: '',
     flavor_tags: '',
     texture_tags: '',
@@ -21,8 +21,8 @@ const initialPastryState: Omit<PastryInsert, 'tenant_id' | 'image_path' | 'image
 interface AddModalProps {
   type: 'coffee' | 'pastry' | null;
   onClose: () => void;
-  onAddCoffee: (formData: Omit<CoffeeInsert, 'tenant_id' | 'image_path' | 'image_url'>, imageFile: File) => Promise<void>;
-  onAddPastry: (formData: Omit<PastryInsert, 'tenant_id' | 'image_path' | 'image_url'>, imageFile: File) => Promise<void>;
+  onAddCoffee: (formData: Omit<CoffeeInsert, 'cafe_id' | 'image_path' | 'image_url'>, imageFile: File) => Promise<void>;
+  onAddPastry: (formData: Omit<PastryInsert, 'cafe_id' | 'image_path' | 'image_url'>, imageFile: File) => Promise<void>;
 }
 
 export const AddModal: React.FC<AddModalProps> = ({ type, onClose, onAddCoffee, onAddPastry }) => {

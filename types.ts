@@ -2,7 +2,7 @@ export interface Coffee {
   id: string;
   created_at: string;
   updated_at: string;
-  tenant_id: string;
+  cafe_id: string;
   name: string;
   is_core: boolean;
   is_guest: boolean;
@@ -17,7 +17,7 @@ export interface Pastry {
   id: string;
   created_at: string;
   updated_at: string;
-  tenant_id: string;
+  cafe_id: string;
   name: string;
   flavor_tags: string;
   texture_tags: string;

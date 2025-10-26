@@ -62,7 +62,7 @@ export const EditModal: React.FC<EditModalProps> = ({ item, type, onClose, onSav
     e.preventDefault();
     setIsSaving(true);
     
-    const { id, created_at, updated_at, tenant_id, image_path, ...updates } = formData;
+    const { id, created_at, updated_at, cafe_id, image_path, ...updates } = formData;
     
     // If a new file is not uploaded, and the user cleared the image_url field manually,
     // prevent sending an empty string. The backend will preserve the existing URL.

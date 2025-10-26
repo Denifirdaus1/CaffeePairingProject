@@ -41,5 +41,5 @@ export const deleteImage = async (bucket: 'coffee-images' | 'pastry-images', pat
 export type CoffeeInsert = Omit<Coffee, 'id' | 'created_at' | 'updated_at'>;
 export type PastryInsert = Omit<Pastry, 'id' | 'created_at' | 'updated_at'>;
 
-export type CoffeeUpdate = Partial<Omit<Coffee, 'id' | 'created_at' | 'updated_at' | 'tenant_id'>>;
-export type PastryUpdate = Partial<Omit<Pastry, 'id' | 'created_at' | 'updated_at' | 'tenant_id'>>;
+export type CoffeeUpdate = Partial<Omit<Coffee, 'id' | 'created_at' | 'updated_at' | 'cafe_id'>>;
+export type PastryUpdate = Partial<Omit<Pastry, 'id' | 'created_at' | 'updated_at' | 'cafe_id'>>;
