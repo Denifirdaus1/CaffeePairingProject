@@ -72,54 +72,6 @@ export const HeroSection: React.FC = () => {
             <span>Cancel anytime</span>
           </div>
         </div>
-
-        {/* Demo Public Shops */}
-        <div className="mt-16">
-          <div className="glass-panel rounded-2xl p-8 max-w-4xl mx-auto">
-            <h3 className="text-2xl font-bold text-white mb-4 text-center">For Customers: Try Our Demo Shops</h3>
-            <p className="text-brand-text-muted text-center mb-6">
-              Experience how customers discover coffee pairings in our partner cafés. 
-              No signup required - just browse and explore!
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Link
-                to="/s/kaffecihuy-1ed74a49"
-                className="flex items-center gap-3 p-4 rounded-xl bg-brand-primary/50 hover:bg-brand-primary/70 transition-colors"
-              >
-                <div className="w-12 h-12 bg-brand-accent rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold">☕</span>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-white">kaffeCihuy</h4>
-                  <p className="text-sm text-brand-text-muted">Demo café with coffee collection</p>
-                </div>
-                <div className="ml-auto">
-                  <svg className="w-5 h-5 text-brand-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </div>
-              </Link>
-              
-              <Link
-                to="/s/my-café-98b73baa"
-                className="flex items-center gap-3 p-4 rounded-xl bg-brand-primary/50 hover:bg-brand-primary/70 transition-colors"
-              >
-                <div className="w-12 h-12 bg-brand-accent rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold">🏪</span>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-white">My Café</h4>
-                  <p className="text-sm text-brand-text-muted">Another demo café experience</p>
-                </div>
-                <div className="ml-auto">
-                  <svg className="w-5 h-5 text-brand-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </div>
-              </Link>
-            </div>
-          </div>
-        </div>
       </div>
     </section>
   );
