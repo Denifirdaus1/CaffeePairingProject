@@ -38,7 +38,7 @@ export const Slider: React.FC<SliderProps> = ({
           step="1"
           value={value}
           onChange={(e) => onChange(parseInt(e.target.value))}
-          className="flex-1 h-2 bg-brand-bg rounded-lg appearance-none cursor-pointer slider"
+          className="flex-1 h-2 bg-brand-bg/30 border border-brand-accent/30 rounded-lg appearance-none cursor-pointer slider"
         />
         <span className="text-xs text-brand-text/50">{max}</span>
       </div>
@@ -48,22 +48,32 @@ export const Slider: React.FC<SliderProps> = ({
       <style>{`
         .slider::-webkit-slider-thumb {
           appearance: none;
-          width: 20px;
-          height: 20px;
+          width: 24px;
+          height: 24px;
           border-radius: 50%;
-          background: var(--brand-accent);
+          background: #d4af66;
           cursor: pointer;
-          border: 2px solid var(--brand-primary);
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+          border: 3px solid #2a1f1a;
+          box-shadow: 0 2px 8px rgba(212, 175, 102, 0.4);
+          transition: all 0.2s ease;
+        }
+        .slider::-webkit-slider-thumb:hover {
+          transform: scale(1.15);
+          box-shadow: 0 4px 12px rgba(212, 175, 102, 0.6);
         }
         .slider::-moz-range-thumb {
-          width: 20px;
-          height: 20px;
+          width: 24px;
+          height: 24px;
           border-radius: 50%;
-          background: var(--brand-accent);
+          background: #d4af66;
           cursor: pointer;
-          border: 2px solid var(--brand-primary);
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+          border: 3px solid #2a1f1a;
+          box-shadow: 0 2px 8px rgba(212, 175, 102, 0.4);
+          transition: all 0.2s ease;
+        }
+        .slider::-moz-range-thumb:hover {
+          transform: scale(1.15);
+          box-shadow: 0 4px 12px rgba(212, 175, 102, 0.6);
         }
       `}</style>
     </div>

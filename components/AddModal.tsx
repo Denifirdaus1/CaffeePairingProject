@@ -265,7 +265,7 @@ export const AddModal: React.FC<AddModalProps> = ({ type, onClose, onAddCoffee, 
             <p className="text-xs text-brand-text/70 mt-1">Click keywords above to add them. Used by AI to find the best pairings.</p>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4">
             <div>
                 <Slider
                     name="acidity"
@@ -278,9 +278,15 @@ export const AddModal: React.FC<AddModalProps> = ({ type, onClose, onAddCoffee, 
                 />
             </div>
             <div>
-                <label htmlFor="popularity_hint" className="block text-sm font-medium text-brand-text/90 mb-1">Popularity Hint</label>
-                <input id="popularity_hint" type="number" name="popularity_hint" min="0" max="1" step="0.1" value={formData.popularity_hint ?? ''} onChange={handleChange} className="w-full bg-brand-bg border border-brand-accent/50 rounded-md p-2 text-brand-text focus:ring-brand-accent focus:border-brand-accent" />
-                <p className="text-xs text-brand-text/70 mt-1">0=rare, 1=bestseller</p>
+                <Slider
+                    name="popularity_hint"
+                    value={formData.popularity_hint || 0.3}
+                    min={0}
+                    max={10}
+                    onChange={(value) => handleSliderChange('popularity_hint', value / 10)}
+                    label="Popularity Level"
+                    description="0=rare, 10=bestseller"
+                />
             </div>
         </div>
     </>
@@ -323,7 +329,7 @@ export const AddModal: React.FC<AddModalProps> = ({ type, onClose, onAddCoffee, 
                 <p className="text-xs text-brand-text/70 mt-1">Optional. A short note about allergens.</p>
             </div>
         </div>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 gap-4">
             <div>
                 <Slider
                     name="sweetness"
@@ -346,11 +352,17 @@ export const AddModal: React.FC<AddModalProps> = ({ type, onClose, onAddCoffee, 
                     description="1=light, 5=very rich"
                 />
             </div>
-            <div>
-                <label htmlFor="popularity_hint_pastry" className="block text-sm font-medium text-brand-text/90 mb-1">Popularity Hint</label>
-                <input id="popularity_hint_pastry" type="number" name="popularity_hint" min="0" max="1" step="0.1" value={formData.popularity_hint ?? ''} onChange={handleChange} className="w-full bg-brand-bg border border-brand-accent/50 rounded-md p-2 text-brand-text focus:ring-brand-accent focus:border-brand-accent" />
-                <p className="text-xs text-brand-text/70 mt-1">0=rare, 1=bestseller</p>
-            </div>
+        </div>
+        <div>
+            <Slider
+                name="popularity_hint_pastry"
+                value={formData.popularity_hint ? formData.popularity_hint * 10 : 3}
+                min={0}
+                max={10}
+                onChange={(value) => handleSliderChange('popularity_hint', value / 10)}
+                label="Popularity Level"
+                description="0=rare, 10=bestseller"
+            />
         </div>
     </>
   );
