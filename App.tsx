@@ -7,6 +7,7 @@ import { RegisterPage } from './pages/RegisterPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { PublicShopPage } from './pages/PublicShopPage';
 import { PublicCoffeePage } from './pages/PublicCoffeePage';
+import { PublicPairingPage } from './pages/PublicPairingPage';
 import { AuthGuard } from './components/auth/AuthGuard';
 
 function App() {
@@ -28,6 +29,7 @@ function App() {
           {/* Public Shop Routes */}
           <Route path="/s/:shop" element={<PublicShopPage />} />
           <Route path="/s/:shop/coffee/:slug" element={<PublicCoffeePage />} />
+          <Route path="/s/:shop/pairing/:slug" element={<PublicPairingPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>

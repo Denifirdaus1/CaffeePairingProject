@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { supabase } from '../services/supabaseClient';
 import { CoffeeIcon } from '../components/icons/CoffeeIcon';
 import { QRCodeIcon } from '../components/icons/QRCodeIcon';
+import { ArrowLeftIcon } from '../components/icons/ArrowLeftIcon';
 import { CoffeeSearch } from '../components/public/CoffeeSearch';
 
 interface ShopData {
@@ -175,9 +176,18 @@ export const PublicShopPage: React.FC = () => {
       <header className="relative z-50">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <nav className="flex items-center justify-between py-6">
-            <div className="flex items-center gap-3 text-white">
-              <CoffeeIcon className="h-8 w-8 text-brand-accent" />
-              <span className="text-xl font-bold">{shopData.cafe_name}</span>
+            <div className="flex items-center gap-4">
+              <Link
+                to="/"
+                className="inline-flex items-center gap-2 text-sm font-medium text-brand-text/70 hover:text-white transition-colors"
+              >
+                <ArrowLeftIcon className="h-4 w-4" />
+                Back to Home
+              </Link>
+              <div className="flex items-center gap-3 text-white">
+                <CoffeeIcon className="h-8 w-8 text-brand-accent" />
+                <span className="text-xl font-bold">{shopData.cafe_name}</span>
+              </div>
             </div>
             <div className="flex items-center gap-4">
               <button

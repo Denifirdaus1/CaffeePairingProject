@@ -1,5 +1,8 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import { CoffeeIcon } from './icons/CoffeeIcon';
+import { ArrowLeftIcon } from './icons/ArrowLeftIcon';
 
 type AccentPillProps = {
   children: React.ReactNode;
@@ -13,6 +16,16 @@ const AccentPill: React.FC<AccentPillProps> = ({ children }) => (
 );
 
 export const Header: React.FC = () => {
+  const { signOut, user } = useAuth();
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
   return (
     <header className="relative overflow-hidden">
       <div className="pointer-events-none absolute inset-0 -z-10">
@@ -26,7 +39,7 @@ export const Header: React.FC = () => {
           <div className="rounded-3xl bg-brand-primary/80 p-4 text-brand-accent shadow-2xl ring-1 ring-brand-accent/40">
             <CoffeeIcon className="h-9 w-9" />
           </div>
-          <div className="space-y-4">
+          <div className="space-y-4 flex-1">
             <AccentPill>AI PAIRING ENGINE</AccentPill>
             <div className="space-y-3">
               <h1 className="text-3xl font-semibold text-white md:text-4xl md:leading-tight">
@@ -40,13 +53,38 @@ export const Header: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex flex-col items-start gap-4 rounded-3xl bg-brand-primary/50 p-5 text-sm text-brand-text/70 shadow-xl ring-1 ring-brand-accent/20 backdrop-blur lg:items-end">
-          <p className="text-xs uppercase tracking-[0.25em] text-brand-text/50">Live system status</p>
-          <div className="flex items-center gap-3 rounded-2xl bg-brand-bg/60 px-4 py-2 text-xs font-semibold text-white shadow-inner ring-1 ring-white/10">
-            <span className="inline-flex h-2.5 w-2.5 animate-pulse rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.65)]" />
-            Smart pairing service operating 24/7
+        <div className="flex flex-col items-start gap-4 lg:items-end">
+          {/* Navigation Buttons */}
+          <div className="flex flex-wrap gap-3">
+            <Link
+              to="/"
+              className="inline-flex items-center gap-2 rounded-xl bg-brand-surface/40 px-4 py-2 text-sm font-medium text-brand-text hover:text-white hover:bg-brand-surface/60 transition-all"
+            >
+              <ArrowLeftIcon className="h-4 w-4" />
+              Back to Landing
+            </Link>
+            {user && (
+              <button
+                onClick={handleSignOut}
+                className="inline-flex items-center gap-2 rounded-xl bg-red-600/20 hover:bg-red-600/30 px-4 py-2 text-sm font-medium text-red-300 hover:text-white transition-all border border-red-600/30"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                Sign Out
+              </button>
+            )}
           </div>
-          <p className="text-xs text-brand-text/50">Powered by Gemini & Supabase</p>
+
+          {/* System Status */}
+          <div className="w-full lg:w-auto rounded-3xl bg-brand-primary/50 p-5 text-sm text-brand-text/70 shadow-xl ring-1 ring-brand-accent/20 backdrop-blur">
+            <p className="text-xs uppercase tracking-[0.25em] text-brand-text/50">Live system status</p>
+            <div className="flex items-center gap-3 rounded-2xl bg-brand-bg/60 px-4 py-2 text-xs font-semibold text-white shadow-inner ring-1 ring-white/10">
+              <span className="inline-flex h-2.5 w-2.5 animate-pulse rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.65)]" />
+              Smart pairing service operating 24/7
+            </div>
+            <p className="text-xs text-brand-text/50">Powered by Gemini & Supabase</p>
+          </div>
         </div>
       </div>
     </header>

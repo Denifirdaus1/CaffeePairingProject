@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { CoffeeIcon } from '../components/icons/CoffeeIcon';
+import { ArrowLeftIcon } from '../components/icons/ArrowLeftIcon';
 import { Spinner } from '../components/Spinner';
 import { Toast } from '../components/Toast';
 
@@ -79,8 +80,19 @@ export const RegisterPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-bg via-brand-primary to-brand-surface flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-2xl w-full space-y-8">
+    <div className="min-h-screen bg-gradient-to-br from-brand-bg via-brand-primary to-brand-surface flex flex-col py-12 px-4 sm:px-6 lg:px-8">
+      {/* Back to Home Button */}
+      <div className="max-w-2xl w-full mx-auto mb-4">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-2 text-brand-text/70 hover:text-white transition-colors text-sm"
+        >
+          <ArrowLeftIcon className="h-4 w-4" />
+          Back to Home
+        </Link>
+      </div>
+
+      <div className="max-w-2xl w-full space-y-8 mx-auto">
         <div className="text-center">
           <div className="flex justify-center mb-6">
             <div className="rounded-3xl bg-brand-primary/80 p-4 text-brand-accent shadow-2xl ring-1 ring-brand-accent/40">

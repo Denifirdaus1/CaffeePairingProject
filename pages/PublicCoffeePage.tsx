@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { supabase } from '../services/supabaseClient';
 import { CoffeeIcon } from '../components/icons/CoffeeIcon';
 import { QRCodeIcon } from '../components/icons/QRCodeIcon';
@@ -173,6 +173,13 @@ export const PublicCoffeePage: React.FC = () => {
               Back to {shopData.cafe_name}
             </button>
             <div className="flex items-center gap-4">
+              <Link
+                to="/"
+                className="inline-flex items-center gap-2 text-sm font-medium text-brand-text/70 hover:text-white transition-colors"
+              >
+                <ArrowLeftIcon className="h-4 w-4" />
+                Back to Home
+              </Link>
               <button
                 onClick={() => navigator.clipboard.writeText(generateQRCode())}
                 className="flex items-center gap-2 text-sm font-medium text-brand-text hover:text-white transition-colors"
