@@ -1,6 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { CoffeeInsert, PastryInsert } from '../services/supabaseClient';
 
+// Suggested keywords based on Bunamo compatibility matrix
+const SUGGESTED_FLAVORS = [
+  'chocolate', 'vanilla', 'caramel', 'nuts', 'cinnamon', 
+  'citrus', 'berry', 'floral', 'spice', 'honey', 'almond', 
+  'creamy', 'nutty', 'earthy', 'fruity', 'smoky', 'cocoa', 
+  'apple', 'pumpkin', 'lemon', 'orange', 'walnut', 'toffee'
+];
+
+const SUGGESTED_TEXTURES = [
+  'flaky', 'creamy', 'crispy', 'airy', 'delicate', 'light',
+  'moist', 'tender', 'balanced', 'dense', 'rich', 'chewy',
+  'substantial', 'buttery', 'crunchy', 'soft'
+];
+
 const initialCoffeeState: Omit<CoffeeInsert, 'cafe_id' | 'image_path' | 'image_url'> = {
     name: '',
     is_core: true,
@@ -30,6 +44,10 @@ export const AddModal: React.FC<AddModalProps> = ({ type, onClose, onAddCoffee, 
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [showFlavorSuggestions, setShowFlavorSuggestions] = useState(false);
+  const [showTextureSuggestions, setShowTextureSuggestions] = useState(false);
+  const [flavorInputValue, setFlavorInputValue] = useState('');
+  const [textureInputValue, setTextureInputValue] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -37,12 +55,25 @@ export const AddModal: React.FC<AddModalProps> = ({ type, onClose, onAddCoffee, 
     setFormData(type === 'coffee' ? initialCoffeeState : initialPastryState);
     setImageFile(null);
     setImagePreview(null);
+    setFlavorInputValue('');
+    setTextureInputValue('');
   }, [type]);
 
   if (!type) return null;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type: inputType } = e.target;
+    
+    // Handle flavor/texture inputs to show suggestions
+    if (name === 'flavor_notes' || name === 'flavor_tags') {
+      setFlavorInputValue(value);
+      setShowFlavorSuggestions(value.length > 0);
+    }
+    if (name === 'texture_tags') {
+      setTextureInputValue(value);
+      setShowTextureSuggestions(value.length > 0);
+    }
+    
     // Handle number input returning empty string
     if (inputType === 'number' && value === '') {
         setFormData((prev: any) => ({ ...prev, [name]: null }));
@@ -50,6 +81,24 @@ export const AddModal: React.FC<AddModalProps> = ({ type, onClose, onAddCoffee, 
     }
     const val = inputType === 'number' ? parseFloat(value) : value;
     setFormData((prev: any) => ({ ...prev, [name]: val }));
+  };
+
+  const handleSuggestionClick = (suggestion: string, field: string) => {
+    const currentValue = formData[field] || '';
+    const newValue = currentValue 
+      ? `${currentValue}, ${suggestion}`
+      : suggestion;
+    
+    setFormData((prev: any) => ({ ...prev, [field]: newValue }));
+    
+    if (field === 'flavor_notes' || field === 'flavor_tags') {
+      setFlavorInputValue(newValue);
+      setShowFlavorSuggestions(false);
+    }
+    if (field === 'texture_tags') {
+      setTextureInputValue(newValue);
+      setShowTextureSuggestions(false);
+    }
   };
 
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -78,7 +127,6 @@ export const AddModal: React.FC<AddModalProps> = ({ type, onClose, onAddCoffee, 
     }
     setIsSaving(true);
     
-    // The form data state for add doesn't contain image_url, so no need to strip it.
     const formDataToSend = { ...formData };
 
     if (type === 'coffee') {
@@ -89,6 +137,29 @@ export const AddModal: React.FC<AddModalProps> = ({ type, onClose, onAddCoffee, 
     setIsSaving(false);
   };
   
+  const renderSuggestionChips = (suggestions: string[], field: string, visible: boolean) => {
+    if (!visible) return null;
+    
+    return (
+      <div className="flex flex-wrap gap-2 mt-2 p-2 bg-brand-bg/50 rounded-lg border border-brand-accent/30">
+        <span className="text-xs text-brand-text/50 w-full">Suggested keywords:</span>
+        {suggestions.filter(s => 
+          !(formData[field] || '').toLowerCase().includes(s.toLowerCase())
+        ).map(suggestion => (
+          <button
+            key={suggestion}
+            type="button"
+            onClick={() => handleSuggestionClick(suggestion, field)}
+            className="px-2 py-1 text-xs bg-brand-accent/20 hover:bg-brand-accent/40 text-brand-accent rounded-full transition-colors"
+            aria-label={`Add ${suggestion} keyword`}
+          >
+            + {suggestion}
+          </button>
+        ))}
+      </div>
+    );
+  };
+
   const renderCoffeeForm = () => (
     <>
         <div>
@@ -104,10 +175,20 @@ export const AddModal: React.FC<AddModalProps> = ({ type, onClose, onAddCoffee, 
             </div>
             <p className="text-xs text-brand-text/70 mt-1">"Core" items are always available. "Guest" items are seasonal or limited.</p>
         </div>
-        <div>
+        <div className="relative">
             <label htmlFor="flavor_notes" className="block text-sm font-medium text-brand-text/90 mb-1">Flavor Notes</label>
-            <textarea id="flavor_notes" name="flavor_notes" value={formData.flavor_notes} onChange={handleChange} placeholder="e.g., chocolate, nutty, low acidity" required rows={3} className="w-full bg-brand-bg border border-brand-accent/50 rounded-md p-2 text-brand-text focus:ring-brand-accent focus:border-brand-accent"></textarea>
-            <p className="text-xs text-brand-text/70 mt-1">Comma-separated keywords. Used by the AI to find the best pairings.</p>
+            <textarea 
+                id="flavor_notes" 
+                name="flavor_notes" 
+                value={formData.flavor_notes} 
+                onChange={handleChange} 
+                placeholder="e.g., chocolate, nutty, low acidity" 
+                required 
+                rows={3} 
+                className="w-full bg-brand-bg border border-brand-accent/50 rounded-md p-2 text-brand-text focus:ring-brand-accent focus:border-brand-accent"
+            />
+            {renderSuggestionChips(SUGGESTED_FLAVORS, 'flavor_notes', showFlavorSuggestions)}
+            <p className="text-xs text-brand-text/70 mt-1">Click keywords above to add them. Used by AI to find the best pairings.</p>
         </div>
         <div className="grid grid-cols-2 gap-4">
             <div>
@@ -119,7 +200,7 @@ export const AddModal: React.FC<AddModalProps> = ({ type, onClose, onAddCoffee, 
                     <option value="spring">Spring</option>
                     <option value="summer">Summer</option>
                 </select>
-                <p className="text-xs text-brand-text/70 mt-1">Optional. Helps the AI recommend this during a specific season.</p>
+                <p className="text-xs text-brand-text/70 mt-1">Optional. Helps AI recommend during specific seasons.</p>
             </div>
             <div>
                 <label htmlFor="popularity_hint" className="block text-sm font-medium text-brand-text/90 mb-1">Popularity Hint</label>
@@ -132,16 +213,34 @@ export const AddModal: React.FC<AddModalProps> = ({ type, onClose, onAddCoffee, 
 
   const renderPastryForm = () => (
     <>
-        <div>
+        <div className="relative">
             <label htmlFor="flavor_tags" className="block text-sm font-medium text-brand-text/90 mb-1">Flavor Tags</label>
-            <textarea id="flavor_tags" name="flavor_tags" value={formData.flavor_tags} onChange={handleChange} placeholder="e.g., almond, butter, sweet" required className="w-full bg-brand-bg border border-brand-accent/50 rounded-md p-2 text-brand-text focus:ring-brand-accent focus:border-brand-accent"></textarea>
-            <p className="text-xs text-brand-text/70 mt-1">Comma-separated keywords. Critical for AI analysis.</p>
+            <textarea 
+                id="flavor_tags" 
+                name="flavor_tags" 
+                value={formData.flavor_tags} 
+                onChange={handleChange} 
+                placeholder="e.g., almond, butter, sweet" 
+                required 
+                className="w-full bg-brand-bg border border-brand-accent/50 rounded-md p-2 text-brand-text focus:ring-brand-accent focus:border-brand-accent"
+            />
+            {renderSuggestionChips(SUGGESTED_FLAVORS, 'flavor_tags', showFlavorSuggestions)}
+            <p className="text-xs text-brand-text/70 mt-1">Click keywords above to add them. Critical for AI analysis.</p>
         </div>
         <div className="grid grid-cols-2 gap-4">
-            <div>
+            <div className="relative">
                 <label htmlFor="texture_tags" className="block text-sm font-medium text-brand-text/90 mb-1">Texture Tags</label>
-                <textarea id="texture_tags" name="texture_tags" value={formData.texture_tags} onChange={handleChange} placeholder="e.g., flaky, crispy, buttery" required className="w-full bg-brand-bg border border-brand-accent/50 rounded-md p-2 text-brand-text focus:ring-brand-accent focus:border-brand-accent"></textarea>
-                <p className="text-xs text-brand-text/70 mt-1">Keywords for texture. Used for AI balancing.</p>
+                <textarea 
+                    id="texture_tags" 
+                    name="texture_tags" 
+                    value={formData.texture_tags} 
+                    onChange={handleChange} 
+                    placeholder="e.g., flaky, crispy, buttery" 
+                    required 
+                    className="w-full bg-brand-bg border border-brand-accent/50 rounded-md p-2 text-brand-text focus:ring-brand-accent focus:border-brand-accent"
+                />
+                {renderSuggestionChips(SUGGESTED_TEXTURES, 'texture_tags', showTextureSuggestions)}
+                <p className="text-xs text-brand-text/70 mt-1">Click keywords above to add them. Used for AI balancing.</p>
             </div>
             <div>
                 <label htmlFor="popularity_hint_pastry" className="block text-sm font-medium text-brand-text/90 mb-1">Popularity Hint</label>
