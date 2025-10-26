@@ -70,11 +70,12 @@ export const PublicPairingPage: React.FC = () => {
 
         setShopData(shopData);
 
-        // Fetch pairing data (simplified - just use slug)
+        // Fetch pairing data - use RLS policy by checking is_approved
         const { data: pairingData, error: pairingError } = await supabase
           .from('pairings')
           .select('*')
           .eq('pairing_slug', slug)
+          .eq('is_approved', true)
           .maybeSingle();
 
         console.log('Pairing query result:', { pairingData, pairingError });
