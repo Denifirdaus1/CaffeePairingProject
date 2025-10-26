@@ -23,7 +23,7 @@ const sanitizeForFileName = (name: string) => {
     return name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
 }
 
-export const downloadPDF = async (data: PairingResponse) => {
+export const downloadPDF = async (data: PairingResponse, qrCodeUrl?: string) => {
     const reportElement = document.createElement('div');
     reportElement.style.position = 'fixed';
     reportElement.style.left = '-9999px'; // Render off-screen
@@ -31,7 +31,7 @@ export const downloadPDF = async (data: PairingResponse) => {
     document.body.appendChild(reportElement);
 
     const root = ReactDOM.createRoot(reportElement);
-    root.render(React.createElement(PrintableView, { data }));
+    root.render(React.createElement(PrintableView, { data, qrCodeUrl }));
 
     // Allow time for images to load
     await new Promise(resolve => setTimeout(resolve, 1000));
