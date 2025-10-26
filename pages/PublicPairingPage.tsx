@@ -75,7 +75,6 @@ export const PublicPairingPage: React.FC = () => {
           .from('pairings')
           .select('*')
           .eq('pairing_slug', slug)
-          .eq('is_published', true)
           .maybeSingle();
 
         console.log('Pairing query result:', { pairingData, pairingError });
@@ -147,17 +146,36 @@ export const PublicPairingPage: React.FC = () => {
 
   if (error || !pairing || !shopData) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-brand-bg via-brand-primary to-brand-surface flex items-center justify-center">
-        <div className="text-center">
+      <div className="min-h-screen bg-gradient-to-br from-brand-bg via-brand-primary to-brand-surface flex items-center justify-center p-4">
+        <div className="text-center max-w-md">
           <h1 className="text-4xl font-bold text-white mb-4">Pairing Not Found</h1>
-          <p className="text-brand-text-muted mb-6">
-            The pairing you're looking for doesn't exist. {error && <span className="text-red-300">({error})</span>}
-          </p>
-          {shop && (
-            <Link to={`/s/${shop}`} className="button-primary-pulse px-6 py-3 rounded-xl inline-block">
-              Back to Shop
-            </Link>
-          )}
+          <div className="bg-red-900/30 border border-red-500/50 rounded-lg p-4 mb-4 text-left">
+            <p className="text-red-300 text-sm font-mono break-all">
+              <strong>Error:</strong> {error || 'Unknown error'}
+            </p>
+            <p className="text-red-300 text-sm font-mono break-all mt-2">
+              <strong>Shop:</strong> {shop || 'N/A'}
+            </p>
+            <p className="text-red-300 text-sm font-mono break-all">
+              <strong>Slug:</strong> {slug || 'N/A'}
+            </p>
+            <p className="text-red-300 text-sm mt-2">
+              Check browser console (F12) for more details
+            </p>
+          </div>
+          <div className="flex flex-col gap-3">
+            {shop && (
+              <Link to={`/s/${shop}`} className="button-primary-pulse px-6 py-3 rounded-xl inline-block">
+                Back to Shop
+              </Link>
+            )}
+            <button 
+              onClick={() => window.location.reload()} 
+              className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-xl transition-colors"
+            >
+              Reload Page
+            </button>
+          </div>
         </div>
       </div>
     );
