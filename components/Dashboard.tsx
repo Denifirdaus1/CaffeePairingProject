@@ -276,7 +276,7 @@ export const Dashboard: React.FC = () => {
           pastry_id: pair.pastry.id,
           score: pair.score,
           why: pair.why_marketing,
-          status: 'pending',
+          status: 'draft',
           is_approved: false
         }));
 
