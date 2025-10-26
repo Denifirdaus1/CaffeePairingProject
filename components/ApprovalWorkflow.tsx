@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { supabase } from '../services/supabaseClient';
+import { useAuth } from '../contexts/AuthContext';
 import { CheckCircleIcon } from './icons/CheckCircleIcon';
 import { TrashIcon } from './icons/TrashIcon';
 import { Spinner } from './Spinner';
@@ -41,6 +42,7 @@ export const ApprovalWorkflow: React.FC<ApprovalWorkflowProps> = ({
   pairings,
   onApprovalChange
 }) => {
+  const { user } = useAuth();
   const [loading, setLoading] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
@@ -161,9 +163,10 @@ export const ApprovalWorkflow: React.FC<ApprovalWorkflowProps> = ({
 
   const generatePairingPDF = async (pairing: any) => {
     // This will call the download service to generate PDF with QR code
-    // For now, return a placeholder URL
+    const cafeName = user?.cafe_profile?.cafe_name || 'My Café';
+    const shopSlug = user?.cafe_profile?.shop_slug;
     const publicUrl = window.location.origin;
-    const qrUrl = `${publicUrl}/s/${pairing.pairing_slug}`;
+    const qrUrl = `${publicUrl}/s/${shopSlug}/pairing/${pairing.pairing_slug}`;
     
     // Import the download service dynamically
     const { downloadPDF } = await import('../services/downloadService');
@@ -210,8 +213,8 @@ export const ApprovalWorkflow: React.FC<ApprovalWorkflowProps> = ({
       }
     };
     
-    // Generate and download PDF with QR code
-    downloadPDF(pairingData, qrUrl);
+    // Generate and download PDF with QR code and cafe name
+    downloadPDF(pairingData, qrUrl, cafeName);
     
     // Return a placeholder URL (in production, this would be the uploaded PDF URL)
     return `${publicUrl}/pairing-${pairing.id}.pdf`;

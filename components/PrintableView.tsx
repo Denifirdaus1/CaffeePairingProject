@@ -5,10 +5,11 @@ import { CoffeeIcon } from './icons/CoffeeIcon';
 interface PrintableViewProps {
   data: PairingResponse;
   qrCodeUrl?: string;
+  cafeName?: string;
   onBack?: () => void; // Made optional as it's not always needed
 }
 
-export const PrintableView: React.FC<PrintableViewProps> = ({ data, qrCodeUrl }) => {
+export const PrintableView: React.FC<PrintableViewProps> = ({ data, qrCodeUrl, cafeName }) => {
 
   return (
     <div className="bg-white text-gray-800 min-h-screen p-8 md:p-12 font-sans">
@@ -23,7 +24,7 @@ export const PrintableView: React.FC<PrintableViewProps> = ({ data, qrCodeUrl })
             </div>
           </div>
           <div className="text-right">
-            <p className="font-semibold">My Café</p>
+            <p className="font-semibold">{cafeName || 'My Café'}</p>
             <p className="text-sm text-gray-500">Generated on: {new Date().toLocaleDateString()}</p>
           </div>
         </header>
