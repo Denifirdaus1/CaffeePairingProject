@@ -47,6 +47,10 @@ export const PublicPairingPage: React.FC = () => {
   useEffect(() => {
     if (!shop || !slug) return;
     
+    console.log('=== FETCHING PAIRING DATA ===');
+    console.log('Shop:', shop);
+    console.log('Slug:', slug);
+    
     const fetchPairingData = async () => {
       try {
         // Set current shop context for RLS
@@ -66,14 +70,15 @@ export const PublicPairingPage: React.FC = () => {
 
         setShopData(shopData);
 
-        // Fetch pairing data (without nested queries to avoid issues)
+        // Fetch pairing data (simplified - just use slug)
         const { data: pairingData, error: pairingError } = await supabase
           .from('pairings')
           .select('*')
           .eq('pairing_slug', slug)
-          .eq('cafe_id', shopData.id)
           .eq('is_published', true)
           .maybeSingle();
+
+        console.log('Pairing query result:', { pairingData, pairingError });
 
         if (pairingError) {
           console.error('Pairing fetch error:', pairingError);
@@ -82,9 +87,12 @@ export const PublicPairingPage: React.FC = () => {
         }
 
         if (!pairingData) {
+          console.log('No pairing data found');
           setError('Pairing not found');
           return;
         }
+        
+        console.log('Pairing found:', pairingData);
 
         // Fetch coffee data separately
         const { data: coffeeData, error: coffeeError } = await supabase
