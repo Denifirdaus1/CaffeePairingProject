@@ -1,11 +1,26 @@
 import { GoogleGenAI } from '@google/genai';
 
-if (!(process.env as any).VITE_GEMINI_API_KEY) {
+// Get API key from environment with fallback
+const getApiKey = () => {
+    // Try Vite env first
+    if (import.meta.env?.VITE_GEMINI_API_KEY) {
+        return import.meta.env.VITE_GEMINI_API_KEY;
+    }
+    // Fallback to process.env for production
+    if ((process.env as any)?.VITE_GEMINI_API_KEY) {
+        return (process.env as any).VITE_GEMINI_API_KEY;
+    }
+    return '';
+};
+
+const apiKey = getApiKey();
+
+if (!apiKey) {
     throw new Error("VITE_GEMINI_API_KEY environment variable is not set.");
 }
 
 const ai = new GoogleGenAI({ 
-    apiKey: (process.env as any).VITE_GEMINI_API_KEY || ''
+    apiKey
 });
 
 export interface CoffeeMetadata {
