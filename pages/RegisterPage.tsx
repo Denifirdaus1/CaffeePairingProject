@@ -5,6 +5,7 @@ import { CoffeeIcon } from '../components/icons/CoffeeIcon';
 import { ArrowLeftIcon } from '../components/icons/ArrowLeftIcon';
 import { Spinner } from '../components/Spinner';
 import { Toast } from '../components/Toast';
+import { GoogleMapsPicker } from '../components/GoogleMapsPicker';
 
 export const RegisterPage: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -18,12 +19,15 @@ export const RegisterPage: React.FC = () => {
     city: '',
     country: '',
     phone: '',
-    website: ''
+    website: '',
+    latitude: '',
+    longitude: ''
   });
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [isRateLimited, setIsRateLimited] = useState(false);
   const [cooldownTime, setCooldownTime] = useState(0);
+  const [showLocationPicker, setShowLocationPicker] = useState(false);
   
   const { signUp, loading } = useAuth();
   const navigate = useNavigate();
@@ -33,6 +37,24 @@ export const RegisterPage: React.FC = () => {
       ...prev,
       [e.target.name]: e.target.value
     }));
+  };
+
+  const handleLocationSelect = (location: {
+    address: string;
+    city: string;
+    country: string;
+    lat: number;
+    lng: number;
+  }) => {
+    setFormData(prev => ({
+      ...prev,
+      address: location.address,
+      city: location.city,
+      country: location.country,
+      latitude: location.lat.toString(),
+      longitude: location.lng.toString()
+    }));
+    setShowLocationPicker(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -204,36 +226,73 @@ export const RegisterPage: React.FC = () => {
               />
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2">
-              <div>
-                <label htmlFor="city" className="block text-sm font-medium text-brand-text/90 mb-2">
-                  City
-                </label>
-                <input
-                  id="city"
-                  name="city"
-                  type="text"
-                  value={formData.city}
-                  onChange={handleChange}
-                  className="w-full bg-brand-bg border border-brand-accent/50 rounded-xl p-3 text-brand-text focus:ring-brand-accent focus:border-brand-accent transition-colors"
-                  placeholder="Your city"
-                />
-              </div>
+            {/* Location Picker Section */}
+            <div>
+              <label className="block text-sm font-medium text-brand-text/90 mb-2">
+                Café Location *
+              </label>
+              
+              {!showLocationPicker && (
+                <div className="space-y-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowLocationPicker(true)}
+                    className="w-full bg-gradient-to-r from-brand-accent/20 to-amber-400/20 border border-brand-accent/50 rounded-xl p-4 text-brand-text hover:from-brand-accent/30 hover:to-amber-400/30 transition-all"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <svg className="w-6 h-6 text-brand-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <div className="text-left">
+                          <p className="font-medium text-white">Select Location on Map</p>
+                          <p className="text-xs text-brand-text/60">
+                            {formData.address || 'Click to pick your café location'}
+                          </p>
+                        </div>
+                      </div>
+                      <svg className="w-5 h-5 text-brand-text/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </button>
+                  
+                  {formData.address && (
+                    <div className="flex items-center gap-2 text-sm text-brand-text/70">
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span>{formData.address}</span>
+                      {formData.city && formData.country && (
+                        <span className="text-brand-text/50">• {formData.city}, {formData.country}</span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
 
-              <div>
-                <label htmlFor="country" className="block text-sm font-medium text-brand-text/90 mb-2">
-                  Country
-                </label>
-                <input
-                  id="country"
-                  name="country"
-                  type="text"
-                  value={formData.country}
-                  onChange={handleChange}
-                  className="w-full bg-brand-bg border border-brand-accent/50 rounded-xl p-3 text-brand-text focus:ring-brand-accent focus:border-brand-accent transition-colors"
-                  placeholder="Your country"
-                />
-              </div>
+              {showLocationPicker && (
+                <div className="glass-panel rounded-xl p-4 border-2 border-brand-accent/50">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-semibold text-white">Pick Your Café Location</h3>
+                    <button
+                      type="button"
+                      onClick={() => setShowLocationPicker(false)}
+                      className="text-brand-text/50 hover:text-white transition-colors"
+                      aria-label="Close location picker"
+                    >
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                  <GoogleMapsPicker
+                    onLocationSelect={handleLocationSelect}
+                    initialValue={formData.address}
+                  />
+                </div>
+              )}
             </div>
 
             {error && (
