@@ -71,8 +71,20 @@ export const PublicPairingPage: React.FC = () => {
           .from('pairings')
           .select(`
             *,
-            coffees (*),
-            pastries (*)
+            coffees (
+              id,
+              name,
+              slug,
+              flavor_notes,
+              image_url
+            ),
+            pastries (
+              id,
+              name,
+              flavor_tags,
+              texture_tags,
+              image_url
+            )
           `)
           .eq('pairing_slug', slug)
           .eq('cafe_id', shopData.id)
@@ -80,10 +92,12 @@ export const PublicPairingPage: React.FC = () => {
           .single();
 
         if (pairingError) {
-          setError('Pairing not found');
+          console.error('Pairing fetch error:', pairingError);
+          setError(`Pairing not found: ${pairingError.message}`);
           return;
         }
 
+        console.log('Pairing data fetched:', pairingData);
         setPairing(pairingData);
       } catch (error) {
         console.error('Error fetching pairing data:', error);
@@ -112,10 +126,14 @@ export const PublicPairingPage: React.FC = () => {
       <div className="min-h-screen bg-gradient-to-br from-brand-bg via-brand-primary to-brand-surface flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-4xl font-bold text-white mb-4">Pairing Not Found</h1>
-          <p className="text-brand-text-muted mb-6">The pairing you're looking for doesn't exist.</p>
-          <Link to={`/s/${shop}`} className="button-primary-pulse px-6 py-3 rounded-xl inline-block">
-            Back to Shop
-          </Link>
+          <p className="text-brand-text-muted mb-6">
+            The pairing you're looking for doesn't exist. {error && <span className="text-red-300">({error})</span>}
+          </p>
+          {shop && (
+            <Link to={`/s/${shop}`} className="button-primary-pulse px-6 py-3 rounded-xl inline-block">
+              Back to Shop
+            </Link>
+          )}
         </div>
       </div>
     );
