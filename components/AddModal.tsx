@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { CoffeeInsert, PastryInsert } from '../services/supabaseClient';
 import { Slider } from './Slider';
+import { generateCoffeeMetadata, generatePastryMetadata } from '../services/aiMetadataService';
 
 // Suggested keywords based on Bunamo compatibility matrix
 const SUGGESTED_FLAVORS = [
@@ -66,6 +67,7 @@ export const AddModal: React.FC<AddModalProps> = ({ type, onClose, onAddCoffee, 
   const [flavorInputValue, setFlavorInputValue] = useState('');
   const [textureInputValue, setTextureInputValue] = useState('');
   const [originInputValue, setOriginInputValue] = useState('');
+  const [isGeneratingMetadata, setIsGeneratingMetadata] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -166,6 +168,37 @@ export const AddModal: React.FC<AddModalProps> = ({ type, onClose, onAddCoffee, 
       await onAddPastry(formDataToSend, imageFile);
     }
     setIsSaving(false);
+  };
+
+  const handleAIGenerate = async () => {
+    if (!formData.name || formData.name.trim().length < 2) {
+      alert("Please enter a name first (at least 2 characters) to generate metadata.");
+      return;
+    }
+
+    setIsGeneratingMetadata(true);
+    try {
+      if (type === 'coffee') {
+        const metadata = await generateCoffeeMetadata(formData.name);
+        setFormData((prev: any) => ({
+          ...prev,
+          ...metadata,
+          name: prev.name // Keep the original name
+        }));
+      } else {
+        const metadata = await generatePastryMetadata(formData.name);
+        setFormData((prev: any) => ({
+          ...prev,
+          ...metadata,
+          name: prev.name // Keep the original name
+        }));
+      }
+    } catch (error) {
+      console.error('Error generating metadata:', error);
+      alert("Failed to generate metadata. Please try again.");
+    } finally {
+      setIsGeneratingMetadata(false);
+    }
   };
   
   const renderSuggestionChips = (suggestions: string[], field: string, visible: boolean) => {
@@ -385,8 +418,31 @@ export const AddModal: React.FC<AddModalProps> = ({ type, onClose, onAddCoffee, 
                     <label htmlFor="name" className="block text-sm font-medium text-brand-text/90 mb-1">
                         {type === 'coffee' ? 'Coffee Name' : 'Pastry Name'}
                     </label>
-                    <input id="name" type="text" name="name" value={formData.name} onChange={handleChange} placeholder={type === 'coffee' ? "House Espresso / Ethiopia Yirgacheffe" : "Almond Croissant / Lemon Tart"} required minLength={2} className="w-full bg-brand-bg border border-brand-accent/50 rounded-md p-2 text-brand-text focus:ring-brand-accent focus:border-brand-accent" />
-                    <p className="text-xs text-brand-text/70 mt-1">The public-facing name of the item.</p>
+                    <div className="flex gap-2">
+                        <input id="name" type="text" name="name" value={formData.name} onChange={handleChange} placeholder={type === 'coffee' ? "House Espresso / Ethiopia Yirgacheffe" : "Almond Croissant / Lemon Tart"} required minLength={2} className="flex-1 bg-brand-bg border border-brand-accent/50 rounded-md p-2 text-brand-text focus:ring-brand-accent focus:border-brand-accent" />
+                        <button 
+                            type="button" 
+                            onClick={handleAIGenerate}
+                            disabled={isGeneratingMetadata || !formData.name || formData.name.length < 2}
+                            className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold rounded-md hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 shadow-lg"
+                            title="AI Auto-Fill: Generate metadata using Google Search"
+                        >
+                            {isGeneratingMetadata ? (
+                                <>
+                                    <span className="animate-spin">⟳</span>
+                                    <span className="hidden sm:inline">Generating...</span>
+                                </>
+                            ) : (
+                                <>
+                                    <span>✨</span>
+                                    <span className="hidden sm:inline">AI Auto-Fill</span>
+                                </>
+                            )}
+                        </button>
+                    </div>
+                    <p className="text-xs text-brand-text/70 mt-1">
+                        Enter the name, then click "AI Auto-Fill" to automatically generate all metadata using Google Search.
+                    </p>
                 </div>
                 
                 {type === 'coffee' ? renderCoffeeForm() : renderPastryForm()}
