@@ -66,30 +66,14 @@ export const PublicPairingPage: React.FC = () => {
 
         setShopData(shopData);
 
-        // Fetch pairing data
+        // Fetch pairing data (without nested queries to avoid issues)
         const { data: pairingData, error: pairingError } = await supabase
           .from('pairings')
-          .select(`
-            *,
-            coffees (
-              id,
-              name,
-              slug,
-              flavor_notes,
-              image_url
-            ),
-            pastries (
-              id,
-              name,
-              flavor_tags,
-              texture_tags,
-              image_url
-            )
-          `)
+          .select('*')
           .eq('pairing_slug', slug)
           .eq('cafe_id', shopData.id)
           .eq('is_published', true)
-          .single();
+          .maybeSingle();
 
         if (pairingError) {
           console.error('Pairing fetch error:', pairingError);
@@ -97,8 +81,40 @@ export const PublicPairingPage: React.FC = () => {
           return;
         }
 
-        console.log('Pairing data fetched:', pairingData);
-        setPairing(pairingData);
+        if (!pairingData) {
+          setError('Pairing not found');
+          return;
+        }
+
+        // Fetch coffee data separately
+        const { data: coffeeData, error: coffeeError } = await supabase
+          .from('coffees')
+          .select('id, name, slug, flavor_notes, image_url')
+          .eq('id', pairingData.coffee_id)
+          .single();
+
+        // Fetch pastry data separately
+        const { data: pastryData, error: pastryError } = await supabase
+          .from('pastries')
+          .select('id, name, flavor_tags, texture_tags, image_url')
+          .eq('id', pairingData.pastry_id)
+          .single();
+
+        if (coffeeError || pastryError) {
+          console.error('Coffee/Pastry fetch error:', coffeeError || pastryError);
+          setError('Failed to load coffee or pastry data');
+          return;
+        }
+
+        // Combine the data
+        const pairingWithDetails = {
+          ...pairingData,
+          coffees: coffeeData,
+          pastries: pastryData
+        };
+
+        console.log('Pairing data fetched:', pairingWithDetails);
+        setPairing(pairingWithDetails as any);
       } catch (error) {
         console.error('Error fetching pairing data:', error);
         setError('Failed to load pairing data');
