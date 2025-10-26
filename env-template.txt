@@ -1,0 +1,11 @@
+# Environment Variables Template untuk Import ke Vercel
+# Copy values di bawah ini ke Vercel Dashboard atau buat .env.local
+
+# Google Gemini API Configuration
+# Get your API key from: https://makersuite.google.com/app/apikey
+VITE_GEMINI_API_KEY=your_gemini_api_key_here
+
+# Supabase Configuration  
+# Get these values from your Supabase project dashboard
+VITE_SUPABASE_URL=https://jjbvliewmcadmxmmcckl.supabase.co
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key_here
