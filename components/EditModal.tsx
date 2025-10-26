@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { Coffee, Pastry } from '../types';
 import type { CoffeeUpdate, PastryUpdate } from '../services/supabaseClient';
+import { Slider } from './Slider';
+
+const ROAST_TYPES = ['Light', 'Medium', 'Medium-Dark', 'Dark', 'Espresso'];
 
 interface EditModalProps {
   item: Coffee | Pastry | null;
@@ -35,6 +38,10 @@ export const EditModal: React.FC<EditModalProps> = ({ item, type, onClose, onSav
     }
     const val = inputType === 'number' ? parseFloat(value) : value;
     setFormData((prev: any) => ({ ...prev, [name]: val }));
+  };
+
+  const handleSliderChange = (name: string, value: number) => {
+    setFormData((prev: any) => ({ ...prev, [name]: value }));
   };
   
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -93,12 +100,17 @@ export const EditModal: React.FC<EditModalProps> = ({ item, type, onClose, onSav
             </div>
             <p className="text-xs text-brand-text/70 mt-1">"Core" items are always available. "Guest" items are seasonal or limited.</p>
         </div>
-        <div>
-            <label htmlFor="flavor_notes" className="block text-sm font-medium text-brand-text/90 mb-1">Flavor Notes</label>
-            <textarea id="flavor_notes" name="flavor_notes" value={formData.flavor_notes || ''} onChange={handleChange} placeholder="e.g., chocolate, nutty, low acidity" required rows={3} className="w-full bg-brand-bg border border-brand-accent/50 rounded-md p-2 text-brand-text focus:ring-brand-accent focus:border-brand-accent"></textarea>
-            <p className="text-xs text-brand-text/70 mt-1">Comma-separated keywords. Used by the AI to find the best pairings.</p>
-        </div>
         <div className="grid grid-cols-2 gap-4">
+            <div>
+                <label htmlFor="roast_type" className="block text-sm font-medium text-brand-text/90 mb-1">Roast Type</label>
+                <select id="roast_type" name="roast_type" value={formData.roast_type || ''} onChange={handleChange} className="w-full bg-brand-bg border border-brand-accent/50 rounded-md p-2 text-brand-text focus:ring-brand-accent focus:border-brand-accent">
+                    <option value="">Select roast type</option>
+                    {ROAST_TYPES.map(roast => (
+                        <option key={roast} value={roast}>{roast}</option>
+                    ))}
+                </select>
+            </div>
+
             <div>
                 <label htmlFor="season_hint" className="block text-sm font-medium text-brand-text/90 mb-1">Season Hint</label>
                 <select id="season_hint" name="season_hint" value={formData.season_hint || ''} onChange={handleChange} className="w-full bg-brand-bg border border-brand-accent/50 rounded-md p-2 text-brand-text focus:ring-brand-accent focus:border-brand-accent">
@@ -109,6 +121,43 @@ export const EditModal: React.FC<EditModalProps> = ({ item, type, onClose, onSav
                     <option value="summer">Summer</option>
                 </select>
                 <p className="text-xs text-brand-text/70 mt-1">Optional. Helps the AI recommend this during a specific season.</p>
+            </div>
+        </div>
+
+        <div>
+            <label htmlFor="preparation" className="block text-sm font-medium text-brand-text/90 mb-1">Preparation Method</label>
+            <input id="preparation" type="text" name="preparation" value={formData.preparation || ''} onChange={handleChange} placeholder="e.g., Espresso, Moka Pot, French Press" className="w-full bg-brand-bg border border-brand-accent/50 rounded-md p-2 text-brand-text focus:ring-brand-accent focus:border-brand-accent" />
+            <p className="text-xs text-brand-text/70 mt-1">How this coffee is typically prepared.</p>
+        </div>
+
+        <div>
+            <label htmlFor="sort_blend" className="block text-sm font-medium text-brand-text/90 mb-1">Sort / Blend</label>
+            <input id="sort_blend" type="text" name="sort_blend" value={formData.sort_blend || ''} onChange={handleChange} placeholder="e.g., 65% Arabica, 35% Robusta" className="w-full bg-brand-bg border border-brand-accent/50 rounded-md p-2 text-brand-text focus:ring-brand-accent focus:border-brand-accent" />
+        </div>
+
+        <div>
+            <label htmlFor="origin" className="block text-sm font-medium text-brand-text/90 mb-1">Origin</label>
+            <input id="origin" type="text" name="origin" value={formData.origin || ''} onChange={handleChange} placeholder="e.g., Ethiopia, Brazil" className="w-full bg-brand-bg border border-brand-accent/50 rounded-md p-2 text-brand-text focus:ring-brand-accent focus:border-brand-accent" />
+            <p className="text-xs text-brand-text/70 mt-1">Origin countries. Used for regional pairing logic.</p>
+        </div>
+
+        <div>
+            <label htmlFor="flavor_notes" className="block text-sm font-medium text-brand-text/90 mb-1">Flavor Notes</label>
+            <textarea id="flavor_notes" name="flavor_notes" value={formData.flavor_notes || ''} onChange={handleChange} placeholder="e.g., chocolate, nutty, low acidity" required rows={3} className="w-full bg-brand-bg border border-brand-accent/50 rounded-md p-2 text-brand-text focus:ring-brand-accent focus:border-brand-accent"></textarea>
+            <p className="text-xs text-brand-text/70 mt-1">Comma-separated keywords. Used by the AI to find the best pairings.</p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+            <div>
+                <Slider
+                    name="acidity"
+                    value={formData.acidity || 3}
+                    min={1}
+                    max={5}
+                    onChange={(value) => handleSliderChange('acidity', value)}
+                    label="Acidity Level"
+                    description="1=low, 5=high"
+                />
             </div>
             <div>
                 <label htmlFor="popularity_hint" className="block text-sm font-medium text-brand-text/90 mb-1">Popularity Hint</label>
@@ -133,15 +182,39 @@ export const EditModal: React.FC<EditModalProps> = ({ item, type, onClose, onSav
                 <p className="text-xs text-brand-text/70 mt-1">Keywords for texture. Used for AI balancing.</p>
             </div>
             <div>
-                <label htmlFor="popularity_hint_pastry" className="block text-sm font-medium text-brand-text/90 mb-1">Popularity Hint</label>
-                <input id="popularity_hint_pastry" type="number" name="popularity_hint" min="0" max="1" step="0.1" value={formData.popularity_hint ?? ''} onChange={handleChange} className="w-full bg-brand-bg border border-brand-accent/50 rounded-md p-2 text-brand-text focus:ring-brand-accent focus:border-brand-accent" />
-                <p className="text-xs text-brand-text/70 mt-1">0=rare, 1=bestseller. Used in AI scoring.</p>
+                <label htmlFor="allergen_info" className="block text-sm font-medium text-brand-text/90 mb-1">Allergen Info</label>
+                <input id="allergen_info" type="text" name="allergen_info" value={formData.allergen_info || ''} onChange={handleChange} placeholder="e.g., Contains nuts, gluten-free" className="w-full bg-brand-bg border border-brand-accent/50 rounded-md p-2 text-brand-text focus:ring-brand-accent focus:border-brand-accent" />
+                <p className="text-xs text-brand-text/70 mt-1">Optional. A short note about allergens.</p>
             </div>
         </div>
-        <div>
-            <label htmlFor="allergen_info" className="block text-sm font-medium text-brand-text/90 mb-1">Allergen Info</label>
-            <input id="allergen_info" type="text" name="allergen_info" value={formData.allergen_info || ''} onChange={handleChange} placeholder="e.g., Contains nuts, gluten-free" className="w-full bg-brand-bg border border-brand-accent/50 rounded-md p-2 text-brand-text focus:ring-brand-accent focus:border-brand-accent" />
-            <p className="text-xs text-brand-text/70 mt-1">Optional. A short note about allergens.</p>
+        <div className="grid grid-cols-3 gap-4">
+            <div>
+                <Slider
+                    name="sweetness"
+                    value={formData.sweetness || 3}
+                    min={1}
+                    max={5}
+                    onChange={(value) => handleSliderChange('sweetness', value)}
+                    label="Sweetness"
+                    description="1=low, 5=very sweet"
+                />
+            </div>
+            <div>
+                <Slider
+                    name="richness"
+                    value={formData.richness || 3}
+                    min={1}
+                    max={5}
+                    onChange={(value) => handleSliderChange('richness', value)}
+                    label="Richness"
+                    description="1=light, 5=very rich"
+                />
+            </div>
+            <div>
+                <label htmlFor="popularity_hint_pastry" className="block text-sm font-medium text-brand-text/90 mb-1">Popularity Hint</label>
+                <input id="popularity_hint_pastry" type="number" name="popularity_hint" min="0" max="1" step="0.1" value={formData.popularity_hint ?? ''} onChange={handleChange} className="w-full bg-brand-bg border border-brand-accent/50 rounded-md p-2 text-brand-text focus:ring-brand-accent focus:border-brand-accent" />
+                <p className="text-xs text-brand-text/70 mt-1">0=rare, 1=bestseller</p>
+            </div>
         </div>
     </>
   );
@@ -167,7 +240,7 @@ export const EditModal: React.FC<EditModalProps> = ({ item, type, onClose, onSav
                 {type === 'coffee' ? renderCoffeeForm() : renderPastryForm()}
                 
                 <div>
-                    <label className="block text-sm font-medium text-brand-text/90 mb-2">Image</label>
+                    <label htmlFor="image-upload-edit" className="block text-sm font-medium text-brand-text/90 mb-2">Image</label>
                     <div className="flex items-center gap-4">
                         {imagePreview ? (
                             <img src={imagePreview} alt="Current item" className="w-20 h-20 rounded-lg object-cover bg-brand-bg"/>
@@ -175,7 +248,7 @@ export const EditModal: React.FC<EditModalProps> = ({ item, type, onClose, onSav
                             <div className="w-20 h-20 rounded-lg bg-brand-bg/50 flex items-center justify-center text-xs text-brand-text/50">No Image</div>
                         )}
                         <div>
-                            <input type="file" ref={fileInputRef} onChange={handleImageChange} accept="image/png, image/jpeg, image/webp" className="hidden"/>
+                            <input id="image-upload-edit" type="file" ref={fileInputRef} onChange={handleImageChange} accept="image/png, image/jpeg, image/webp" className="hidden" aria-label="Upload new image" />
                             <button type="button" onClick={() => fileInputRef.current?.click()} className="bg-brand-accent/80 text-white font-bold py-2 px-4 rounded-lg shadow-md hover:bg-brand-accent transition-colors">
                                 Upload New Image
                             </button>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { CoffeeInsert, PastryInsert } from '../services/supabaseClient';
+import { Slider } from './Slider';
 
 // Suggested keywords based on Bunamo compatibility matrix
 const SUGGESTED_FLAVORS = [
@@ -15,13 +16,26 @@ const SUGGESTED_TEXTURES = [
   'substantial', 'buttery', 'crunchy', 'soft'
 ];
 
+const SUGGESTED_ORIGINS = [
+  'Brazil', 'Colombia', 'Ethiopia', 'Kenya', 'Guatemala', 
+  'Costa Rica', 'Honduras', 'Peru', 'Tanzania', 'Rwanda',
+  'Sumatra', 'Java', 'Mexico', 'Nicaragua', 'El Salvador'
+];
+
+const ROAST_TYPES = ['Light', 'Medium', 'Medium-Dark', 'Dark', 'Espresso'];
+
 const initialCoffeeState: Omit<CoffeeInsert, 'cafe_id' | 'image_path' | 'image_url'> = {
     name: '',
     is_core: true,
     is_guest: false,
     flavor_notes: '',
     season_hint: '',
-    popularity_hint: 0.3
+    popularity_hint: 0.3,
+    roast_type: '',
+    preparation: '',
+    sort_blend: '',
+    origin: '',
+    acidity: 3
 };
 
 const initialPastryState: Omit<PastryInsert, 'cafe_id' | 'image_path' | 'image_url'> = {
@@ -30,6 +44,8 @@ const initialPastryState: Omit<PastryInsert, 'cafe_id' | 'image_path' | 'image_u
     texture_tags: '',
     popularity_hint: 0.3,
     allergen_info: '',
+    sweetness: 3,
+    richness: 3
 };
 
 interface AddModalProps {
@@ -46,8 +62,10 @@ export const AddModal: React.FC<AddModalProps> = ({ type, onClose, onAddCoffee, 
   const [isSaving, setIsSaving] = useState(false);
   const [showFlavorSuggestions, setShowFlavorSuggestions] = useState(false);
   const [showTextureSuggestions, setShowTextureSuggestions] = useState(false);
+  const [showOriginSuggestions, setShowOriginSuggestions] = useState(false);
   const [flavorInputValue, setFlavorInputValue] = useState('');
   const [textureInputValue, setTextureInputValue] = useState('');
+  const [originInputValue, setOriginInputValue] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -57,6 +75,7 @@ export const AddModal: React.FC<AddModalProps> = ({ type, onClose, onAddCoffee, 
     setImagePreview(null);
     setFlavorInputValue('');
     setTextureInputValue('');
+    setOriginInputValue('');
   }, [type]);
 
   if (!type) return null;
@@ -64,7 +83,7 @@ export const AddModal: React.FC<AddModalProps> = ({ type, onClose, onAddCoffee, 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type: inputType } = e.target;
     
-    // Handle flavor/texture inputs to show suggestions
+    // Handle flavor/texture/origin inputs to show suggestions
     if (name === 'flavor_notes' || name === 'flavor_tags') {
       setFlavorInputValue(value);
       setShowFlavorSuggestions(value.length > 0);
@@ -72,6 +91,10 @@ export const AddModal: React.FC<AddModalProps> = ({ type, onClose, onAddCoffee, 
     if (name === 'texture_tags') {
       setTextureInputValue(value);
       setShowTextureSuggestions(value.length > 0);
+    }
+    if (name === 'origin') {
+      setOriginInputValue(value);
+      setShowOriginSuggestions(value.length > 0);
     }
     
     // Handle number input returning empty string
@@ -81,6 +104,10 @@ export const AddModal: React.FC<AddModalProps> = ({ type, onClose, onAddCoffee, 
     }
     const val = inputType === 'number' ? parseFloat(value) : value;
     setFormData((prev: any) => ({ ...prev, [name]: val }));
+  };
+
+  const handleSliderChange = (name: string, value: number) => {
+    setFormData((prev: any) => ({ ...prev, [name]: value }));
   };
 
   const handleSuggestionClick = (suggestion: string, field: string) => {
@@ -98,6 +125,10 @@ export const AddModal: React.FC<AddModalProps> = ({ type, onClose, onAddCoffee, 
     if (field === 'texture_tags') {
       setTextureInputValue(newValue);
       setShowTextureSuggestions(false);
+    }
+    if (field === 'origin') {
+      setOriginInputValue(newValue);
+      setShowOriginSuggestions(false);
     }
   };
 
@@ -159,7 +190,7 @@ export const AddModal: React.FC<AddModalProps> = ({ type, onClose, onAddCoffee, 
       </div>
     );
   };
-
+  
   const renderCoffeeForm = () => (
     <>
         <div>
@@ -175,6 +206,49 @@ export const AddModal: React.FC<AddModalProps> = ({ type, onClose, onAddCoffee, 
             </div>
             <p className="text-xs text-brand-text/70 mt-1">"Core" items are always available. "Guest" items are seasonal or limited.</p>
         </div>
+
+        <div className="grid grid-cols-2 gap-4">
+            <div>
+                <label htmlFor="roast_type" className="block text-sm font-medium text-brand-text/90 mb-1">Roast Type</label>
+                <select id="roast_type" name="roast_type" value={formData.roast_type || ''} onChange={handleChange} className="w-full bg-brand-bg border border-brand-accent/50 rounded-md p-2 text-brand-text focus:ring-brand-accent focus:border-brand-accent">
+                    <option value="">Select roast type</option>
+                    {ROAST_TYPES.map(roast => (
+                        <option key={roast} value={roast}>{roast}</option>
+                    ))}
+                </select>
+            </div>
+
+            <div>
+                <label htmlFor="season_hint" className="block text-sm font-medium text-brand-text/90 mb-1">Season Hint</label>
+                <select id="season_hint" name="season_hint" value={formData.season_hint} onChange={handleChange} className="w-full bg-brand-bg border border-brand-accent/50 rounded-md p-2 text-brand-text focus:ring-brand-accent focus:border-brand-accent">
+                    <option value="">No Season Hint</option>
+                    <option value="fall">Fall</option>
+                    <option value="winter">Winter</option>
+                    <option value="spring">Spring</option>
+                    <option value="summer">Summer</option>
+                </select>
+                <p className="text-xs text-brand-text/70 mt-1">Optional. Helps AI recommend during specific seasons.</p>
+            </div>
+        </div>
+
+        <div>
+            <label htmlFor="preparation" className="block text-sm font-medium text-brand-text/90 mb-1">Preparation Method</label>
+            <input id="preparation" type="text" name="preparation" value={formData.preparation || ''} onChange={handleChange} placeholder="e.g., Espresso, Moka Pot, French Press" className="w-full bg-brand-bg border border-brand-accent/50 rounded-md p-2 text-brand-text focus:ring-brand-accent focus:border-brand-accent" />
+            <p className="text-xs text-brand-text/70 mt-1">How this coffee is typically prepared.</p>
+        </div>
+
+        <div>
+            <label htmlFor="sort_blend" className="block text-sm font-medium text-brand-text/90 mb-1">Sort / Blend</label>
+            <input id="sort_blend" type="text" name="sort_blend" value={formData.sort_blend || ''} onChange={handleChange} placeholder="e.g., 65% Arabica, 35% Robusta" className="w-full bg-brand-bg border border-brand-accent/50 rounded-md p-2 text-brand-text focus:ring-brand-accent focus:border-brand-accent" />
+        </div>
+
+        <div className="relative">
+            <label htmlFor="origin" className="block text-sm font-medium text-brand-text/90 mb-1">Origin</label>
+            <input id="origin" type="text" name="origin" value={formData.origin || ''} onChange={handleChange} placeholder="e.g., Ethiopia, Brazil" className="w-full bg-brand-bg border border-brand-accent/50 rounded-md p-2 text-brand-text focus:ring-brand-accent focus:border-brand-accent" />
+            {renderSuggestionChips(SUGGESTED_ORIGINS, 'origin', showOriginSuggestions)}
+            <p className="text-xs text-brand-text/70 mt-1">Click to add origin countries. Used for regional pairing logic.</p>
+        </div>
+
         <div className="relative">
             <label htmlFor="flavor_notes" className="block text-sm font-medium text-brand-text/90 mb-1">Flavor Notes</label>
             <textarea 
@@ -190,22 +264,23 @@ export const AddModal: React.FC<AddModalProps> = ({ type, onClose, onAddCoffee, 
             {renderSuggestionChips(SUGGESTED_FLAVORS, 'flavor_notes', showFlavorSuggestions)}
             <p className="text-xs text-brand-text/70 mt-1">Click keywords above to add them. Used by AI to find the best pairings.</p>
         </div>
+
         <div className="grid grid-cols-2 gap-4">
             <div>
-                <label htmlFor="season_hint" className="block text-sm font-medium text-brand-text/90 mb-1">Season Hint</label>
-                <select id="season_hint" name="season_hint" value={formData.season_hint} onChange={handleChange} className="w-full bg-brand-bg border border-brand-accent/50 rounded-md p-2 text-brand-text focus:ring-brand-accent focus:border-brand-accent">
-                    <option value="">No Season Hint</option>
-                    <option value="fall">Fall</option>
-                    <option value="winter">Winter</option>
-                    <option value="spring">Spring</option>
-                    <option value="summer">Summer</option>
-                </select>
-                <p className="text-xs text-brand-text/70 mt-1">Optional. Helps AI recommend during specific seasons.</p>
+                <Slider
+                    name="acidity"
+                    value={formData.acidity || 3}
+                    min={1}
+                    max={5}
+                    onChange={(value) => handleSliderChange('acidity', value)}
+                    label="Acidity Level"
+                    description="1=low, 5=high"
+                />
             </div>
             <div>
                 <label htmlFor="popularity_hint" className="block text-sm font-medium text-brand-text/90 mb-1">Popularity Hint</label>
                 <input id="popularity_hint" type="number" name="popularity_hint" min="0" max="1" step="0.1" value={formData.popularity_hint ?? ''} onChange={handleChange} className="w-full bg-brand-bg border border-brand-accent/50 rounded-md p-2 text-brand-text focus:ring-brand-accent focus:border-brand-accent" />
-                <p className="text-xs text-brand-text/70 mt-1">0=rare, 1=bestseller. Used in AI scoring.</p>
+                <p className="text-xs text-brand-text/70 mt-1">0=rare, 1=bestseller</p>
             </div>
         </div>
     </>
@@ -243,15 +318,39 @@ export const AddModal: React.FC<AddModalProps> = ({ type, onClose, onAddCoffee, 
                 <p className="text-xs text-brand-text/70 mt-1">Click keywords above to add them. Used for AI balancing.</p>
             </div>
             <div>
-                <label htmlFor="popularity_hint_pastry" className="block text-sm font-medium text-brand-text/90 mb-1">Popularity Hint</label>
-                <input id="popularity_hint_pastry" type="number" name="popularity_hint" min="0" max="1" step="0.1" value={formData.popularity_hint ?? ''} onChange={handleChange} className="w-full bg-brand-bg border border-brand-accent/50 rounded-md p-2 text-brand-text focus:ring-brand-accent focus:border-brand-accent" />
-                <p className="text-xs text-brand-text/70 mt-1">0=rare, 1=bestseller. Used in AI scoring.</p>
+                <label htmlFor="allergen_info" className="block text-sm font-medium text-brand-text/90 mb-1">Allergen Info</label>
+                <input id="allergen_info" type="text" name="allergen_info" value={formData.allergen_info} onChange={handleChange} placeholder="e.g., Contains nuts, gluten-free" className="w-full bg-brand-bg border border-brand-accent/50 rounded-md p-2 text-brand-text focus:ring-brand-accent focus:border-brand-accent" />
+                <p className="text-xs text-brand-text/70 mt-1">Optional. A short note about allergens.</p>
             </div>
         </div>
-         <div>
-            <label htmlFor="allergen_info" className="block text-sm font-medium text-brand-text/90 mb-1">Allergen Info</label>
-            <input id="allergen_info" type="text" name="allergen_info" value={formData.allergen_info} onChange={handleChange} placeholder="e.g., Contains nuts, gluten-free" className="w-full bg-brand-bg border border-brand-accent/50 rounded-md p-2 text-brand-text focus:ring-brand-accent focus:border-brand-accent" />
-            <p className="text-xs text-brand-text/70 mt-1">Optional. A short note about allergens.</p>
+        <div className="grid grid-cols-3 gap-4">
+            <div>
+                <Slider
+                    name="sweetness"
+                    value={formData.sweetness || 3}
+                    min={1}
+                    max={5}
+                    onChange={(value) => handleSliderChange('sweetness', value)}
+                    label="Sweetness"
+                    description="1=low, 5=very sweet"
+                />
+            </div>
+            <div>
+                <Slider
+                    name="richness"
+                    value={formData.richness || 3}
+                    min={1}
+                    max={5}
+                    onChange={(value) => handleSliderChange('richness', value)}
+                    label="Richness"
+                    description="1=light, 5=very rich"
+                />
+            </div>
+            <div>
+                <label htmlFor="popularity_hint_pastry" className="block text-sm font-medium text-brand-text/90 mb-1">Popularity Hint</label>
+                <input id="popularity_hint_pastry" type="number" name="popularity_hint" min="0" max="1" step="0.1" value={formData.popularity_hint ?? ''} onChange={handleChange} className="w-full bg-brand-bg border border-brand-accent/50 rounded-md p-2 text-brand-text focus:ring-brand-accent focus:border-brand-accent" />
+                <p className="text-xs text-brand-text/70 mt-1">0=rare, 1=bestseller</p>
+            </div>
         </div>
     </>
   );
@@ -279,12 +378,12 @@ export const AddModal: React.FC<AddModalProps> = ({ type, onClose, onAddCoffee, 
                 {type === 'coffee' ? renderCoffeeForm() : renderPastryForm()}
                 
                 <div>
-                    <label className="text-sm font-medium text-brand-text/90 block mb-2">Image</label>
+                    <label htmlFor="image-upload" className="text-sm font-medium text-brand-text/90 block mb-2">Image</label>
                     <div className="flex items-center gap-4">
                         <button type="button" onClick={() => fileInputRef.current?.click()} className="flex-shrink-0 bg-brand-accent/80 text-white font-bold py-2 px-4 rounded-lg shadow-md hover:bg-brand-accent transition-colors">
                             Upload Image
                         </button>
-                        <input type="file" ref={fileInputRef} onChange={handleImageChange} accept="image/png, image/jpeg, image/webp" className="hidden" required />
+                        <input id="image-upload" type="file" ref={fileInputRef} onChange={handleImageChange} accept="image/png, image/jpeg, image/webp" className="hidden" required aria-label="Upload image" />
                         {imagePreview ? (
                             <img src={imagePreview} alt="Preview" className="w-16 h-16 rounded-md object-cover" />
                         ) : <div className="w-16 h-16 rounded-md bg-brand-bg/50 flex items-center justify-center text-xs text-brand-text/50">Preview</div> }

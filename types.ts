@@ -11,6 +11,12 @@ export interface Coffee {
   popularity_hint: number;
   image_url?: string;
   image_path?: string;
+  // New fields
+  roast_type?: string;
+  preparation?: string;
+  sort_blend?: string;
+  origin?: string;
+  acidity?: number; // 1-5
 }
 
 export interface Pastry {
@@ -25,6 +31,9 @@ export interface Pastry {
   image_url?: string;
   image_path?: string;
   allergen_info?: string;
+  // New fields
+  sweetness?: number; // 1-5
+  richness?: number; // 1-5
 }
 
 export interface Tenant {
