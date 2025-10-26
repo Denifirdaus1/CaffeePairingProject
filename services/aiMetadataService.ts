@@ -141,6 +141,10 @@ export const generateCoffeeMetadata = async (coffeeName: string): Promise<Coffee
             }
         });
 
+        if (!response.text) {
+            throw new Error('AI response text is undefined');
+        }
+
         let text = response.text.trim();
         
         // Extract JSON from markdown code blocks if present
@@ -196,6 +200,10 @@ export const generatePastryMetadata = async (pastryName: string): Promise<Pastry
                 temperature: 0.3
             }
         });
+
+        if (!response.text) {
+            throw new Error('AI response text is undefined');
+        }
 
         let text = response.text.trim();
         

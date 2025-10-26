@@ -154,6 +154,9 @@ export const generatePairings = async (
 
           let aiData;
           try {
+            if (!aiResponse.text) {
+              throw new Error('AI response text is undefined');
+            }
             let jsonText = aiResponse.text.trim();
             if (jsonText.startsWith('```json')) {
               jsonText = jsonText.substring(7, jsonText.length - 3).trim();
