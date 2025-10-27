@@ -93,8 +93,16 @@ export const PublicShopPage: React.FC = () => {
         if (coffeesError) {
           console.error('Error fetching coffees:', coffeesError);
         } else {
-          setCoffees(coffeesData || []);
-          setDisplayCoffees(coffeesData || []);
+          // Filter out coffees without slugs and log warning
+          const validCoffees = (coffeesData || []).filter(coffee => {
+            if (!coffee.slug) {
+              console.warn('Coffee without slug detected:', coffee.name, coffee.id);
+              return false;
+            }
+            return true;
+          });
+          setCoffees(validCoffees);
+          setDisplayCoffees(validCoffees);
         }
 
         // Fetch pastries for this shop
