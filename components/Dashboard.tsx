@@ -13,6 +13,7 @@ import { Toast } from './Toast';
 import { ApprovalWorkflow } from './ApprovalWorkflow';
 import { MainShotManager } from './MainShotManager';
 import { QRGenerator } from './QRGenerator';
+import { ItemDetailModal } from './ItemDetailModal';
 import { useAuth } from '../contexts/AuthContext';
 
 // Lazy load heavy components
@@ -52,6 +53,10 @@ export const Dashboard: React.FC = () => {
   const [pairings, setPairings] = useState<any[]>([]);
   const [pairingsLoading, setPairingsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'inventory' | 'pairings' | 'approvals' | 'mainshot' | 'qrgenerator'>('inventory');
+  
+  // Item detail modal state
+  const [detailModalItem, setDetailModalItem] = useState<Coffee | Pastry | null>(null);
+  const [detailModalType, setDetailModalType] = useState<'coffee' | 'pastry' | null>(null);
 
   // Get café ID from user context
   const getCafeId = async () => {
@@ -483,105 +488,131 @@ export const Dashboard: React.FC = () => {
         {/* Tab Content */}
         {activeTab === 'inventory' && (
           <>
-          <section className="grid gap-6 lg:grid-cols-2">
-          <div className="glass-panel rounded-3xl p-6 lg:p-7">
-            <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="rounded-2xl bg-brand-bg/70 p-3 text-brand-accent shadow-inner ring-1 ring-brand-accent/20">
-                  <CoffeeIcon className="h-6 w-6" />
+            {/* Coffee Inventory */}
+            <section className="glass-panel rounded-3xl p-6 lg:p-8">
+              <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-2xl bg-brand-bg/70 p-3 text-brand-accent shadow-inner ring-1 ring-brand-accent/20">
+                    <CoffeeIcon className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-semibold text-white">Coffee Inventory</h2>
+                    <p className="text-sm text-brand-text/70">Click on any coffee to view details and generate QR code</p>
+                  </div>
                 </div>
-                <div>
-                  <h2 className="text-lg font-semibold text-white">Coffee Inventory</h2>
-                  <p className="text-xs text-brand-text/60">Manage your coffee variants with complete flavor notes.</p>
-                </div>
+                <button
+                  onClick={() => openAddModal('coffee')}
+                  className="button-primary-pulse inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-brand-accent via-brand-accent/80 to-amber-400/70 px-6 py-3 text-sm font-semibold text-white shadow-lg transition hover:brightness-110"
+                >
+                  <span>+</span>
+                  Add Coffee
+                </button>
               </div>
-              <button
-                onClick={() => openAddModal('coffee')}
-                className="button-primary-pulse inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-brand-accent via-brand-accent/80 to-amber-400/70 px-4 py-2 text-sm font-semibold text-white shadow-lg transition hover:brightness-110"
-              >
-                <span>•</span>
-                Add Coffee
-              </button>
-            </div>
-            <div className="mb-4 flex items-center justify-between">
-              <span>Current Coffees</span>
-              <span className="rounded-full bg-brand-accent/20 px-3 py-1 text-xs font-semibold text-brand-accent">
-                {coffees.length}
-              </span>
-            </div>
-            <div className="flex-grow space-y-3 overflow-y-auto pr-1" style={{ maxHeight: '22rem' }}>
-              {coffeeList}
-            </div>
-          </div>
 
-          <div className="glass-panel rounded-3xl p-6 lg:p-7">
-            <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="rounded-2xl bg-brand-bg/70 p-3 text-brand-accent shadow-inner ring-1 ring-brand-accent/20">
-                  <PastryIcon className="h-6 w-6" />
+              {coffees.length === 0 ? (
+                <div className="text-center py-12">
+                  <CoffeeIcon className="h-16 w-16 text-brand-accent/30 mx-auto mb-4" />
+                  <p className="text-brand-text-muted">No coffees yet. Add your first coffee to get started.</p>
                 </div>
-                <div>
-                  <h2 className="text-lg font-semibold text-white">Pastry Inventory</h2>
-                  <p className="text-xs text-brand-text/60">Set texture & allergen for accurate recommendations.</p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {coffees.map(coffee => (
+                    <button
+                      key={coffee.id}
+                      onClick={() => {
+                        setDetailModalItem(coffee);
+                        setDetailModalType('coffee');
+                      }}
+                      className="glass-panel rounded-xl p-4 hover:scale-105 transition-transform cursor-pointer text-left group"
+                    >
+                      {coffee.image_url && (
+                        <img
+                          src={coffee.image_url}
+                          alt={coffee.name}
+                          className="w-full h-32 object-cover rounded-lg mb-3"
+                        />
+                      )}
+                      <h3 className="text-lg font-semibold text-white mb-2 group-hover:text-brand-accent transition-colors">
+                        {coffee.name}
+                      </h3>
+                      {coffee.flavor_notes && (
+                        <p className="text-brand-text-muted text-xs line-clamp-2">
+                          {coffee.flavor_notes}
+                        </p>
+                      )}
+                      <div className="mt-3 flex items-center justify-between text-xs">
+                        <span className="text-brand-accent">{Math.round(coffee.popularity_hint * 100)}% popular</span>
+                        {coffee.is_main_shot && (
+                          <span className="bg-brand-accent/20 text-brand-accent px-2 py-1 rounded-full">Main Shot</span>
+                        )}
+                      </div>
+                    </button>
+                  ))}
                 </div>
+              )}
+            </section>
+
+            {/* Pastry Inventory */}
+            <section className="glass-panel rounded-3xl p-6 lg:p-8 mt-6">
+              <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-2xl bg-brand-bg/70 p-3 text-brand-accent shadow-inner ring-1 ring-brand-accent/20">
+                    <PastryIcon className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-semibold text-white">Pastry Inventory</h2>
+                    <p className="text-sm text-brand-text/70">Click on any pastry to view details and generate QR code</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => openAddModal('pastry')}
+                  className="button-primary-pulse inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-brand-accent via-brand-accent/80 to-amber-400/70 px-6 py-3 text-sm font-semibold text-white shadow-lg transition hover:brightness-110"
+                >
+                  <span>+</span>
+                  Add Pastry
+                </button>
               </div>
-              <button
-                onClick={() => openAddModal('pastry')}
-                className="button-primary-pulse inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-brand-accent via-brand-accent/80 to-amber-400/70 px-4 py-2 text-sm font-semibold text-white shadow-lg transition hover:brightness-110"
-              >
-                <span>•</span>
-                Add Pastry
-              </button>
-            </div>
-            <div className="mb-4 flex items-center justify-between">
-              <span>Current Pastries</span>
-              <span className="rounded-full bg-brand-accent/20 px-3 py-1 text-xs font-semibold text-brand-accent">
-                {pastries.length}
-              </span>
-            </div>
-            <div className="flex-grow space-y-3 overflow-y-auto pr-1" style={{ maxHeight: '22rem' }}>
-              {pastryList}
-            </div>
-          </div>
-        </section>
 
-        <section className="glass-panel mt-10 rounded-3xl p-6 lg:p-8">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <h2 className="text-2xl font-semibold text-white">Generate Smart Pairings</h2>
-              <p className="text-sm text-brand-text/70">Choose your favorite coffee, then let AI find the best pastry pairings.</p>
-            </div>
-            <div className="flex flex-col items-start gap-3 text-xs text-brand-text/60 lg:items-end">
-              <p>Tip: use high-quality photos for better pairing card presentation.</p>
-              <p className="rounded-full border border-brand-accent/30 px-3 py-1 text-[11px] uppercase tracking-[0.24em] text-brand-text/50">drag to see all coffees</p>
-            </div>
-          </div>
-
-          <div className="mt-6 flex snap-x snap-mandatory gap-4 overflow-x-auto rounded-2xl bg-white/5 p-4">
-            {coffeeSelectionList}
-          </div>
-
-          <div className="mt-6 flex flex-col items-center gap-4">
-            <button
-              onClick={handleGeneratePairings}
-              disabled={!selectedCoffee || pastries.length === 0 || isLoading}
-              className="button-primary-pulse inline-flex items-center gap-3 rounded-2xl bg-gradient-to-r from-brand-accent via-brand-accent/90 to-amber-400/70 px-8 py-3 text-sm font-semibold text-white shadow-xl transition-all hover:shadow-[0_30px_60px_-25px_rgba(162,123,92,0.85)] disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-brand-text/50"
-            >
-              {isLoading ? 'Thinking...' : 'Smart Pair with Pastry'}
-            </button>
-            {!selectedCoffee && pastries.length > 0 && coffees.length > 0 && (
-              <p className="text-sm text-brand-accent">Please select a coffee first.</p>
-            )}
-            {pastries.length === 0 && coffees.length > 0 && (
-              <p className="text-sm text-red-300">Add at least one pastry to enable pairing.</p>
-            )}
-          </div>
-        </section>
-
-        <Suspense fallback={<div className="mt-10 text-center"><Spinner /></div>}>
-          <PairingResults result={pairingResult} isLoading={isLoading} error={error} />
-        </Suspense>
-        </>
+              {pastries.length === 0 ? (
+                <div className="text-center py-12">
+                  <PastryIcon className="h-16 w-16 text-brand-accent/30 mx-auto mb-4" />
+                  <p className="text-brand-text-muted">No pastries yet. Add your first pastry to get started.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {pastries.map(pastry => (
+                    <button
+                      key={pastry.id}
+                      onClick={() => {
+                        setDetailModalItem(pastry);
+                        setDetailModalType('pastry');
+                      }}
+                      className="glass-panel rounded-xl p-4 hover:scale-105 transition-transform cursor-pointer text-left group"
+                    >
+                      {pastry.image_url && (
+                        <img
+                          src={pastry.image_url}
+                          alt={pastry.name}
+                          className="w-full h-32 object-cover rounded-lg mb-3"
+                        />
+                      )}
+                      <h3 className="text-lg font-semibold text-white mb-2 group-hover:text-brand-accent transition-colors">
+                        {pastry.name}
+                      </h3>
+                      {pastry.flavor_tags && (
+                        <p className="text-brand-text-muted text-xs line-clamp-2">
+                          {pastry.flavor_tags}
+                        </p>
+                      )}
+                      <div className="mt-3 flex items-center justify-between text-xs">
+                        <span className="text-brand-accent">{Math.round(pastry.popularity_hint * 100)}% popular</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </section>
+          </>
         )}
 
         {/* Pairings Tab */}
@@ -654,6 +685,19 @@ export const Dashboard: React.FC = () => {
           <section className="glass-panel rounded-3xl p-6 lg:p-8">
             <QRGenerator />
           </section>
+        )}
+
+        {/* Item Detail Modal */}
+        {detailModalItem && detailModalType && (
+          <ItemDetailModal
+            item={detailModalItem}
+            type={detailModalType}
+            shopSlug={user?.cafe_profile?.shop_slug || ''}
+            onClose={() => {
+              setDetailModalItem(null);
+              setDetailModalType(null);
+            }}
+          />
         )}
 
         {(editingCoffee || editingPastry) && (
