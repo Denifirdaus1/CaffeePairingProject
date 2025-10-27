@@ -13,10 +13,10 @@ export const LandingPage: React.FC = () => {
       <Header />
       <main>
         <HeroSection />
+        <PublicShopsSection />
         <FeaturesSection />
         <WhyChooseSection />
         <HowItWorksSection />
-        <PublicShopsSection />
       </main>
       <Footer />
     </div>
