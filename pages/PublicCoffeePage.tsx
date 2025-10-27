@@ -229,17 +229,60 @@ export const PublicCoffeePage: React.FC = () => {
             <div className="space-y-6">
               <div>
                 <h1 className="text-4xl font-bold text-white mb-4">{coffee.name}</h1>
+                
+                {/* Main Shot Badge Inline */}
+                {coffee.is_main_shot && (
+                  <div className="inline-flex items-center gap-2 bg-brand-accent/20 border border-brand-accent text-brand-accent px-4 py-2 rounded-full text-sm font-semibold mb-4">
+                    ⭐ Today's Main Shot
+                    {coffee.main_shot_until && (
+                      <span className="text-xs opacity-75">
+                        until {new Date(coffee.main_shot_until).toLocaleDateString()}
+                      </span>
+                    )}
+                  </div>
+                )}
+                
                 {coffee.flavor_notes && (
                   <div className="mb-6">
-                    <h3 className="text-sm font-semibold text-brand-text-muted mb-2">FLAVOR PROFILE</h3>
-                    <p className="text-xl text-brand-text">{coffee.flavor_notes}</p>
+                    <h3 className="text-sm font-semibold text-brand-text-muted mb-2">🌟 FLAVOR PROFILE</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {coffee.flavor_notes.split(',').map((note, idx) => (
+                        <span key={idx} className="bg-brand-accent/10 text-brand-accent px-4 py-2 rounded-full text-base font-medium">
+                          {note.trim()}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
 
+              {/* AI Description - Generate if we implement it */}
+              <div className="glass-panel rounded-xl p-6 bg-gradient-to-br from-brand-surface/50 to-brand-primary/50">
+                <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                  ☕ About This Coffee
+                </h3>
+                <p className="text-brand-text leading-relaxed">
+                  {coffee.flavor_notes ? (
+                    `Experience the rich complexity of ${coffee.name}, featuring delightful notes of ${coffee.flavor_notes}. ${
+                      coffee.is_core ? 'A core selection in our lineup, ' : ''
+                    }${
+                      coffee.is_main_shot ? "featured as today's main shot - " : ''
+                    }this coffee offers a ${
+                      coffee.popularity_hint > 0.7 ? 'highly popular' : coffee.popularity_hint > 0.5 ? 'well-loved' : 'unique'
+                    } taste profile that ${
+                      coffee.season_hint ? `pairs perfectly with ${coffee.season_hint} vibes` : 'works beautifully year-round'
+                    }.`
+                  ) : (
+                    `Discover the distinctive character of ${coffee.name}, carefully selected for our collection. ${
+                      coffee.is_main_shot ? "Featured as today's main shot, " : ''
+                    }this coffee delivers a memorable experience with every cup.`
+                  )}
+                </p>
+              </div>
+
               {/* Coffee Metadata Grid */}
               <div className="glass-panel rounded-xl p-6 space-y-4">
-                <h3 className="text-lg font-semibold text-white mb-4">Coffee Details</h3>
+                <h3 className="text-lg font-semibold text-white mb-4">📋 Coffee Specifications</h3>
                 
                 <div className="grid grid-cols-2 gap-4">
                   {/* Origin */}
@@ -310,6 +353,33 @@ export const PublicCoffeePage: React.FC = () => {
                     </div>
                   </div>
                 </div>
+                
+                {/* Additional Badges */}
+                <div className="pt-4 border-t border-brand-border/30">
+                  <div className="text-xs text-brand-text-muted mb-2">Attributes</div>
+                  <div className="flex flex-wrap gap-2">
+                    {coffee.is_core && (
+                      <span className="bg-amber-500/20 text-amber-400 px-3 py-1 rounded-full text-xs font-semibold">
+                        ⭐ Core Selection
+                      </span>
+                    )}
+                    {coffee.is_guest && (
+                      <span className="bg-purple-500/20 text-purple-400 px-3 py-1 rounded-full text-xs font-semibold">
+                        🎁 Guest Feature
+                      </span>
+                    )}
+                    {coffee.popularity_hint > 0.7 && (
+                      <span className="bg-green-500/20 text-green-400 px-3 py-1 rounded-full text-xs font-semibold">
+                        🔥 Bestseller
+                      </span>
+                    )}
+                    {coffee.season_hint && (
+                      <span className="bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full text-xs font-semibold">
+                        🌦️ Seasonal
+                      </span>
+                    )}
+                  </div>
+                </div>
               </div>
 
               {/* Online Shop Link */}
@@ -327,6 +397,82 @@ export const PublicCoffeePage: React.FC = () => {
                   </a>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Tasting Guide & Tips */}
+      <section className="py-8 px-4 bg-brand-primary/30">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Brewing Tips */}
+            <div className="glass-panel rounded-2xl p-6">
+              <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                ☕ Brewing Tips
+              </h3>
+              <ul className="space-y-3 text-brand-text">
+                <li className="flex items-start gap-3">
+                  <span className="text-brand-accent mt-1">•</span>
+                  <span>Use freshly ground beans for optimal flavor extraction</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-brand-accent mt-1">•</span>
+                  <span>Water temperature: 195-205°F (90-96°C) for best results</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-brand-accent mt-1">•</span>
+                  <span>Recommended ratio: 1:15 to 1:17 coffee to water</span>
+                </li>
+                {coffee.preparation && (
+                  <li className="flex items-start gap-3">
+                    <span className="text-brand-accent mt-1">•</span>
+                    <span>Best prepared as: {coffee.preparation}</span>
+                  </li>
+                )}
+              </ul>
+            </div>
+
+            {/* Tasting Notes */}
+            <div className="glass-panel rounded-2xl p-6">
+              <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                👃 Tasting Notes
+              </h3>
+              <div className="space-y-3">
+                {coffee.flavor_notes ? (
+                  <>
+                    <div>
+                      <div className="text-sm text-brand-text-muted mb-2">Primary Flavors</div>
+                      <div className="flex flex-wrap gap-2">
+                        {coffee.flavor_notes.split(',').slice(0, 3).map((note, idx) => (
+                          <span key={idx} className="bg-brand-accent/10 text-brand-accent px-3 py-1 rounded-lg text-sm font-medium">
+                            {note.trim()}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    {coffee.acidity !== null && coffee.acidity !== undefined && (
+                      <div>
+                        <div className="text-sm text-brand-text-muted mb-2">Acidity Level</div>
+                        <div className="text-brand-text">
+                          {coffee.acidity <= 2 ? 'Low - Smooth and mellow' : 
+                           coffee.acidity <= 3 ? 'Medium - Balanced brightness' : 
+                           'High - Bright and vibrant'}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-brand-text">
+                    Experience the unique character of this coffee - each cup reveals new dimensions of flavor.
+                  </p>
+                )}
+                <div className="pt-3 border-t border-brand-border/30">
+                  <div className="text-sm text-brand-text-muted">
+                    💡 Tip: Take time to savor the aroma before your first sip!
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
