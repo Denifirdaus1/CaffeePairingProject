@@ -164,12 +164,26 @@ export const generatePairings = async (
               jsonText = jsonText.substring(3, jsonText.length - 3).trim();
             }
             aiData = JSON.parse(jsonText);
-          } catch {
+          } catch (error) {
+            console.warn('AI generation failed, using enhanced fallback:', error);
+            
+            // Enhanced fallback based on Bunamo scores
+            const flavorDesc = bunamoScore.flavor > 0.7 ? "excellent flavor harmony" : 
+                              bunamoScore.flavor > 0.5 ? "complementary flavors" : "contrasting flavor notes";
+            const textureDesc = bunamoScore.texture > 0.7 ? "perfect texture balance" : 
+                               bunamoScore.texture > 0.5 ? "pleasant texture contrast" : "interesting texture pairing";
+            
+            const coffeeNotes = selectedCoffee.flavor_notes?.split(',').slice(0, 2).join(' and ') || 'rich coffee';
+            const pastryFlavors = pastry.flavor_tags?.split(',').slice(0, 2).join(' and ') || pastry.name;
+            
             aiData = {
-              marketing_tagline: "Perfect pairing discovered",
-              explanation: bunamoScore.explanation,
-              flavor_tags: ["Harmonious", "Balanced"],
-              allergen_info: "Check ingredients"
+              marketing_tagline: `${selectedCoffee.name} meets ${pastry.name} - ${flavorDesc}`,
+              explanation: `This pairing brings together ${coffeeNotes} with ${pastryFlavors}, creating ${flavorDesc} and ${textureDesc}. A delightful combination scoring ${Math.round(bunamoScore.overall * 100)}% compatibility.`,
+              flavor_tags: [
+                ...(selectedCoffee.flavor_notes?.split(',').slice(0, 2).map(t => t.trim()) || []),
+                ...(pastry.flavor_tags?.split(',').slice(0, 1).map(t => t.trim()) || [])
+              ].filter(Boolean),
+              allergen_info: "Please check with staff for allergen information"
             };
           }
 
