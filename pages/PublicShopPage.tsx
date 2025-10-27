@@ -340,10 +340,11 @@ export const PublicShopPage: React.FC = () => {
               Our Pastries
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {pastries.map(pastry => (
-                <div
+              {pastries.filter(pastry => pastry.slug).map(pastry => (
+                <button
                   key={pastry.id}
-                  className="glass-panel rounded-2xl p-6"
+                  onClick={() => window.location.href = `/s/${shop}/pastry/${pastry.slug}`}
+                  className="glass-panel rounded-2xl p-6 hover:scale-105 transition-transform cursor-pointer text-left"
                 >
                   {pastry.image_url && (
                     <img
@@ -359,7 +360,10 @@ export const PublicShopPage: React.FC = () => {
                   {pastry.texture_tags && (
                     <p className="text-brand-text-muted text-xs mt-2">Texture: {pastry.texture_tags}</p>
                   )}
-                </div>
+                  <div className="mt-4 text-brand-accent text-sm font-semibold">
+                    View Details →
+                  </div>
+                </button>
               ))}
             </div>
           </div>
