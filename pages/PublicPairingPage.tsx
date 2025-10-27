@@ -4,6 +4,16 @@ import { supabase } from '../services/supabaseClient';
 import { CoffeeIcon } from '../components/icons/CoffeeIcon';
 import { ArrowLeftIcon } from '../components/icons/ArrowLeftIcon';
 
+// Sanitize URL params to remove hidden characters from QR/PDF scans
+const cleanse = (s: string = '') => {
+  return decodeURIComponent(s)
+    .normalize('NFKC')
+    .replace(/[\u200B-\u200D\u2060\uFEFF]/g, '') // zero-width chars
+    .replace(/[\n\r\t]/g, '') // newlines
+    .replace(/\s+/g, ' ') // collapse whitespaces
+    .trim();
+};
+
 interface Coffee {
   id: string;
   name: string;
@@ -38,7 +48,12 @@ interface ShopData {
 }
 
 export const PublicPairingPage: React.FC = () => {
-  const { shop, slug } = useParams<{ shop: string; slug: string }>();
+  const { shop: rawShop, slug: rawSlug } = useParams<{ shop: string; slug: string }>();
+  
+  // Cleanse params to remove hidden characters (newlines, zero-width, etc.)
+  const shop = rawShop ? cleanse(rawShop) : undefined;
+  const slug = rawSlug ? cleanse(rawSlug) : undefined;
+  
   const [pairing, setPairing] = useState<Pairing | null>(null);
   const [shopData, setShopData] = useState<ShopData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -48,8 +63,12 @@ export const PublicPairingPage: React.FC = () => {
     if (!shop || !slug) return;
     
     console.log('=== FETCHING PAIRING DATA ===');
-    console.log('Shop:', shop);
-    console.log('Slug:', slug);
+    console.log('Raw Shop:', rawShop);
+    console.log('Cleaned Shop:', shop);
+    console.log('Raw Slug:', rawSlug);
+    console.log('Cleaned Slug:', slug);
+    console.log('Slug Encoded:', encodeURIComponent(slug));
+    console.log('Slug Char Codes:', [...slug].map(c => c.charCodeAt(0)));
     
     const fetchPairingData = async () => {
       try {
@@ -154,6 +173,19 @@ export const PublicPairingPage: React.FC = () => {
             <p className="text-red-300 text-sm font-mono break-all">
               <strong>Error:</strong> {error || 'Unknown error'}
             </p>
+            {rawSlug && rawSlug !== slug && (
+              <div className="bg-orange-900/30 border border-orange-500/50 rounded p-3 mt-3">
+                <p className="text-orange-300 text-xs font-mono break-all">
+                  ⚠️ Hidden characters detected in URL
+                </p>
+                <p className="text-orange-300 text-xs font-mono break-all mt-1">
+                  Raw: "{rawSlug}"
+                </p>
+                <p className="text-orange-300 text-xs font-mono break-all">
+                  Cleaned: "{slug}"
+                </p>
+              </div>
+            )}
             <p className="text-red-300 text-sm font-mono break-all mt-2">
               <strong>Shop:</strong> {shop || 'N/A'}
             </p>
