@@ -60,7 +60,7 @@ export const PublicPairingPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!shop || !slug) return;
+    if (!slug) return;
     
     console.log('=== FETCHING PAIRING DATA ===');
     console.log('Raw Shop:', rawShop);
@@ -76,7 +76,47 @@ export const PublicPairingPage: React.FC = () => {
         console.log('Shop:', shop);
         console.log('Slug:', slug);
         
-        // Fetch shop data first
+        // Handle legacy URLs with shop='null' - fetch pairing first to get correct shop
+        if (!shop || shop === 'null') {
+          console.log('Shop is null/undefined, fetching pairing to find correct shop...');
+          
+          // Find pairing by slug first
+          const { data: pairingData, error: pairingError } = await supabase
+            .from('pairings')
+            .select('cafe_id, pairing_slug')
+            .eq('pairing_slug', slug)
+            .eq('is_approved', true)
+            .eq('is_published', true)
+            .maybeSingle();
+          
+          if (pairingError || !pairingData) {
+            console.error('Pairing not found:', pairingError);
+            setError('Pairing not found. Please regenerate your QR code.');
+            setLoading(false);
+            return;
+          }
+          
+          // Get shop slug from cafe_id
+          const { data: cafeData, error: cafeError } = await supabase
+            .from('cafe_profiles')
+            .select('shop_slug')
+            .eq('id', pairingData.cafe_id)
+            .single();
+          
+          if (cafeError || !cafeData?.shop_slug) {
+            console.error('Cafe not found:', cafeError);
+            setError('Cafe not found. Please contact support.');
+            setLoading(false);
+            return;
+          }
+          
+          // Redirect to correct URL
+          console.log('Redirecting to correct shop URL:', cafeData.shop_slug);
+          window.location.replace(`/s/${cafeData.shop_slug}/pairing/${slug}`);
+          return;
+        }
+        
+        // Normal flow: Fetch shop data first
         console.log('Fetching shop data...');
         const { data: shopData, error: shopError } = await supabase
           .from('cafe_profiles')
