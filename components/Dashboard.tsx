@@ -270,24 +270,47 @@ export const Dashboard: React.FC = () => {
       // Save pairings to database for approval workflow
       if (result.pairs && result.pairs.length > 0) {
         const cafeId = await getCafeId();
-        const pairingInserts = result.pairs.map(pair => ({
-          cafe_id: cafeId,
-          coffee_id: selectedCoffee.id,
-          pastry_id: pair.pastry.id,
-          score: pair.score,
-          why: pair.why_marketing,
-          status: 'draft',
-          is_approved: false
-        }));
-
-        const { error } = await supabase
+        
+        // Check for existing pairings to avoid duplicates
+        const { data: existingPairings } = await supabase
           .from('pairings')
-          .insert(pairingInserts);
+          .select('coffee_id, pastry_id')
+          .eq('cafe_id', cafeId)
+          .eq('coffee_id', selectedCoffee.id);
+        
+        const existingKeys = new Set(
+          existingPairings?.map(p => `${p.coffee_id}-${p.pastry_id}`) || []
+        );
+        
+        const pairingInserts = result.pairs
+          .map(pair => ({
+            cafe_id: cafeId,
+            coffee_id: selectedCoffee.id,
+            pastry_id: pair.pastry.id,
+            score: pair.score,
+            why: pair.why_marketing,
+            status: 'draft',
+            is_approved: false,
+            is_published: false
+          }))
+          .filter(pair => !existingKeys.has(`${pair.coffee_id}-${pair.pastry_id}`));
 
-        if (error) {
-          console.error('Error saving pairings:', error);
+        if (pairingInserts.length > 0) {
+          const { error } = await supabase
+            .from('pairings')
+            .insert(pairingInserts);
+
+          if (error) {
+            console.error('Error saving pairings:', error);
+            setToast({ message: `Error: ${error.message}`, type: 'error' });
+          } else {
+            setToast({ message: `Saved ${pairingInserts.length} new pairings`, type: 'success' });
+            // Refresh pairings list
+            await fetchPairings();
+          }
         } else {
-          // Refresh pairings list
+          setToast({ message: 'All pairings already exist in database', type: 'info' });
+          // Still refresh to show existing pairings
           await fetchPairings();
         }
       }
