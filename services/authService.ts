@@ -10,6 +10,7 @@ export interface User {
 export interface CafeProfile {
   id: string;
   cafe_name: string;
+  shop_slug?: string;
   cafe_description?: string;
   address?: string;
   city?: string;

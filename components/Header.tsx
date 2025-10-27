@@ -42,9 +42,28 @@ export const Header: React.FC = () => {
           <div className="space-y-4 flex-1">
             <AccentPill>AI PAIRING ENGINE</AccentPill>
             <div className="space-y-3">
-              <h1 className="text-3xl font-semibold text-white md:text-4xl md:leading-tight">
-                Café Owner AI Dashboard
-              </h1>
+              {user?.cafe_profile?.cafe_name && (
+                <div className="flex items-center gap-3">
+                  <h1 className="text-3xl font-semibold text-white md:text-4xl md:leading-tight">
+                    {user.cafe_profile.cafe_name}
+                  </h1>
+                  {user.cafe_profile.shop_slug && (
+                    <Link
+                      to={`/s/${user.cafe_profile.shop_slug}`}
+                      target="_blank"
+                      className="inline-flex items-center gap-1 text-brand-accent hover:text-brand-accent/80 text-sm font-semibold transition-colors"
+                    >
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                      View Shop
+                    </Link>
+                  )}
+                </div>
+              )}
+              <h2 className="text-xl font-medium text-brand-text">
+                Dashboard
+              </h2>
               <p className="text-sm text-brand-text/80 md:text-base">
                 Manage your coffee & pastry inventory, then let Gemini create unforgettable customer experiences.
                 All real-time insights in one sleek dashboard.
