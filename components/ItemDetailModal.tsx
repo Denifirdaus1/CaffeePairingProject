@@ -132,6 +132,8 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({ item, type, sh
         {/* Close Button */}
         <button
           onClick={onClose}
+          aria-label="Close modal"
+          title="Close"
           className="absolute top-6 right-6 z-10 text-brand-text hover:text-white transition-colors"
         >
           <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">

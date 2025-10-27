@@ -4,13 +4,17 @@ export interface Coffee {
   updated_at: string;
   cafe_id: string;
   name: string;
+  slug?: string;
   is_core: boolean;
   is_guest: boolean;
+  is_main_shot?: boolean;
+  main_shot_until?: string;
   flavor_notes: string;
   season_hint?: string;
   popularity_hint: number;
   image_url?: string;
   image_path?: string;
+  online_shop_link?: string;
   // New fields
   roast_type?: string;
   preparation?: string;
@@ -25,8 +29,11 @@ export interface Pastry {
   updated_at: string;
   cafe_id: string;
   name: string;
+  slug?: string;
+  is_core?: boolean;
   flavor_tags: string;
   texture_tags: string;
+  season_hint?: string;
   popularity_hint: number;
   image_url?: string;
   image_path?: string;
