@@ -144,13 +144,41 @@ export const generatePairings = async (
             }
           `;
 
-          const aiResponse = await ai.models.generateContent({
-            model: 'gemini-2.5-pro',
-            contents: aiPrompt,
-            config: {
-              thinkingConfig: { thinkingBudget: 8192 }
+          // Retry logic for Gemini API (max 3 attempts with exponential backoff)
+          let aiResponse;
+          let lastError;
+          for (let attempt = 1; attempt <= 3; attempt++) {
+            try {
+              aiResponse = await ai.models.generateContent({
+                model: 'gemini-2.5-pro',
+                contents: aiPrompt,
+                config: {
+                  thinkingConfig: { thinkingBudget: 8192 }
+                }
+              });
+              break; // Success, exit retry loop
+            } catch (error: any) {
+              lastError = error;
+              console.warn(`AI attempt ${attempt}/3 failed:`, error.message);
+              
+              // If it's a rate limit or overload error, wait before retry
+              if (error.message?.includes('overloaded') || error.message?.includes('503')) {
+                if (attempt < 3) {
+                  const delay = Math.pow(2, attempt) * 1000; // 2s, 4s
+                  console.log(`Waiting ${delay}ms before retry...`);
+                  await new Promise(resolve => setTimeout(resolve, delay));
+                } else {
+                  throw error; // Last attempt failed, throw to fallback
+                }
+              } else {
+                throw error; // Non-retryable error
+              }
             }
-          });
+          }
+          
+          if (!aiResponse) {
+            throw lastError || new Error('AI response unavailable');
+          }
 
           let aiData;
           try {
@@ -241,7 +269,7 @@ export const generatePairings = async (
               season: `Seasonal fit: ${Math.round(bunamoScore.seasonal * 100)}%`,
               fallback_note: "Bunamo scoring model analysis"
             },
-            why_marketing: "Perfect pairing discovered",
+            why_marketing: `${Math.round(bunamoScore.overall * 100)}% Match - ${selectedCoffee.name} × ${pastry.name}`,
             facts: [
               {
                 summary: bunamoScore.explanation,
