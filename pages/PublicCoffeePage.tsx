@@ -17,6 +17,11 @@ interface Coffee {
   main_shot_until?: string;
   online_shop_url?: string;
   cafe_id: string;
+  roast_type?: string;
+  preparation?: string;
+  sort_blend?: string;
+  origin?: string;
+  acidity?: number;
 }
 
 interface Pastry {
@@ -225,22 +230,84 @@ export const PublicCoffeePage: React.FC = () => {
               <div>
                 <h1 className="text-4xl font-bold text-white mb-4">{coffee.name}</h1>
                 {coffee.flavor_notes && (
-                  <p className="text-xl text-brand-text-muted mb-6">{coffee.flavor_notes}</p>
+                  <div className="mb-6">
+                    <h3 className="text-sm font-semibold text-brand-text-muted mb-2">FLAVOR PROFILE</h3>
+                    <p className="text-xl text-brand-text">{coffee.flavor_notes}</p>
+                  </div>
                 )}
               </div>
 
-              {/* Coffee Stats */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="glass-panel rounded-xl p-4">
-                  <div className="text-sm text-brand-text-muted mb-1">Popularity</div>
-                  <div className="text-2xl font-bold text-brand-accent">
-                    {Math.round(coffee.popularity_hint * 100)}%
+              {/* Coffee Metadata Grid */}
+              <div className="glass-panel rounded-xl p-6 space-y-4">
+                <h3 className="text-lg font-semibold text-white mb-4">Coffee Details</h3>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Origin */}
+                  {coffee.origin && (
+                    <div>
+                      <div className="text-xs text-brand-text-muted mb-1">Origin</div>
+                      <div className="text-base font-semibold text-white">{coffee.origin}</div>
+                    </div>
+                  )}
+                  
+                  {/* Roast Type */}
+                  {coffee.roast_type && (
+                    <div>
+                      <div className="text-xs text-brand-text-muted mb-1">Roast</div>
+                      <div className="text-base font-semibold text-white capitalize">{coffee.roast_type}</div>
+                    </div>
+                  )}
+                  
+                  {/* Preparation */}
+                  {coffee.preparation && (
+                    <div>
+                      <div className="text-xs text-brand-text-muted mb-1">Preparation</div>
+                      <div className="text-base font-semibold text-white capitalize">{coffee.preparation}</div>
+                    </div>
+                  )}
+                  
+                  {/* Sort/Blend */}
+                  {coffee.sort_blend && (
+                    <div>
+                      <div className="text-xs text-brand-text-muted mb-1">Type</div>
+                      <div className="text-base font-semibold text-white capitalize">{coffee.sort_blend}</div>
+                    </div>
+                  )}
+                  
+                  {/* Acidity */}
+                  {coffee.acidity !== null && coffee.acidity !== undefined && (
+                    <div>
+                      <div className="text-xs text-brand-text-muted mb-1">Acidity</div>
+                      <div className="flex items-center gap-2">
+                        <div className="flex gap-1">
+                          {[...Array(5)].map((_, i) => (
+                            <div
+                              key={i}
+                              className={`w-2 h-6 rounded-sm ${
+                                i < coffee.acidity! ? 'bg-brand-accent' : 'bg-brand-surface'
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        <span className="text-sm font-semibold text-white">{coffee.acidity}/5</span>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Popularity */}
+                  <div>
+                    <div className="text-xs text-brand-text-muted mb-1">Popularity</div>
+                    <div className="text-base font-semibold text-brand-accent">
+                      {Math.round(coffee.popularity_hint * 100)}%
+                    </div>
                   </div>
-                </div>
-                <div className="glass-panel rounded-xl p-4">
-                  <div className="text-sm text-brand-text-muted mb-1">Season</div>
-                  <div className="text-2xl font-bold text-white">
-                    {coffee.season_hint || 'All Year'}
+                  
+                  {/* Season */}
+                  <div>
+                    <div className="text-xs text-brand-text-muted mb-1">Season</div>
+                    <div className="text-base font-semibold text-white">
+                      {coffee.season_hint || 'All Year'}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -248,12 +315,13 @@ export const PublicCoffeePage: React.FC = () => {
               {/* Online Shop Link */}
               {coffee.online_shop_url && (
                 <div className="glass-panel rounded-xl p-6 border-2 border-brand-accent">
-                  <h3 className="text-lg font-semibold text-white mb-2">Order Online</h3>
+                  <h3 className="text-lg font-semibold text-white mb-2">🛒 Order Online</h3>
+                  <p className="text-sm text-brand-text-muted mb-4">Get this coffee delivered to your door</p>
                   <a
                     href={coffee.online_shop_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="button-primary-pulse inline-flex items-center gap-2"
+                    className="button-primary-pulse inline-flex items-center gap-2 w-full justify-center"
                   >
                     Shop Now →
                   </a>
