@@ -116,5 +116,15 @@
   <body class="text-brand-text antialiased selection:bg-brand-accent/40 bg-gradient-to-br from-brand-bg via-brand-primary to-brand-surface min-h-screen">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
+    
+    <!-- Eruda Mobile Console for debugging -->
+    <script>
+      if (window.location.hostname !== 'localhost' && /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/eruda@3.0.1/eruda.js';
+        script.onload = () => eruda.init();
+        document.head.appendChild(script);
+      }
+    </script>
   </body>
 </html>
