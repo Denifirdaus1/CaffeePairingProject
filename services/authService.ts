@@ -80,28 +80,14 @@ export const authService = {
     }
 
     console.log('User created successfully:', authData.user.id);
-
-    // Try to manually confirm the user (bypass email confirmation)
-    try {
-      const { error: confirmError } = await supabase.auth.admin.updateUserById(
-        authData.user.id,
-        { email_confirm: true }
-      );
-      if (confirmError) {
-        console.log('Could not auto-confirm user (this is normal):', confirmError.message);
-      } else {
-        console.log('User auto-confirmed successfully');
-      }
-    } catch (adminError) {
-      console.log('Admin API not available (this is normal):', adminError);
-    }
+    console.log('User email auto-confirmed via database trigger');
 
     // Check current auth state
     const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
     console.log('Current user check:', { currentUser: currentUser?.id, userError });
     
-    // Small delay to ensure auth state is set
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Small delay to ensure auth state and cafe profile are set
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     // Create café profile immediately with the returned user
     console.log('Creating café profile...');
