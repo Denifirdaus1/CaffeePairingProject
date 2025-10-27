@@ -234,48 +234,122 @@ export const PublicShopPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Today's Main Shot */}
+      {/* Today's Main Shot - Enhanced */}
       {coffees.some(coffee => coffee.is_main_shot) && (
-        <section className="py-8 px-4">
+        <section className="py-12 px-4 bg-gradient-to-br from-brand-accent/10 via-transparent to-amber-500/10">
           <div className="max-w-7xl mx-auto">
-            <div className="glass-panel rounded-2xl p-6 border-2 border-brand-accent">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="bg-brand-accent text-white px-3 py-1 rounded-full text-sm font-semibold">
-                  Today's Main Shot
-                </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {coffees
-                  .filter(coffee => coffee.is_main_shot)
-                  .map(coffee => (
-                    <div key={coffee.id} className="flex items-center gap-4">
-                      {coffee.image_url && (
-                        <img
-                          src={coffee.image_url}
-                          alt={coffee.name}
-                          className="w-16 h-16 rounded-lg object-cover"
-                        />
+            {coffees
+              .filter(coffee => coffee.is_main_shot)
+              .map(coffee => (
+                <div 
+                  key={coffee.id}
+                  className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-accent/20 to-amber-500/20 backdrop-blur-sm border-2 border-brand-accent shadow-2xl hover:scale-[1.02] transition-all duration-500 cursor-pointer"
+                  onClick={() => window.location.href = `/s/${shop}/coffee/${coffee.slug}`}
+                >
+                  {/* Animated Background Effect */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-brand-accent/0 via-brand-accent/10 to-brand-accent/0 animate-pulse"></div>
+                  
+                  {/* Badge */}
+                  <div className="absolute top-6 left-6 z-10">
+                    <div className="flex items-center gap-2 bg-gradient-to-r from-brand-accent to-amber-400 text-white px-5 py-2.5 rounded-full shadow-lg animate-pulse-glow">
+                      <span className="text-xl">⭐</span>
+                      <span className="font-bold text-sm tracking-wide">TODAY'S MAIN SHOT</span>
+                    </div>
+                  </div>
+
+                  {/* Content */}
+                  <div className="relative grid grid-cols-1 lg:grid-cols-2 gap-8 p-8 lg:p-12">
+                    {/* Left: Image */}
+                    <div className="flex items-center justify-center">
+                      {coffee.image_url ? (
+                        <div className="relative group">
+                          <div className="absolute inset-0 bg-brand-accent/20 rounded-2xl blur-2xl group-hover:blur-3xl transition-all"></div>
+                          <img
+                            src={coffee.image_url}
+                            alt={coffee.name}
+                            className="relative w-full max-w-md h-80 object-cover rounded-2xl shadow-2xl transform group-hover:scale-105 transition-transform duration-500"
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-full max-w-md h-80 bg-brand-surface rounded-2xl flex items-center justify-center">
+                          <CoffeeIcon className="h-32 w-32 text-brand-accent" />
+                        </div>
                       )}
+                    </div>
+
+                    {/* Right: Details */}
+                    <div className="flex flex-col justify-center space-y-6">
                       <div>
-                        <h3 className="text-xl font-semibold text-white">{coffee.name}</h3>
+                        <h2 className="text-5xl font-bold text-white mb-4 tracking-tight">
+                          {coffee.name}
+                        </h2>
+                        
+                        {/* Flavor Notes */}
                         {coffee.flavor_notes && (
-                          <p className="text-brand-text-muted">{coffee.flavor_notes}</p>
+                          <div className="mb-6">
+                            <h3 className="text-sm font-semibold text-brand-accent mb-3 uppercase tracking-wider">
+                              Flavor Profile
+                            </h3>
+                            <div className="flex flex-wrap gap-2">
+                              {coffee.flavor_notes.split(',').map((note, idx) => (
+                                <span 
+                                  key={idx} 
+                                  className="bg-white/10 backdrop-blur-sm text-white px-4 py-2 rounded-xl text-base font-medium border border-white/20 hover:bg-white/20 transition-colors"
+                                >
+                                  {note.trim()}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
                         )}
+
+                        {/* Stats */}
+                        <div className="flex items-center gap-6 mb-6">
+                          <div className="glass-panel px-4 py-3 rounded-xl">
+                            <div className="text-xs text-brand-text-muted mb-1">Popularity</div>
+                            <div className="text-2xl font-bold text-brand-accent">
+                              {Math.round(coffee.popularity_hint * 100)}%
+                            </div>
+                          </div>
+                          {coffee.main_shot_until && (
+                            <div className="glass-panel px-4 py-3 rounded-xl">
+                              <div className="text-xs text-brand-text-muted mb-1">Available Until</div>
+                              <div className="text-sm font-semibold text-white">
+                                {new Date(coffee.main_shot_until).toLocaleDateString()}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* CTA Buttons */}
+                      <div className="flex flex-wrap gap-4">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.location.href = `/s/${shop}/coffee/${coffee.slug}`;
+                          }}
+                          className="flex-1 min-w-[200px] bg-gradient-to-r from-brand-accent to-amber-400 hover:from-brand-accent/90 hover:to-amber-400/90 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-xl hover:shadow-2xl transition-all hover:scale-105"
+                        >
+                          View Details →
+                        </button>
+                        
                         {coffee.online_shop_url && (
                           <a
                             href={coffee.online_shop_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-brand-accent hover:underline text-sm"
+                            onClick={(e) => e.stopPropagation()}
+                            className="flex-1 min-w-[200px] bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border-2 border-white/30 px-8 py-4 rounded-xl font-bold text-lg transition-all hover:scale-105 text-center"
                           >
-                            Order Online →
+                            🛒 Order Online
                           </a>
                         )}
                       </div>
                     </div>
-                  ))}
-              </div>
-            </div>
+                  </div>
+                </div>
+              ))}
           </div>
         </section>
       )}
