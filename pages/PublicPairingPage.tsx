@@ -72,24 +72,40 @@ export const PublicPairingPage: React.FC = () => {
     
     const fetchPairingData = async () => {
       try {
+        console.log('=== STARTING FETCH ===');
+        console.log('Shop:', shop);
+        console.log('Slug:', slug);
+        
         // Set current shop context for RLS
-        await supabase.rpc('set_current_shop', { shop_slug: shop });
+        console.log('Setting current shop context...');
+        const { error: rpcError } = await supabase.rpc('set_current_shop', { shop_slug: shop });
+        if (rpcError) {
+          console.error('RPC Error:', rpcError);
+        } else {
+          console.log('RPC Success: Shop context set');
+        }
         
         // Fetch shop data first
+        console.log('Fetching shop data...');
         const { data: shopData, error: shopError } = await supabase
           .from('cafe_profiles')
           .select('id, cafe_name, shop_slug')
           .eq('shop_slug', shop)
           .single();
 
+        console.log('Shop query result:', { shopData, shopError });
+
         if (shopError) {
-          setError('Shop not found');
+          console.error('Shop fetch error:', shopError);
+          setError(`Shop not found: ${shopError.message}`);
           return;
         }
 
         setShopData(shopData);
+        console.log('Shop data set:', shopData);
 
         // Fetch pairing data - use RLS policy by checking is_approved
+        console.log('Fetching pairing data...');
         const { data: pairingData, error: pairingError } = await supabase
           .from('pairings')
           .select('*')
@@ -106,8 +122,23 @@ export const PublicPairingPage: React.FC = () => {
         }
 
         if (!pairingData) {
-          console.log('No pairing data found');
-          setError('Pairing not found');
+          console.log('No pairing data found - trying without RLS filter...');
+          
+          // Try without is_approved filter to see if RLS is blocking
+          const { data: pairingDataRaw, error: pairingErrorRaw } = await supabase
+            .from('pairings')
+            .select('*')
+            .eq('pairing_slug', slug)
+            .maybeSingle();
+            
+          console.log('Raw pairing query result:', { pairingDataRaw, pairingErrorRaw });
+          
+          if (pairingDataRaw) {
+            console.log('Found pairing but RLS blocked it. Data:', pairingDataRaw);
+            setError('Pairing exists but access denied by security policy');
+          } else {
+            setError('Pairing not found');
+          }
           return;
         }
         
