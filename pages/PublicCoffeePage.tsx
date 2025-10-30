@@ -126,10 +126,37 @@ export const PublicCoffeePage: React.FC = () => {
     fetchCoffeeData();
   }, [shop, slug]);
 
+  const [shareToast, setShareToast] = useState<string | null>(null);
+
   const generateQRCode = () => {
     const url = `${window.location.origin}/s/${shop}/coffee/${slug}`;
     // In a real implementation, you would generate QR code here
     return url;
+  };
+
+  const handleShareCoffee = async () => {
+    const shareUrl = `${window.location.origin}/s/${shop}/coffee/${slug}`;
+    const shareData = {
+      title: `${coffee?.name || 'Coffee'} - ${shopData?.cafe_name || 'Coffee Shop'}`,
+      text: `Check out ${coffee?.name || 'this coffee'} at ${shopData?.cafe_name || 'our shop'}!`,
+      url: shareUrl
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+        setShareToast('✅ Shared successfully!');
+      } else {
+        await navigator.clipboard.writeText(shareUrl);
+        setShareToast('✅ Link copied to clipboard!');
+      }
+    } catch (error: any) {
+      if (error.name !== 'AbortError') {
+        setShareToast('❌ Failed to share. Please try again.');
+      }
+    }
+
+    setTimeout(() => setShareToast(null), 3000);
   };
 
   const goBack = () => {
@@ -186,11 +213,11 @@ export const PublicCoffeePage: React.FC = () => {
                 Back to Home
               </Link>
               <button
-                onClick={() => navigator.clipboard.writeText(generateQRCode())}
-                className="flex items-center gap-2 text-sm font-medium text-brand-text hover:text-white transition-colors"
+                onClick={handleShareCoffee}
+                className="flex items-center gap-2 text-sm font-medium text-brand-text hover:text-white transition-colors hover:bg-brand-accent/10 px-3 py-2 rounded-lg"
               >
                 <QRCodeIcon className="h-4 w-4" />
-                Share Coffee
+                Share
               </button>
             </div>
           </nav>

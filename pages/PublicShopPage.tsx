@@ -150,6 +150,8 @@ export const PublicShopPage: React.FC = () => {
     fetchShopData();
   }, [shop]);
 
+  const [shareToast, setShareToast] = useState<string | null>(null);
+
   const handleCoffeeSelect = (coffee: Coffee) => {
     window.location.href = `/s/${shop}/coffee/${coffee.slug}`;
   };
@@ -158,6 +160,35 @@ export const PublicShopPage: React.FC = () => {
     const url = `${window.location.origin}/s/${shop}`;
     // In a real implementation, you would generate QR code here
     return url;
+  };
+
+  const handleShareShop = async () => {
+    const shareUrl = `${window.location.origin}/s/${shop}`;
+    const shareData = {
+      title: `${shopData?.cafe_name || 'Coffee Shop'}`,
+      text: `Check out ${shopData?.cafe_name || 'this coffee shop'} - Discover amazing coffee and pairings!`,
+      url: shareUrl
+    };
+
+    try {
+      // Try native share API first (mobile-friendly)
+      if (navigator.share) {
+        await navigator.share(shareData);
+        setShareToast('✅ Shared successfully!');
+      } else {
+        // Fallback to clipboard
+        await navigator.clipboard.writeText(shareUrl);
+        setShareToast('✅ Link copied to clipboard!');
+      }
+    } catch (error: any) {
+      // User cancelled or error occurred
+      if (error.name !== 'AbortError') {
+        setShareToast('❌ Failed to share. Please try again.');
+      }
+    }
+
+    // Auto-hide toast after 3 seconds
+    setTimeout(() => setShareToast(null), 3000);
   };
 
   if (loading) {
@@ -203,11 +234,12 @@ export const PublicShopPage: React.FC = () => {
             </div>
             <div className="flex items-center gap-4">
               <button
-                onClick={() => navigator.clipboard.writeText(generateQRCode())}
-                className="flex items-center gap-2 text-sm font-medium text-brand-text hover:text-white transition-colors"
+                onClick={handleShareShop}
+                className="flex items-center gap-2 text-sm font-medium text-brand-text hover:text-white transition-colors hover:bg-brand-accent/10 px-3 py-2 rounded-lg"
               >
                 <QRCodeIcon className="h-4 w-4" />
-                Share Shop
+                <span className="hidden sm:inline">Share Shop</span>
+                <span className="sm:hidden">Share</span>
               </button>
             </div>
           </nav>
@@ -490,6 +522,15 @@ export const PublicShopPage: React.FC = () => {
           </div>
         </div>
       </footer>
+
+      {/* Share Toast Notification */}
+      {shareToast && (
+        <div className="fixed bottom-6 right-6 z-50 animate-in slide-in-from-bottom-5 fade-in duration-300">
+          <div className="bg-brand-surface/95 backdrop-blur-sm border border-brand-accent/30 text-white px-6 py-3 rounded-lg shadow-xl">
+            {shareToast}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
