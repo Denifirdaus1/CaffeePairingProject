@@ -105,14 +105,48 @@ body::before {
           mask-composite: exclude;
 }
 
+/* Mobile-specific optimizations */
 @media (max-width: 640px) {
   body {
     background: radial-gradient(circle at top, rgba(255, 202, 140, 0.22), transparent 55%),
                 radial-gradient(circle at bottom, rgba(118, 92, 255, 0.18), transparent 45%),
-                #12100f;
+                var(--bg-primary);
   }
 
   body::before {
     opacity: 0.18;
+  }
+
+  /* Reduce animations on mobile to improve performance */
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  /* But keep essential transitions */
+  button, a, input, select {
+    transition-duration: 150ms !important;
+  }
+
+  /* Force GPU acceleration for smoother transforms */
+  .glass-panel, [class*="rounded"], img {
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+  }
+
+  /* Optimize hover effects on mobile (actually touch) */
+  .hover\:scale-105:active {
+    transform: scale(1.02);
+  }
+}
+
+/* Reduce motion for accessibility and performance */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

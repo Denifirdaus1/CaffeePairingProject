@@ -21,6 +21,29 @@
     <!-- Preload critical fonts -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" as="style" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    
+    <!-- Critical CSS for faster mobile FCP -->
+    <style>
+      @media (max-width: 640px) {
+        /* Prevent layout shift on mobile */
+        body { 
+          background: #12100f;
+          color: #e8e1da;
+          margin: 0;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          -webkit-font-smoothing: antialiased;
+        }
+        /* Disable expensive animations on mobile */
+        * { 
+          animation: none !important;
+          transition: none !important;
+        }
+        img { 
+          content-visibility: auto;
+        }
+      }
+    </style>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {

@@ -70,7 +70,11 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
     }
   };
 
-  const optimizedSrc = getOptimizedUrl(src, width || 600);
+  // Use smaller images for mobile devices
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  const targetWidth = width || (isMobile ? 400 : 600);
+  
+  const optimizedSrc = getOptimizedUrl(src, targetWidth);
   const thumbnailSrc = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzFhMWExYSIvPjwvc3ZnPg=='; // Inline SVG placeholder
 
   const containerStyle = width || height ? { 

@@ -238,51 +238,54 @@ export const PublicShopPage: React.FC = () => {
 
       {/* Today's Main Shot - Enhanced */}
       {coffees.some(coffee => coffee.is_main_shot) && (
-        <section className="py-12 px-4 bg-gradient-to-br from-brand-accent/10 via-transparent to-amber-500/10">
+        <section className="py-8 md:py-12 px-4 bg-gradient-to-br from-brand-accent/10 via-transparent to-amber-500/10">
           <div className="max-w-7xl mx-auto">
             {coffees
               .filter(coffee => coffee.is_main_shot)
               .map(coffee => (
                 <div 
                   key={coffee.id}
-                  className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-accent/20 to-amber-500/20 backdrop-blur-sm border-2 border-brand-accent shadow-2xl hover:scale-[1.02] transition-all duration-500 cursor-pointer"
+                  className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-accent/20 to-amber-500/20 backdrop-blur-sm border-2 border-brand-accent shadow-2xl md:hover:scale-[1.02] transition-transform duration-300 cursor-pointer"
                   onClick={() => window.location.href = `/s/${shop}/coffee/${coffee.slug}`}
                 >
-                  {/* Animated Background Effect */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-brand-accent/0 via-brand-accent/10 to-brand-accent/0 animate-pulse"></div>
+                  {/* Animated Background Effect - Desktop only */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-brand-accent/0 via-brand-accent/10 to-brand-accent/0 hidden md:block md:animate-pulse"></div>
                   
                   {/* Badge */}
-                  <div className="absolute top-6 left-6 z-10">
-                    <div className="flex items-center gap-2 bg-gradient-to-r from-brand-accent to-amber-400 text-white px-5 py-2.5 rounded-full shadow-lg animate-pulse-glow">
-                      <span className="text-xl">⭐</span>
-                      <span className="font-bold text-sm tracking-wide">TODAY'S MAIN SHOT</span>
+                  <div className="absolute top-4 left-4 md:top-6 md:left-6 z-10">
+                    <div className="flex items-center gap-2 bg-gradient-to-r from-brand-accent to-amber-400 text-white px-3 py-2 md:px-5 md:py-2.5 rounded-full shadow-lg">
+                      <span className="text-base md:text-xl">⭐</span>
+                      <span className="font-bold text-xs md:text-sm tracking-wide">TODAY'S MAIN SHOT</span>
                     </div>
                   </div>
 
                   {/* Content */}
-                  <div className="relative grid grid-cols-1 lg:grid-cols-2 gap-8 p-8 lg:p-12">
+                  <div className="relative grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 p-4 md:p-8 lg:p-12">
                     {/* Left: Image */}
                     <div className="flex items-center justify-center">
                       {coffee.image_url ? (
                         <div className="relative group">
-                          <div className="absolute inset-0 bg-brand-accent/20 rounded-2xl blur-2xl group-hover:blur-3xl transition-all"></div>
-                          <img
+                          <div className="absolute inset-0 bg-brand-accent/20 rounded-2xl blur-2xl group-hover:blur-3xl transition-all hidden md:block"></div>
+                          <OptimizedImage
                             src={coffee.image_url}
                             alt={coffee.name}
-                            className="relative w-full max-w-md h-80 object-cover rounded-2xl shadow-2xl transform group-hover:scale-105 transition-transform duration-500"
+                            width={500}
+                            height={320}
+                            priority={true}
+                            className="relative w-full max-w-md h-64 md:h-80 object-cover rounded-2xl shadow-2xl md:transform md:group-hover:scale-105 md:transition-transform md:duration-500"
                           />
                         </div>
                       ) : (
-                        <div className="w-full max-w-md h-80 bg-brand-surface rounded-2xl flex items-center justify-center">
-                          <CoffeeIcon className="h-32 w-32 text-brand-accent" />
+                        <div className="w-full max-w-md h-64 md:h-80 bg-brand-surface rounded-2xl flex items-center justify-center">
+                          <CoffeeIcon className="h-24 md:h-32 w-24 md:w-32 text-brand-accent" />
                         </div>
                       )}
                     </div>
 
                     {/* Right: Details */}
-                    <div className="flex flex-col justify-center space-y-6">
+                    <div className="flex flex-col justify-center space-y-4 md:space-y-6">
                       <div>
-                        <h2 className="text-5xl font-bold text-white mb-4 tracking-tight">
+                        <h2 className="text-3xl md:text-5xl font-bold text-white mb-3 md:mb-4 tracking-tight">
                           {coffee.name}
                         </h2>
                         
@@ -378,9 +381,11 @@ export const PublicShopPage: React.FC = () => {
                   onClick={() => window.location.href = `/s/${shop}/coffee/${coffee.slug}`}
                 >
                   {coffee.image_url && (
-                    <img
+                    <OptimizedImage
                       src={coffee.image_url}
                       alt={coffee.name}
+                      width={400}
+                      height={192}
                       className="w-full h-48 object-cover rounded-lg mb-4"
                     />
                   )}
@@ -423,9 +428,11 @@ export const PublicShopPage: React.FC = () => {
                   className="glass-panel rounded-2xl p-6 hover:scale-105 transition-transform cursor-pointer text-left"
                 >
                   {pastry.image_url && (
-                    <img
+                    <OptimizedImage
                       src={pastry.image_url}
                       alt={pastry.name}
+                      width={400}
+                      height={192}
                       className="w-full h-48 object-cover rounded-lg mb-4"
                     />
                   )}
@@ -462,16 +469,20 @@ export const PublicShopPage: React.FC = () => {
                 >
                   <div className="flex items-center gap-4 mb-4">
                     {pairing.coffees.image_url && (
-                      <img
+                      <OptimizedImage
                         src={pairing.coffees.image_url}
                         alt={pairing.coffees.name}
+                        width={64}
+                        height={64}
                         className="w-16 h-16 rounded-lg object-cover"
                       />
                     )}
                     {pairing.pastries.image_url && (
-                      <img
+                      <OptimizedImage
                         src={pairing.pastries.image_url}
                         alt={pairing.pastries.name}
+                        width={64}
+                        height={64}
                         className="w-16 h-16 rounded-lg object-cover"
                       />
                     )}
