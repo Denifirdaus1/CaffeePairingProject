@@ -482,7 +482,7 @@ export const Dashboard: React.FC = () => {
                   : 'text-brand-text-muted hover:text-white hover:bg-brand-surface/60'
               }`}
             >
-              QR Generator
+              Public QR
             </button>
           </div>
         </div>

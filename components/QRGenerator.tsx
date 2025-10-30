@@ -124,9 +124,9 @@ export const QRGenerator: React.FC = () => {
 
   return (
     <div className="glass-panel rounded-2xl p-6">
-      <h3 className="text-xl font-semibold text-white mb-2">QR Code Generator</h3>
+      <h3 className="text-xl font-semibold text-white mb-2">Public Café QR Code</h3>
       <p className="text-brand-text-muted text-sm mb-6">
-        Generate and print QR codes to place in your café. Customers can scan to visit your public shop page.
+        Print this QR code and place it in your café. When visitors scan it, they'll be taken to your public page where they can explore your menu and create their own AI-powered coffee-pastry pairings!
       </p>
 
       <div className="flex flex-col md:flex-row gap-6">
@@ -169,11 +169,12 @@ export const QRGenerator: React.FC = () => {
           </div>
 
           <div className="bg-brand-primary/30 rounded-xl p-4">
-            <h4 className="font-semibold text-white mb-2">Instructions</h4>
+            <h4 className="font-semibold text-white mb-2">How It Works</h4>
             <ol className="text-sm text-brand-text-muted space-y-2 list-decimal list-inside">
-              <li>Download or print the QR code</li>
-              <li>Place it at your café entrance or table</li>
-              <li>Customers can scan to view your menu and pairings</li>
+              <li>Download or print this QR code</li>
+              <li>Place it at your café entrance, counter, or tables</li>
+              <li>Visitors scan → Directed to your public page</li>
+              <li>They browse your menu & create AI pairings instantly!</li>
             </ol>
           </div>
         </div>
