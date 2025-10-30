@@ -236,121 +236,86 @@ export const PublicShopPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Today's Main Shot - Enhanced */}
+      {/* Today's Main Shot - Simplified for Performance */}
       {coffees.some(coffee => coffee.is_main_shot) && (
-        <section className="py-8 md:py-12 px-4 bg-gradient-to-br from-brand-accent/10 via-transparent to-amber-500/10">
+        <section className="py-6 px-4">
           <div className="max-w-7xl mx-auto">
             {coffees
               .filter(coffee => coffee.is_main_shot)
               .map(coffee => (
                 <div 
                   key={coffee.id}
-                  className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-accent/20 to-amber-500/20 backdrop-blur-sm border-2 border-brand-accent shadow-2xl md:hover:scale-[1.02] transition-transform duration-300 cursor-pointer"
+                  className="glass-panel rounded-2xl p-4 md:p-6 border-2 border-brand-accent/40 cursor-pointer"
                   onClick={() => window.location.href = `/s/${shop}/coffee/${coffee.slug}`}
                 >
-                  {/* Animated Background Effect - Desktop only */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-brand-accent/0 via-brand-accent/10 to-brand-accent/0 hidden md:block md:animate-pulse"></div>
-                  
-                  {/* Badge */}
-                  <div className="absolute top-4 left-4 md:top-6 md:left-6 z-10">
-                    <div className="flex items-center gap-2 bg-gradient-to-r from-brand-accent to-amber-400 text-white px-3 py-2 md:px-5 md:py-2.5 rounded-full shadow-lg">
-                      <span className="text-base md:text-xl">⭐</span>
-                      <span className="font-bold text-xs md:text-sm tracking-wide">TODAY'S MAIN SHOT</span>
-                    </div>
+                  {/* Simple Badge */}
+                  <div className="flex items-center gap-2 bg-brand-accent text-white px-3 py-1.5 rounded-lg mb-4 w-fit">
+                    <span>⭐</span>
+                    <span className="font-bold text-sm">TODAY'S MAIN SHOT</span>
                   </div>
 
-                  {/* Content */}
-                  <div className="relative grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 p-4 md:p-8 lg:p-12">
-                    {/* Left: Image */}
-                    <div className="flex items-center justify-center">
+                  {/* Simple Grid Layout */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Image */}
+                    <div>
                       {coffee.image_url ? (
-                        <div className="relative group">
-                          <div className="absolute inset-0 bg-brand-accent/20 rounded-2xl blur-2xl group-hover:blur-3xl transition-all hidden md:block"></div>
-                          <OptimizedImage
-                            src={coffee.image_url}
-                            alt={coffee.name}
-                            width={500}
-                            height={320}
-                            priority={true}
-                            className="relative w-full max-w-md h-64 md:h-80 object-cover rounded-2xl shadow-2xl md:transform md:group-hover:scale-105 md:transition-transform md:duration-500"
-                          />
-                        </div>
+                        <OptimizedImage
+                          src={coffee.image_url}
+                          alt={coffee.name}
+                          width={400}
+                          height={240}
+                          priority={true}
+                          className="w-full h-48 md:h-60 object-cover rounded-lg"
+                        />
                       ) : (
-                        <div className="w-full max-w-md h-64 md:h-80 bg-brand-surface rounded-2xl flex items-center justify-center">
-                          <CoffeeIcon className="h-24 md:h-32 w-24 md:w-32 text-brand-accent" />
+                        <div className="w-full h-48 md:h-60 bg-brand-surface rounded-lg flex items-center justify-center">
+                          <CoffeeIcon className="h-16 w-16 text-brand-accent" />
                         </div>
                       )}
                     </div>
 
-                    {/* Right: Details */}
-                    <div className="flex flex-col justify-center space-y-4 md:space-y-6">
-                      <div>
-                        <h2 className="text-3xl md:text-5xl font-bold text-white mb-3 md:mb-4 tracking-tight">
-                          {coffee.name}
-                        </h2>
-                        
-                        {/* Flavor Notes */}
-                        {coffee.flavor_notes && (
-                          <div className="mb-6">
-                            <h3 className="text-sm font-semibold text-brand-accent mb-3 uppercase tracking-wider">
-                              Flavor Profile
-                            </h3>
-                            <div className="flex flex-wrap gap-2">
-                              {coffee.flavor_notes.split(',').map((note, idx) => (
-                                <span 
-                                  key={idx} 
-                                  className="bg-white/10 backdrop-blur-sm text-white px-4 py-2 rounded-xl text-base font-medium border border-white/20 hover:bg-white/20 transition-colors"
-                                >
-                                  {note.trim()}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Stats */}
-                        <div className="flex items-center gap-6 mb-6">
-                          <div className="glass-panel px-4 py-3 rounded-xl">
-                            <div className="text-xs text-brand-text-muted mb-1">Popularity</div>
-                            <div className="text-2xl font-bold text-brand-accent">
-                              {Math.round(coffee.popularity_hint * 100)}%
-                            </div>
-                          </div>
-                          {coffee.main_shot_until && (
-                            <div className="glass-panel px-4 py-3 rounded-xl">
-                              <div className="text-xs text-brand-text-muted mb-1">Available Until</div>
-                              <div className="text-sm font-semibold text-white">
-                                {new Date(coffee.main_shot_until).toLocaleDateString()}
-                              </div>
-                            </div>
-                          )}
+                    {/* Details */}
+                    <div className="flex flex-col justify-center space-y-3">
+                      <h2 className="text-2xl md:text-3xl font-bold text-white">
+                        {coffee.name}
+                      </h2>
+                      
+                      {/* Flavor Notes */}
+                      {coffee.flavor_notes && (
+                        <div className="flex flex-wrap gap-2">
+                          {coffee.flavor_notes.split(',').slice(0, 3).map((note, idx) => (
+                            <span 
+                              key={idx} 
+                              className="bg-brand-accent/20 text-white px-3 py-1 rounded-lg text-sm"
+                            >
+                              {note.trim()}
+                            </span>
+                          ))}
                         </div>
-                      </div>
+                      )}
 
-                      {/* CTA Buttons */}
-                      <div className="flex flex-wrap gap-4">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            window.location.href = `/s/${shop}/coffee/${coffee.slug}`;
-                          }}
-                          className="flex-1 min-w-[200px] bg-gradient-to-r from-brand-accent to-amber-400 hover:from-brand-accent/90 hover:to-amber-400/90 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-xl hover:shadow-2xl transition-all hover:scale-105"
-                        >
-                          View Details →
-                        </button>
-                        
-                        {coffee.online_shop_url && (
-                          <a
-                            href={coffee.online_shop_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                            className="flex-1 min-w-[200px] bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border-2 border-white/30 px-8 py-4 rounded-xl font-bold text-lg transition-all hover:scale-105 text-center"
-                          >
-                            🛒 Order Online
-                          </a>
+                      {/* Simple Stats */}
+                      <div className="flex items-center gap-4 text-sm">
+                        <span className="text-brand-accent font-bold">
+                          {Math.round(coffee.popularity_hint * 100)}% Popular
+                        </span>
+                        {coffee.main_shot_until && (
+                          <span className="text-brand-text-muted">
+                            Until {new Date(coffee.main_shot_until).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                          </span>
                         )}
                       </div>
+
+                      {/* Simple Button */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.location.href = `/s/${shop}/coffee/${coffee.slug}`;
+                        }}
+                        className="bg-brand-accent text-white px-6 py-2.5 rounded-lg font-semibold text-sm w-fit"
+                      >
+                        View Details →
+                      </button>
                     </div>
                   </div>
                 </div>
