@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Coffee, Pastry } from '../../types';
-import { calculateBunamoScore } from '../../services/bunamoService';
+import { generatePairings } from '../../services/geminiService';
 
 interface PublicPairingGeneratorProps {
   coffees: Coffee[];
@@ -9,9 +9,19 @@ interface PublicPairingGeneratorProps {
 }
 
 interface PairingResult {
-  pastry: Pastry;
+  pastry: {
+    id: string;
+    name: string;
+    image: string;
+  };
   score: number;
-  explanation: string;
+  why_marketing: string;
+  reasoning?: {
+    flavor: string;
+    texture: string;
+    popularity: string;
+    season: string;
+  };
 }
 
 export const PublicPairingGenerator: React.FC<PublicPairingGeneratorProps> = ({
@@ -35,37 +45,45 @@ export const PublicPairingGenerator: React.FC<PublicPairingGeneratorProps> = ({
     setIsGenerating(true);
     
     try {
-      // Simulate loading for better UX
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
       let results: PairingResult[] = [];
 
       if (selectedType === 'coffee') {
-        // Coffee selected, pair with pastries
+        // Coffee selected, use full AI pairing generation
         const coffee = selectedItem as Coffee;
-        const pairingPromises = pastries.map(async (pastry) => {
-          const { score, explanation } = await calculateBunamoScore(coffee, pastry);
-          return { pastry, score, explanation };
-        });
-
-        const allPairings = await Promise.all(pairingPromises);
-        // Sort by score and take top 3
-        results = allPairings
-          .sort((a, b) => b.score - a.score)
-          .slice(0, 3);
+        const aiResponse = await generatePairings(coffee, pastries);
+        
+        // Map AI response to our result format
+        results = aiResponse.pairs.slice(0, 3).map(pair => ({
+          pastry: pair.pastry,
+          score: pair.score,
+          why_marketing: pair.why_marketing,
+          reasoning: pair.reasoning,
+        }));
       } else {
-        // Pastry selected, pair with coffees
+        // Pastry selected, generate pairings for each coffee
         const pastry = selectedItem as Pastry;
+        
+        // Generate pairing for each coffee with the selected pastry
         const pairingPromises = coffees.map(async (coffee) => {
-          const { score, explanation } = await calculateBunamoScore(coffee, pastry);
-          return { 
-            pastry: { ...coffee, flavor_tags: coffee.flavor_notes, texture_tags: '' } as any as Pastry, 
-            score, 
-            explanation 
-          };
+          const aiResponse = await generatePairings(coffee, [pastry]);
+          if (aiResponse.pairs.length > 0) {
+            const pair = aiResponse.pairs[0];
+            return {
+              pastry: {
+                id: coffee.id,
+                name: coffee.name,
+                image: coffee.image_url || '',
+              },
+              score: pair.score,
+              why_marketing: pair.why_marketing,
+              reasoning: pair.reasoning,
+            };
+          }
+          return null;
         });
 
-        const allPairings = await Promise.all(pairingPromises);
+        const allPairings = (await Promise.all(pairingPromises)).filter(p => p !== null) as PairingResult[];
+        
         // Sort by score and take top 3
         results = allPairings
           .sort((a, b) => b.score - a.score)
@@ -75,7 +93,7 @@ export const PublicPairingGenerator: React.FC<PublicPairingGeneratorProps> = ({
       setPairingResults(results);
     } catch (error) {
       console.error('Error generating pairings:', error);
-      alert('Failed to generate pairings. Please try again.');
+      alert('Failed to generate AI pairings. Please try again.');
     } finally {
       setIsGenerating(false);
     }
@@ -172,8 +190,13 @@ export const PublicPairingGenerator: React.FC<PublicPairingGeneratorProps> = ({
                 : 'bg-brand-surface/30 text-brand-text-muted cursor-not-allowed'
             }`}
           >
-            {isGenerating ? 'Generating...' : 'Generate Pairing'}
+            {isGenerating ? 'AI is thinking...' : 'Generate Pairing'}
           </button>
+          {isGenerating && (
+            <p className="text-sm text-brand-text-muted mt-3">
+              Using AI to find the perfect match based on flavor science
+            </p>
+          )}
         </div>
 
         {/* Pairing Results */}
@@ -213,18 +236,26 @@ export const PublicPairingGenerator: React.FC<PublicPairingGeneratorProps> = ({
                     {result.pastry.name}
                   </h4>
 
-                  {/* Explanation */}
-                  <p className="text-sm text-brand-text/80 leading-relaxed mb-4 line-clamp-3">
-                    {result.explanation}
+                  {/* Marketing Message */}
+                  <p className="text-sm text-brand-text/80 leading-relaxed mb-4">
+                    {result.why_marketing}
                   </p>
 
                   {/* View Details Button */}
                   <button
                     onClick={() => {
                       if (selectedType === 'coffee') {
-                        window.location.href = `/s/${shopSlug}/pastry/${result.pastry.slug}`;
+                        // Find the full pastry object to get slug
+                        const pastryItem = pastries.find(p => p.id === result.pastry.id);
+                        if (pastryItem?.slug) {
+                          window.location.href = `/s/${shopSlug}/pastry/${pastryItem.slug}`;
+                        }
                       } else {
-                        window.location.href = `/s/${shopSlug}/coffee/${result.pastry.slug}`;
+                        // Find the full coffee object to get slug
+                        const coffeeItem = coffees.find(c => c.id === result.pastry.id);
+                        if (coffeeItem?.slug) {
+                          window.location.href = `/s/${shopSlug}/coffee/${coffeeItem.slug}`;
+                        }
                       }
                     }}
                     className="w-full bg-brand-accent text-white px-4 py-2.5 rounded-lg font-medium hover:bg-brand-accent/90 transition-all"
