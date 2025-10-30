@@ -255,6 +255,61 @@ export const PublicShopPage: React.FC = () => {
         />
       )}
 
+      {/* Recommended Pairings Section - Right After Pairing Generator */}
+      {publishedPairings.length > 0 && (
+        <section className="py-8 px-4">
+          <div className="max-w-7xl mx-auto">
+            <h2 className="text-3xl font-bold text-white mb-8 text-center">
+              Recommended Pairings
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {publishedPairings.map(pairing => (
+                <div
+                  key={pairing.id}
+                  className="glass-panel rounded-2xl p-6 hover:scale-105 transition-transform border-2 border-brand-accent/20 cursor-pointer"
+                  onClick={() => window.location.href = `/s/${shop}/pairing/${pairing.pairing_slug}`}
+                >
+                  <div className="flex items-center gap-4 mb-4">
+                    {pairing.coffees.image_url && (
+                      <OptimizedImage
+                        src={pairing.coffees.image_url}
+                        alt={pairing.coffees.name}
+                        width={64}
+                        height={64}
+                        className="w-16 h-16 rounded-lg object-cover"
+                      />
+                    )}
+                    {pairing.pastries.image_url && (
+                      <OptimizedImage
+                        src={pairing.pastries.image_url}
+                        alt={pairing.pastries.name}
+                        width={64}
+                        height={64}
+                        className="w-16 h-16 rounded-lg object-cover"
+                      />
+                    )}
+                  </div>
+                  <h3 className="text-lg font-semibold text-white mb-2">
+                    {pairing.coffees.name} + {pairing.pastries.name}
+                  </h3>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-brand-accent font-bold">
+                      {Math.round(pairing.score * 100)}% Match
+                    </span>
+                  </div>
+                  {pairing.why && (
+                    <p className="text-brand-text-muted text-sm line-clamp-2">{pairing.why}</p>
+                  )}
+                  <div className="mt-4 flex items-center justify-end">
+                    <span className="text-brand-text-muted text-sm">View Details →</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Search Bar Section */}
       <section className="py-8 px-4">
         <div className="max-w-7xl mx-auto">
@@ -437,61 +492,6 @@ export const PublicShopPage: React.FC = () => {
                     View Details →
                   </div>
                 </button>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Published Pairings Section */}
-      {publishedPairings.length > 0 && (
-        <section className="py-12 px-4">
-          <div className="max-w-7xl mx-auto">
-            <h2 className="text-3xl font-bold text-white mb-8 text-center">
-              Recommended Pairings
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {publishedPairings.map(pairing => (
-                <div
-                  key={pairing.id}
-                  className="glass-panel rounded-2xl p-6 hover:scale-105 transition-transform border-2 border-brand-accent/20"
-                  onClick={() => window.location.href = `/s/${shop}/pairing/${pairing.pairing_slug}`}
-                >
-                  <div className="flex items-center gap-4 mb-4">
-                    {pairing.coffees.image_url && (
-                      <OptimizedImage
-                        src={pairing.coffees.image_url}
-                        alt={pairing.coffees.name}
-                        width={64}
-                        height={64}
-                        className="w-16 h-16 rounded-lg object-cover"
-                      />
-                    )}
-                    {pairing.pastries.image_url && (
-                      <OptimizedImage
-                        src={pairing.pastries.image_url}
-                        alt={pairing.pastries.name}
-                        width={64}
-                        height={64}
-                        className="w-16 h-16 rounded-lg object-cover"
-                      />
-                    )}
-                  </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">
-                    {pairing.coffees.name} + {pairing.pastries.name}
-                  </h3>
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="text-brand-accent font-bold">
-                      {Math.round(pairing.score * 100)}% Match
-                    </span>
-                  </div>
-                  {pairing.why && (
-                    <p className="text-brand-text-muted text-sm line-clamp-2">{pairing.why}</p>
-                  )}
-                  <div className="mt-4 flex items-center justify-end">
-                    <span className="text-brand-text-muted text-sm">View Details →</span>
-                  </div>
-                </div>
               ))}
             </div>
           </div>
