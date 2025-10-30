@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { supabase } from '../services/supabaseClient';
 import { CoffeeIcon } from '../components/icons/CoffeeIcon';
 import { ArrowLeftIcon } from '../components/icons/ArrowLeftIcon';
+import { OptimizedImage } from '../components/OptimizedImage';
 
 // Sanitize URL params to remove hidden characters from QR/PDF scans
 const cleanse = (s: string = '') => {
@@ -299,9 +300,12 @@ export const PublicPairingPage: React.FC = () => {
             <div className="flex items-center justify-center gap-3 mb-6">
               {pairing.coffees.image_url && (
                 <div className="flex-1">
-                  <img
+                  <OptimizedImage
                     src={pairing.coffees.image_url}
                     alt={pairing.coffees.name}
+                    width={400}
+                    height={192}
+                    priority={true}
                     className="w-full h-48 object-cover rounded-2xl shadow-lg"
                   />
                   <h2 className="text-2xl font-bold text-white mt-4 text-center">
@@ -316,9 +320,12 @@ export const PublicPairingPage: React.FC = () => {
               
               {pairing.pastries.image_url && (
                 <div className="flex-1">
-                  <img
+                  <OptimizedImage
                     src={pairing.pastries.image_url}
                     alt={pairing.pastries.name}
+                    width={400}
+                    height={192}
+                    priority={true}
                     className="w-full h-48 object-cover rounded-2xl shadow-lg"
                   />
                   <h2 className="text-2xl font-bold text-white mt-4 text-center">

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { Coffee, Pastry } from '../types';
 import { QRCodeIcon } from './icons/QRCodeIcon';
+import { OptimizedImage } from './OptimizedImage';
 
 interface ItemDetailModalProps {
   item: Coffee | Pastry | null;
@@ -158,9 +159,12 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({ item, type, sh
             {/* Left: Image */}
             <div>
               {item.image_url ? (
-                <img
+                <OptimizedImage
                   src={item.image_url}
                   alt={item.name}
+                  width={500}
+                  height={320}
+                  priority={true}
                   className="w-full h-80 object-cover rounded-2xl shadow-xl"
                 />
               ) : (

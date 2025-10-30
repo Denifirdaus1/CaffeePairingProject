@@ -8,7 +8,7 @@ import { supabase, uploadImage, deleteImage } from '../services/supabaseClient';
 import type { CoffeeInsert, PastryInsert, CoffeeUpdate, PastryUpdate } from '../services/supabaseClient';
 import { Spinner } from './Spinner';
 import { InventoryItem } from './InventoryItem';
-import { LazyImage } from './LazyImage';
+import { OptimizedImage } from './OptimizedImage';
 import { Toast } from './Toast';
 import { ApprovalWorkflow } from './ApprovalWorkflow';
 import { MainShotManager } from './MainShotManager';
@@ -392,9 +392,11 @@ export const Dashboard: React.FC = () => {
           tabIndex={0}
         >
           <div className="relative mb-2 overflow-hidden rounded-xl">
-            <LazyImage
+            <OptimizedImage
               src={coffee.image_url || '/placeholder-coffee.jpg'}
               alt={coffee.name}
+              width={300}
+              height={300}
               className="aspect-square w-full object-cover transition-transform duration-300 group-hover:scale-105"
             />
             {isActive && (
