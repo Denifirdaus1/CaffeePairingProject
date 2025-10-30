@@ -52,27 +52,19 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
   const optimizedSrc = getOptimizedUrl(src, targetWidth);
   const thumbnailSrc = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzFhMWExYSIvPjwvc3ZnPg=='; // Inline SVG placeholder
 
-  const containerStyle = width || height ? { 
-    width: width ? `${width}px` : undefined, 
-    height: height ? `${height}px` : undefined 
-  } as React.CSSProperties : {};
-
   return (
-    <div
-      ref={imgRef}
-      className={`relative overflow-hidden ${className}`}
-      style={containerStyle}
-    >
+    <>
       {/* Simple loading state - minimal animation */}
       {!isLoaded && (
-        <div className="absolute inset-0 bg-brand-surface/30" />
+        <div className={`bg-brand-surface/30 ${className}`} />
       )}
 
       {/* Main image - Load ALL images immediately, no lazy loading */}
       <img
+        ref={imgRef}
         src={optimizedSrc}
         alt={alt}
-        className={`w-full h-full object-cover transition-opacity duration-200 ${
+        className={`transition-opacity duration-200 ${
           isLoaded ? 'opacity-100' : 'opacity-0'
         } ${className}`}
         onLoad={() => setIsLoaded(true)}
@@ -80,7 +72,7 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
         decoding="async"
         fetchPriority={priority ? 'high' : 'auto'}
       />
-    </div>
+    </>
   );
 };
 
