@@ -6,6 +6,7 @@ import { QRCodeIcon } from '../components/icons/QRCodeIcon';
 import { ArrowLeftIcon } from '../components/icons/ArrowLeftIcon';
 import { CoffeeSearch } from '../components/public/CoffeeSearch';
 import { PublicPairingGenerator } from '../components/public/PublicPairingGenerator';
+import { OptimizedImage } from '../components/OptimizedImage';
 
 interface ShopData {
   id: string;

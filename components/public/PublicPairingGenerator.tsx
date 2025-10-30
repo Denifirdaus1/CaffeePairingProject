@@ -5,6 +5,7 @@ import { FlavorIcon } from '../icons/FlavorIcon';
 import { TextureIcon } from '../icons/TextureIcon';
 import { PopularityIcon } from '../icons/PopularityIcon';
 import { SeasonIcon } from '../icons/SeasonIcon';
+import { OptimizedImage } from '../OptimizedImage';
 
 interface PublicPairingGeneratorProps {
   coffees: Coffee[];
@@ -189,10 +190,11 @@ export const PublicPairingGenerator: React.FC<PublicPairingGeneratorProps> = ({
                   }`}
                 >
                   {item.image_url && (
-                    <img
+                    <OptimizedImage
                       src={item.image_url}
                       alt={item.name}
                       className="w-full h-32 object-cover rounded-lg mb-3"
+                      width={200}
                     />
                   )}
                   <h4 className="text-white font-semibold text-sm mb-1 line-clamp-2">
@@ -284,10 +286,12 @@ export const PublicPairingGenerator: React.FC<PublicPairingGeneratorProps> = ({
                       <div className="relative overflow-hidden rounded-2xl">
                         {result.pastry.image && (
                           <>
-                            <img
+                            <OptimizedImage
                               src={result.pastry.image}
                               alt={result.pastry.name}
                               className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-105"
+                              width={600}
+                              priority={index === 0}
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                           </>
