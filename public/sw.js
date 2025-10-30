@@ -43,7 +43,9 @@ self.addEventListener('fetch', (event) => {
   // Skip chrome extensions and other origins
   if (!url.origin.includes(self.location.origin) && 
       !url.origin.includes('supabase.co') &&
-      !url.origin.includes('googleapis.com')) {
+      !url.origin.includes('googleapis.com') &&
+      !url.origin.includes('fonts.googleapis.com') &&
+      !url.origin.includes('fonts.gstatic.com')) {
     return;
   }
 
