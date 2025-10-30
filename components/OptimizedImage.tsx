@@ -18,23 +18,26 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
   priority = false,
 }) => {
   const [isLoaded, setIsLoaded] = useState(false);
-  const [isInView, setIsInView] = useState(priority);
+  const [shouldLoad, setShouldLoad] = useState(priority);
   const imgRef = useRef<HTMLImageElement>(null);
+  const hasLoadedOnce = useRef(false);
 
   useEffect(() => {
-    if (priority) return;
+    if (priority || hasLoadedOnce.current) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setIsInView(true);
-            observer.disconnect();
+          if (entry.isIntersecting && !hasLoadedOnce.current) {
+            setShouldLoad(true);
+            hasLoadedOnce.current = true; // Mark as loaded, never unload
+            observer.disconnect(); // Stop observing once loaded
           }
         });
       },
       {
-        rootMargin: '50px', // Start loading 50px before entering viewport
+        rootMargin: '300px', // Start loading 300px before viewport (very aggressive)
+        threshold: 0.01,
       }
     );
 
@@ -89,7 +92,7 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
       style={containerStyle}
     >
       {/* Blur placeholder */}
-      {!isLoaded && isInView && (
+      {!isLoaded && shouldLoad && (
         <img
           src={thumbnailSrc}
           alt=""
@@ -99,12 +102,12 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
       )}
 
       {/* Skeleton loader */}
-      {!isInView && (
+      {!shouldLoad && (
         <div className="absolute inset-0 bg-gradient-to-r from-brand-surface/50 via-brand-surface/30 to-brand-surface/50 animate-pulse" />
       )}
 
-      {/* Main image */}
-      {isInView && (
+      {/* Main image - Once loaded, STAYS loaded */}
+      {shouldLoad && (
         <img
           src={optimizedSrc}
           alt={alt}
@@ -112,7 +115,7 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
             isLoaded ? 'opacity-100' : 'opacity-0'
           } ${className}`}
           onLoad={() => setIsLoaded(true)}
-          loading="lazy"
+          loading={priority ? 'eager' : 'lazy'}
           decoding="async"
         />
       )}

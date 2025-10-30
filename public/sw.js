@@ -1,6 +1,7 @@
 // Service Worker for Caching Strategy
-const CACHE_NAME = 'caffee-pairing-v1';
-const RUNTIME_CACHE = 'caffee-runtime-v1';
+const CACHE_NAME = 'caffee-pairing-v2';
+const RUNTIME_CACHE = 'caffee-runtime-v2';
+const IMAGE_CACHE = 'caffee-images-v1';
 
 // Assets to cache on install
 const PRECACHE_ASSETS = [
@@ -19,7 +20,7 @@ self.addEventListener('install', (event) => {
 
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
-  const currentCaches = [CACHE_NAME, RUNTIME_CACHE];
+  const currentCaches = [CACHE_NAME, RUNTIME_CACHE, IMAGE_CACHE];
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return cacheNames.filter(cacheName => !currentCaches.includes(cacheName));
@@ -71,8 +72,30 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Cache-first for assets (JS, CSS, images)
-  if (url.pathname.match(/\.(js|css|png|jpg|jpeg|webp|svg|woff2|woff)$/)) {
+  // Aggressive cache-first for images (NEVER reload from network on scroll)
+  if (url.pathname.match(/\.(png|jpg|jpeg|webp)$/)) {
+    event.respondWith(
+      caches.open(IMAGE_CACHE).then(cache => {
+        return cache.match(request).then(response => {
+          if (response) {
+            // Found in cache, return immediately (NO background update)
+            return response;
+          }
+          // Not in cache, fetch from network and cache FOREVER
+          return fetch(request).then(networkResponse => {
+            if (networkResponse.status === 200) {
+              cache.put(request, networkResponse.clone());
+            }
+            return networkResponse;
+          });
+        });
+      })
+    );
+    return;
+  }
+
+  // Cache-first for assets (JS, CSS, fonts)
+  if (url.pathname.match(/\.(js|css|svg|woff2|woff)$/)) {
     event.respondWith(
       caches.open(RUNTIME_CACHE).then(cache => {
         return cache.match(request).then(response => {
