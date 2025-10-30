@@ -28,17 +28,48 @@ export default defineConfig(({ mode }) => {
       },
       plugins: [react()],
       build: {
+        target: 'es2015',
+        minify: 'terser',
+        terserOptions: {
+          compress: {
+            drop_console: true,
+            drop_debugger: true,
+            pure_funcs: ['console.log', 'console.info', 'console.debug'],
+            passes: 2,
+          },
+          mangle: {
+            safari10: true,
+          },
+        },
         rollupOptions: {
           output: {
-            manualChunks: {
-              vendor: ['react', 'react-dom'],
-              supabase: ['@supabase/supabase-js'],
-              gemini: ['@google/genai'],
-              utils: ['jspdf', 'html2canvas']
-            }
+            manualChunks: (id) => {
+              if (id.includes('node_modules')) {
+                if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+                  return 'react-vendor';
+                }
+                if (id.includes('@supabase')) {
+                  return 'supabase';
+                }
+                if (id.includes('@google/genai')) {
+                  return 'ai';
+                }
+                if (id.includes('jspdf') || id.includes('html2canvas')) {
+                  return 'pdf-utils';
+                }
+                return 'vendor';
+              }
+            },
+            chunkFileNames: 'assets/[name]-[hash].js',
+            entryFileNames: 'assets/[name]-[hash].js',
+            assetFileNames: 'assets/[name]-[hash].[ext]',
           }
         },
-        chunkSizeWarningLimit: 1000
+        chunkSizeWarningLimit: 600,
+        cssCodeSplit: true,
+        sourcemap: false,
+        reportCompressedSize: false,
+        assetsInlineLimit: 4096,
       },
       define: {
         'process.env.API_KEY': JSON.stringify(env.VITE_GEMINI_API_KEY),

@@ -54,25 +54,35 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
     }
 
     // Supabase storage supports image transformations via URL params
-    const url = new URL(originalUrl);
-    
-    // Add transformation parameters
-    if (targetWidth) {
-      url.searchParams.set('width', targetWidth.toString());
-      url.searchParams.set('quality', '80'); // Good balance of quality/size
+    try {
+      const url = new URL(originalUrl);
+      
+      // Add transformation parameters
+      if (targetWidth) {
+        url.searchParams.set('width', targetWidth.toString());
+        url.searchParams.set('quality', '75'); // Optimized for web (75 is good balance)
+        url.searchParams.set('format', 'webp'); // Modern format for better compression
+      }
+      
+      return url.toString();
+    } catch (e) {
+      return originalUrl;
     }
-    
-    return url.toString();
   };
 
-  const optimizedSrc = getOptimizedUrl(src, width || 800);
-  const thumbnailSrc = getOptimizedUrl(src, 50); // Tiny blur placeholder
+  const optimizedSrc = getOptimizedUrl(src, width || 600);
+  const thumbnailSrc = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzFhMWExYSIvPjwvc3ZnPg=='; // Inline SVG placeholder
+
+  const containerStyle = width || height ? { 
+    width: width ? `${width}px` : undefined, 
+    height: height ? `${height}px` : undefined 
+  } as React.CSSProperties : {};
 
   return (
     <div
       ref={imgRef}
       className={`relative overflow-hidden ${className}`}
-      style={{ width, height }}
+      style={containerStyle}
     >
       {/* Blur placeholder */}
       {!isLoaded && isInView && (

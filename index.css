@@ -1,5 +1,9 @@
 :root {
   color-scheme: dark;
+  --bg-primary: #12100f;
+  --text-primary: #e8e1da;
+  --accent-primary: #ffca8c;
+  --glass-border: rgba(255, 255, 255, 0.08);
 }
 
 * {
@@ -11,20 +15,25 @@ body {
   font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background: radial-gradient(circle at top, rgba(255, 202, 140, 0.18), transparent 45%),
               radial-gradient(circle at bottom, rgba(118, 92, 255, 0.12), transparent 40%),
-              #12100f;
-  color: #e8e1da;
+              var(--bg-primary);
+  color: var(--text-primary);
   min-height: 100vh;
   line-height: 1.5;
+  font-display: swap;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body::before {
   content: '';
   position: fixed;
   inset: 0;
-  background-image: url('https://grainy-gradients.vercel.app/noise.svg');
+  background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIGJhc2VGcmVxdWVuY3k9Ii43NSIgc3RpdGNoVGlsZXM9InN0aXRjaCIgdHlwZT0iZnJhY3RhbE5vaXNlIi8+PGZlQ29sb3JNYXRyaXggdHlwZT0ic2F0dXJhdGUiIHZhbHVlcz0iMCIvPjwvZmlsdGVyPjxwYXRoIGQ9Ik0wIDBoMzAwdjMwMEgweiIgZmlsdGVyPSJ1cmwoI2EpIiBvcGFjaXR5PSIuMDUiLz48L3N2Zz4=');
   opacity: 0.12;
   pointer-events: none;
   z-index: -1;
+  will-change: transform;
 }
 
 ::-webkit-scrollbar {
