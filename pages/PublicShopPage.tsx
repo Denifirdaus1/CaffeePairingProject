@@ -5,6 +5,7 @@ import { CoffeeIcon } from '../components/icons/CoffeeIcon';
 import { QRCodeIcon } from '../components/icons/QRCodeIcon';
 import { ArrowLeftIcon } from '../components/icons/ArrowLeftIcon';
 import { CoffeeSearch } from '../components/public/CoffeeSearch';
+import { PublicPairingGenerator } from '../components/public/PublicPairingGenerator';
 
 interface ShopData {
   id: string;
@@ -34,9 +35,11 @@ interface Coffee {
 interface Pastry {
   id: string;
   name: string;
+  slug?: string;
   flavor_tags?: string;
   texture_tags?: string;
   image_url?: string;
+  popularity_hint: number;
 }
 
 interface PublishedPairing {
@@ -352,6 +355,15 @@ export const PublicShopPage: React.FC = () => {
               ))}
           </div>
         </section>
+      )}
+
+      {/* Interactive Pairing Generator */}
+      {coffees.length > 0 && pastries.length > 0 && (
+        <PublicPairingGenerator
+          coffees={coffees}
+          pastries={pastries}
+          shopSlug={shop || ''}
+        />
       )}
 
       {/* Coffee Grid */}
