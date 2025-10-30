@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import type { CoffeeInsert, PastryInsert } from '../services/supabaseClient';
 import { Slider } from './Slider';
 import { generateCoffeeMetadata, generatePastryMetadata } from '../services/aiMetadataService';
+import { compressImage, isImageFile, formatFileSize } from '../utils/imageCompression';
 
 // Suggested keywords based on Bunamo compatibility matrix
 const SUGGESTED_FLAVORS = [
@@ -144,11 +145,36 @@ export const AddModal: React.FC<AddModalProps> = ({ type, onClose, onAddCoffee, 
     });
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      setImageFile(file);
-      setImagePreview(URL.createObjectURL(file));
+      
+      // Validate file is an image
+      if (!isImageFile(file)) {
+        alert('Please upload a valid image file (JPG, PNG, WebP)');
+        return;
+      }
+
+      // Show original size
+      console.log('📷 Original image:', formatFileSize(file.size));
+
+      try {
+        // Compress image before setting state
+        const compressedFile = await compressImage(file, {
+          maxWidth: 800,
+          maxHeight: 800,
+          quality: 0.85,
+          targetFormat: 'webp'
+        });
+
+        setImageFile(compressedFile);
+        setImagePreview(URL.createObjectURL(compressedFile));
+      } catch (error) {
+        console.error('Image compression failed:', error);
+        // Fallback: use original file if compression fails
+        setImageFile(file);
+        setImagePreview(URL.createObjectURL(file));
+      }
     }
   };
 

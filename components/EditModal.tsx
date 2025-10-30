@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import type { Coffee, Pastry } from '../types';
 import type { CoffeeUpdate, PastryUpdate } from '../services/supabaseClient';
 import { Slider } from './Slider';
+import { compressImage, isImageFile, formatFileSize } from '../utils/imageCompression';
 
 const ROAST_TYPES = ['Light', 'Medium', 'Medium-Dark', 'Dark', 'Espresso'];
 
@@ -54,14 +55,40 @@ export const EditModal: React.FC<EditModalProps> = ({ item, type, onClose, onSav
     });
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      setNewImageFile(file);
-      // Create a temporary URL for instant preview
-      setImagePreview(URL.createObjectURL(file));
-      // Clear the manual image_url field if a file is uploaded
-      setFormData((prev: any) => ({...prev, image_url: ''}));
+      
+      // Validate file is an image
+      if (!isImageFile(file)) {
+        alert('Please upload a valid image file (JPG, PNG, WebP)');
+        return;
+      }
+
+      // Show original size
+      console.log('📷 Original image:', formatFileSize(file.size));
+
+      try {
+        // Compress image before setting state
+        const compressedFile = await compressImage(file, {
+          maxWidth: 800,
+          maxHeight: 800,
+          quality: 0.85,
+          targetFormat: 'webp'
+        });
+
+        setNewImageFile(compressedFile);
+        // Create a temporary URL for instant preview
+        setImagePreview(URL.createObjectURL(compressedFile));
+        // Clear the manual image_url field if a file is uploaded
+        setFormData((prev: any) => ({...prev, image_url: ''}));
+      } catch (error) {
+        console.error('Image compression failed:', error);
+        // Fallback: use original file if compression fails
+        setNewImageFile(file);
+        setImagePreview(URL.createObjectURL(file));
+        setFormData((prev: any) => ({...prev, image_url: ''}));
+      }
     }
   };
 
