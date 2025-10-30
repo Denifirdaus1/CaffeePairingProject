@@ -268,57 +268,51 @@ export const PublicShopPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Today's Main Shot - Simplified for Performance */}
+      {/* Today's Main Shot - Ultra Light */}
       {coffees.some(coffee => coffee.is_main_shot) && (
-        <section className="py-6 px-4">
+        <section className="py-4 px-4">
           <div className="max-w-7xl mx-auto">
             {coffees
               .filter(coffee => coffee.is_main_shot)
               .map(coffee => (
                 <div 
                   key={coffee.id}
-                  className="glass-panel rounded-2xl p-4 md:p-6 border-2 border-brand-accent/40 cursor-pointer"
+                  className="bg-brand-surface/50 rounded-xl p-3 md:p-4 border border-brand-accent/30 cursor-pointer"
                   onClick={() => window.location.href = `/s/${shop}/coffee/${coffee.slug}`}
                 >
-                  {/* Simple Badge */}
-                  <div className="flex items-center gap-2 bg-brand-accent text-white px-3 py-1.5 rounded-lg mb-4 w-fit">
+                  {/* Compact Badge */}
+                  <div className="flex items-center gap-1.5 bg-brand-accent text-white px-2.5 py-1 rounded-md mb-3 w-fit text-xs font-semibold">
                     <span>⭐</span>
-                    <span className="font-bold text-sm">TODAY'S MAIN SHOT</span>
+                    <span>TODAY'S MAIN SHOT</span>
                   </div>
 
-                  {/* Simple Grid Layout */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Image */}
-                    <div>
-                      {coffee.image_url ? (
-                        <OptimizedImage
-                          src={coffee.image_url}
-                          alt={coffee.name}
-                          width={400}
-                          height={240}
-                          priority={true}
-                          className="w-full h-48 md:h-60 object-cover rounded-lg"
-                        />
-                      ) : (
-                        <div className="w-full h-48 md:h-60 bg-brand-surface rounded-lg flex items-center justify-center">
-                          <CoffeeIcon className="h-16 w-16 text-brand-accent" />
-                        </div>
-                      )}
-                    </div>
+                  {/* Horizontal Layout */}
+                  <div className="flex flex-col md:flex-row gap-3">
+                    {/* Image - Smaller */}
+                    {coffee.image_url && (
+                      <OptimizedImage
+                        src={coffee.image_url}
+                        alt={coffee.name}
+                        width={300}
+                        height={180}
+                        priority={true}
+                        className="w-full md:w-48 h-36 object-cover rounded-lg flex-shrink-0"
+                      />
+                    )}
 
-                    {/* Details */}
-                    <div className="flex flex-col justify-center space-y-3">
-                      <h2 className="text-2xl md:text-3xl font-bold text-white">
+                    {/* Details - Compact */}
+                    <div className="flex flex-col justify-center space-y-2 flex-1 min-w-0">
+                      <h2 className="text-xl md:text-2xl font-bold text-white truncate">
                         {coffee.name}
                       </h2>
                       
-                      {/* Flavor Notes */}
+                      {/* Flavor Notes - Max 3, smaller */}
                       {coffee.flavor_notes && (
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-wrap gap-1.5">
                           {coffee.flavor_notes.split(',').slice(0, 3).map((note, idx) => (
                             <span 
                               key={idx} 
-                              className="bg-brand-accent/20 text-white px-3 py-1 rounded-lg text-sm"
+                              className="bg-brand-accent/15 text-white px-2 py-0.5 rounded text-xs"
                             >
                               {note.trim()}
                             </span>
@@ -326,25 +320,24 @@ export const PublicShopPage: React.FC = () => {
                         </div>
                       )}
 
-                      {/* Simple Stats */}
-                      <div className="flex items-center gap-4 text-sm">
-                        <span className="text-brand-accent font-bold">
-                          {Math.round(coffee.popularity_hint * 100)}% Popular
+                      {/* Compact Stats */}
+                      <div className="flex items-center gap-3 text-xs">
+                        <span className="text-brand-accent font-semibold">
+                          {Math.round(coffee.popularity_hint * 100)}%
                         </span>
                         {coffee.main_shot_until && (
                           <span className="text-brand-text-muted">
-                            Until {new Date(coffee.main_shot_until).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            {new Date(coffee.main_shot_until).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                           </span>
                         )}
                       </div>
 
-                      {/* Simple Button */}
+                      {/* Small Button */}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          window.location.href = `/s/${shop}/coffee/${coffee.slug}`;
-                        }}
-                        className="bg-brand-accent text-white px-6 py-2.5 rounded-lg font-semibold text-sm w-fit"
+                          window.location.href = `/s/${shop}/coffee/${coffee.slug}`}}
+                        className="bg-brand-accent text-white px-4 py-1.5 rounded-md font-medium text-xs w-fit mt-1"
                       >
                         View Details →
                       </button>
