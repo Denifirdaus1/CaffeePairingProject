@@ -374,7 +374,7 @@ export const PublicShopPage: React.FC = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {displayCoffees.map((coffee, index) => (
+              {displayCoffees.map((coffee) => (
                 <div
                   key={coffee.id}
                   className="glass-panel rounded-2xl p-6 hover:scale-105 transition-transform cursor-pointer"
@@ -386,7 +386,6 @@ export const PublicShopPage: React.FC = () => {
                       alt={coffee.name}
                       width={400}
                       height={192}
-                      priority={index < 6}
                       className="w-full h-48 object-cover rounded-lg mb-4"
                     />
                   )}
@@ -422,7 +421,7 @@ export const PublicShopPage: React.FC = () => {
               Our Pastries
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {pastries.filter(pastry => pastry.slug).map((pastry, index) => (
+              {pastries.filter(pastry => pastry.slug).map((pastry) => (
                 <button
                   key={pastry.id}
                   onClick={() => window.location.href = `/s/${shop}/pastry/${pastry.slug}`}
@@ -434,7 +433,6 @@ export const PublicShopPage: React.FC = () => {
                       alt={pastry.name}
                       width={400}
                       height={192}
-                      priority={index < 3}
                       className="w-full h-48 object-cover rounded-lg mb-4"
                     />
                   )}
