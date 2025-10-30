@@ -162,7 +162,7 @@ export const PublicShopsSection: React.FC = () => {
                           <div className="text-white font-semibold">{shop.cafe_name}</div>
                           {shop.city && (
                             <div className="text-xs text-brand-text-muted">
-                              📍 {shop.city}{shop.country ? `, ${shop.country}` : ''}
+                              {shop.city}{shop.country ? `, ${shop.country}` : ''}
                             </div>
                           )}
                         </div>
@@ -197,7 +197,7 @@ export const PublicShopsSection: React.FC = () => {
                         : 'bg-brand-surface/60 text-brand-text-muted hover:bg-brand-accent/20 hover:text-white'
                     }`}
                   >
-                    📍 {city}
+                    {city}
                   </button>
                 ))}
               </div>
@@ -229,7 +229,7 @@ export const PublicShopsSection: React.FC = () => {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12 max-h-[800px] overflow-y-auto pr-2">
               {filteredShops.map((shop) => (
                 <div key={shop.id} className="glass-panel rounded-2xl p-6 hover:scale-105 transition-transform">
                   <div className="flex items-center gap-3 mb-4">
