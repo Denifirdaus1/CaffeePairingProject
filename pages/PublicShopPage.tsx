@@ -213,21 +213,19 @@ export const PublicShopPage: React.FC = () => {
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="py-20 px-4">
-        <div className="max-w-7xl mx-auto text-center">
-          <h1 className="text-5xl md:text-7xl font-bold text-white mb-6">
-            Welcome to
-            <span className="block text-brand-accent">{shopData.cafe_name}</span>
-          </h1>
-          {shopData.cafe_description && (
-            <p className="text-xl text-brand-text/80 mb-8 max-w-3xl mx-auto">
-              {shopData.cafe_description}
-            </p>
-          )}
-          
-          {/* Search Bar */}
-          <div className="max-w-2xl mx-auto mb-12">
+      {/* Interactive Pairing Generator - Moved to Top */}
+      {coffees.length > 0 && pastries.length > 0 && (
+        <PublicPairingGenerator
+          coffees={coffees}
+          pastries={pastries}
+          shopSlug={shop || ''}
+        />
+      )}
+
+      {/* Search Bar Section */}
+      <section className="py-8 px-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="max-w-2xl mx-auto">
             <CoffeeSearch
               coffees={coffees}
               onCoffeeSelect={handleCoffeeSelect}
@@ -355,15 +353,6 @@ export const PublicShopPage: React.FC = () => {
               ))}
           </div>
         </section>
-      )}
-
-      {/* Interactive Pairing Generator */}
-      {coffees.length > 0 && pastries.length > 0 && (
-        <PublicPairingGenerator
-          coffees={coffees}
-          pastries={pastries}
-          shopSlug={shop || ''}
-        />
       )}
 
       {/* Coffee Grid */}

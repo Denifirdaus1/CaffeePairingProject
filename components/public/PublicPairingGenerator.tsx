@@ -85,7 +85,7 @@ export const PublicPairingGenerator: React.FC<PublicPairingGeneratorProps> = ({
   };
 
   return (
-    <section className="py-16 px-4 bg-gradient-to-br from-brand-accent/5 via-transparent to-purple-500/5">
+    <section className="pt-20 pb-16 px-4 bg-gradient-to-br from-brand-accent/5 via-transparent to-purple-500/5">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
