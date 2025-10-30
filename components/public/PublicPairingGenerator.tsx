@@ -6,6 +6,7 @@ import { TextureIcon } from '../icons/TextureIcon';
 import { PopularityIcon } from '../icons/PopularityIcon';
 import { SeasonIcon } from '../icons/SeasonIcon';
 import { OptimizedImage } from '../OptimizedImage';
+import { ThinkingIndicator } from '../ThinkingIndicator';
 
 interface PublicPairingGeneratorProps {
   coffees: Coffee[];
@@ -129,10 +130,10 @@ export const PublicPairingGenerator: React.FC<PublicPairingGeneratorProps> = ({
   };
 
   return (
-    <section className="pt-20 pb-16 px-4">
+    <section className="pt-6 pb-16 px-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-6">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-3">
             Create your pairing
           </h2>
@@ -222,10 +223,12 @@ export const PublicPairingGenerator: React.FC<PublicPairingGeneratorProps> = ({
           >
             {isGenerating ? 'AI is thinking...' : 'Generate Pairing'}
           </button>
+          
+          {/* Thinking Animation */}
           {isGenerating && (
-            <p className="text-sm text-brand-text-muted mt-3">
-              Using AI to find the perfect match based on flavor science
-            </p>
+            <div className="mt-6">
+              <ThinkingIndicator />
+            </div>
           )}
         </div>
 
