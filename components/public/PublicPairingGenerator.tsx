@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
 import { Coffee, Pastry } from '../../types';
 import { calculateBunamoScore } from '../../services/bunamoService';
-import { LoaderIcon } from '../icons/LoaderIcon';
-import { CoffeeIcon } from '../icons/CoffeeIcon';
-import { PastryIcon } from '../icons/PastryIcon';
 
 interface PublicPairingGeneratorProps {
   coffees: Coffee[];
@@ -85,35 +82,34 @@ export const PublicPairingGenerator: React.FC<PublicPairingGeneratorProps> = ({
   };
 
   return (
-    <section className="pt-20 pb-16 px-4 bg-gradient-to-br from-brand-accent/5 via-transparent to-purple-500/5">
+    <section className="pt-20 pb-16 px-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-12">
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-            🎯 Find Your Perfect Pairing
+        <div className="text-center mb-8">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-3">
+            Create your pairing
           </h2>
-          <p className="text-lg text-brand-text/80 max-w-2xl mx-auto">
-            Select a coffee or pastry, and we'll recommend the perfect match using our AI-powered Bunamo algorithm
+          <p className="text-brand-text/70 max-w-xl mx-auto">
+            Select a coffee or pastry to find the perfect match
           </p>
         </div>
 
         {/* Type Toggle */}
         <div className="flex justify-center mb-8">
-          <div className="glass-panel rounded-2xl p-2 inline-flex gap-2">
+          <div className="inline-flex gap-3">
             <button
               onClick={() => {
                 setSelectedType('coffee');
                 setSelectedItem(null);
                 setPairingResults([]);
               }}
-              className={`px-8 py-3 rounded-xl font-semibold transition-all flex items-center gap-2 ${
+              className={`px-6 py-2.5 rounded-lg font-medium transition-all ${
                 selectedType === 'coffee'
-                  ? 'bg-brand-accent text-white shadow-lg scale-105'
-                  : 'text-brand-text hover:text-white'
+                  ? 'bg-brand-accent text-white'
+                  : 'bg-brand-surface text-brand-text hover:bg-brand-surface/70'
               }`}
             >
-              <CoffeeIcon className="h-5 w-5" />
-              Select Coffee
+              Coffee
             </button>
             <button
               onClick={() => {
@@ -121,112 +117,86 @@ export const PublicPairingGenerator: React.FC<PublicPairingGeneratorProps> = ({
                 setSelectedItem(null);
                 setPairingResults([]);
               }}
-              className={`px-8 py-3 rounded-xl font-semibold transition-all flex items-center gap-2 ${
+              className={`px-6 py-2.5 rounded-lg font-medium transition-all ${
                 selectedType === 'pastry'
-                  ? 'bg-brand-accent text-white shadow-lg scale-105'
-                  : 'text-brand-text hover:text-white'
+                  ? 'bg-brand-accent text-white'
+                  : 'bg-brand-surface text-brand-text hover:bg-brand-surface/70'
               }`}
             >
-              <PastryIcon className="h-5 w-5" />
-              Select Pastry
+              Pastry
             </button>
           </div>
         </div>
 
-        {/* Item Selection Grid */}
-        <div className="mb-12">
-          <h3 className="text-2xl font-bold text-white mb-6 text-center">
-            {selectedType === 'coffee' ? '☕ Choose Your Coffee' : '🥐 Choose Your Pastry'}
-          </h3>
-          
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {(selectedType === 'coffee' ? coffees : pastries).map((item) => (
-              <button
-                key={item.id}
-                onClick={() => handleItemSelect(item)}
-                className={`glass-panel rounded-xl p-4 hover:scale-105 transition-all text-left ${
-                  selectedItem?.id === item.id
-                    ? 'ring-4 ring-brand-accent bg-brand-accent/10'
-                    : ''
-                }`}
-              >
-                {item.image_url && (
-                  <img
-                    src={item.image_url}
-                    alt={item.name}
-                    className="w-full h-32 object-cover rounded-lg mb-3"
-                  />
-                )}
-                <h4 className="text-white font-semibold text-sm mb-1 line-clamp-2">
-                  {item.name}
-                </h4>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-brand-accent font-medium">
-                    {Math.round(item.popularity_hint * 100)}%
-                  </span>
-                  {selectedItem?.id === item.id && (
-                    <span className="text-brand-accent">✓</span>
+        {/* Item Selection - Horizontal Scroll */}
+        <div className="mb-8">
+          <div className="overflow-x-auto scrollbar-hide pb-4">
+            <div className="flex gap-4 min-w-min px-2">
+              {(selectedType === 'coffee' ? coffees : pastries).map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => handleItemSelect(item)}
+                  className={`flex-shrink-0 w-48 glass-panel rounded-xl p-4 hover:bg-brand-surface/50 transition-all ${
+                    selectedItem?.id === item.id
+                      ? 'ring-2 ring-brand-accent bg-brand-accent/5'
+                      : ''
+                  }`}
+                >
+                  {item.image_url && (
+                    <img
+                      src={item.image_url}
+                      alt={item.name}
+                      className="w-full h-32 object-cover rounded-lg mb-3"
+                    />
                   )}
-                </div>
-              </button>
-            ))}
+                  <h4 className="text-white font-semibold text-sm mb-1 line-clamp-2">
+                    {item.name}
+                  </h4>
+                  <div className="text-xs text-brand-text-muted">
+                    {Math.round(item.popularity_hint * 100)}% popular
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Generate Button */}
-        {selectedItem && !pairingResults.length && (
-          <div className="text-center mb-12">
-            <button
-              onClick={handleGeneratePairing}
-              disabled={isGenerating}
-              className="inline-flex items-center gap-3 bg-gradient-to-r from-brand-accent to-amber-400 hover:from-brand-accent/90 hover:to-amber-400/90 text-white px-12 py-5 rounded-2xl font-bold text-lg shadow-2xl hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isGenerating ? (
-                <>
-                  <LoaderIcon className="h-6 w-6 animate-spin" />
-                  Generating Perfect Pairings...
-                </>
-              ) : (
-                <>
-                  ✨ Generate Pairing Recommendations
-                </>
-              )}
-            </button>
-          </div>
-        )}
+        {/* Generate Button - Always Visible */}
+        <div className="text-center mb-12">
+          <button
+            onClick={handleGeneratePairing}
+            disabled={!selectedItem || isGenerating}
+            className={`px-8 py-3 rounded-lg font-semibold transition-all ${
+              selectedItem && !isGenerating
+                ? 'bg-brand-accent text-white hover:bg-brand-accent/90'
+                : 'bg-brand-surface/30 text-brand-text-muted cursor-not-allowed'
+            }`}
+          >
+            {isGenerating ? 'Generating...' : 'Generate Pairing'}
+          </button>
+        </div>
 
         {/* Pairing Results */}
         {pairingResults.length > 0 && (
           <div className="space-y-6">
-            <h3 className="text-3xl font-bold text-white text-center mb-8">
-              🌟 Top 3 Recommendations for {selectedItem?.name}
+            <h3 className="text-2xl font-bold text-white text-center mb-6">
+              Top recommendations for {selectedItem?.name}
             </h3>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {pairingResults.map((result, index) => (
                 <div
                   key={result.pastry.id}
-                  className={`glass-panel rounded-2xl p-6 hover:scale-105 transition-all border-2 ${
-                    index === 0
-                      ? 'border-yellow-400 bg-yellow-400/5'
-                      : index === 1
-                      ? 'border-gray-300 bg-gray-300/5'
-                      : 'border-amber-600 bg-amber-600/5'
-                  }`}
+                  className="glass-panel rounded-xl p-6 hover:bg-brand-surface/50 transition-all"
                 >
-                  {/* Rank Badge */}
+                  {/* Rank */}
                   <div className="flex items-center justify-between mb-4">
-                    <div
-                      className={`px-4 py-2 rounded-full font-bold text-sm ${
-                        index === 0
-                          ? 'bg-yellow-400 text-black'
-                          : index === 1
-                          ? 'bg-gray-300 text-black'
-                          : 'bg-amber-600 text-white'
-                      }`}
-                    >
-                      {index === 0 ? '🥇 Best Match' : index === 1 ? '🥈 Great Match' : '🥉 Good Match'}
-                    </div>
+                    <span className="text-sm font-medium text-brand-text-muted">
+                      #{index + 1}
+                    </span>
+                    <span className="text-lg font-bold text-brand-accent">
+                      {Math.round(result.score * 100)}%
+                    </span>
                   </div>
 
                   {/* Item Image */}
@@ -234,57 +204,32 @@ export const PublicPairingGenerator: React.FC<PublicPairingGeneratorProps> = ({
                     <img
                       src={result.pastry.image_url}
                       alt={result.pastry.name}
-                      className="w-full h-48 object-cover rounded-xl mb-4"
+                      className="w-full h-48 object-cover rounded-lg mb-4"
                     />
                   )}
 
                   {/* Item Name */}
-                  <h4 className="text-xl font-bold text-white mb-2">
+                  <h4 className="text-lg font-semibold text-white mb-3">
                     {result.pastry.name}
                   </h4>
 
-                  {/* Score */}
-                  <div className="mb-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm text-brand-text-muted">Match Score</span>
-                      <span className="text-2xl font-bold text-brand-accent">
-                        {Math.round(result.score * 100)}%
-                      </span>
-                    </div>
-                    <div className="w-full bg-brand-surface rounded-full h-3 overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all ${
-                          index === 0
-                            ? 'bg-gradient-to-r from-yellow-400 to-amber-400'
-                            : index === 1
-                            ? 'bg-gradient-to-r from-gray-300 to-gray-400'
-                            : 'bg-gradient-to-r from-amber-600 to-amber-700'
-                        }`}
-                        style={{ width: `${Math.round(result.score * 100)}%` } as React.CSSProperties}
-                      ></div>
-                    </div>
-                  </div>
-
                   {/* Explanation */}
-                  <div className="bg-brand-surface/50 rounded-xl p-4 mb-4">
-                    <p className="text-sm text-brand-text leading-relaxed">
-                      {result.explanation}
-                    </p>
-                  </div>
+                  <p className="text-sm text-brand-text/80 leading-relaxed mb-4 line-clamp-3">
+                    {result.explanation}
+                  </p>
 
                   {/* View Details Button */}
                   <button
                     onClick={() => {
-                      // Navigate to pastry detail or create pairing detail
                       if (selectedType === 'coffee') {
                         window.location.href = `/s/${shopSlug}/pastry/${result.pastry.slug}`;
                       } else {
                         window.location.href = `/s/${shopSlug}/coffee/${result.pastry.slug}`;
                       }
                     }}
-                    className="w-full bg-brand-accent/20 hover:bg-brand-accent/30 text-brand-accent border border-brand-accent/50 px-4 py-3 rounded-xl font-semibold transition-all"
+                    className="w-full bg-brand-accent text-white px-4 py-2.5 rounded-lg font-medium hover:bg-brand-accent/90 transition-all"
                   >
-                    View Details →
+                    View Details
                   </button>
                 </div>
               ))}
@@ -297,9 +242,9 @@ export const PublicPairingGenerator: React.FC<PublicPairingGeneratorProps> = ({
                   setSelectedItem(null);
                   setPairingResults([]);
                 }}
-                className="text-brand-accent hover:text-white font-semibold transition-colors"
+                className="text-brand-text hover:text-white font-medium transition-colors"
               >
-                ← Try Another Pairing
+                Try another pairing
               </button>
             </div>
           </div>
