@@ -46,8 +46,17 @@ export const initGoogleMapsLoader = async (): Promise<typeof google.maps> => {
   // Get API key at runtime
   const apiKey = getApiKey();
 
+  // DEBUG: Log key detection (remove in production)
+  console.log('🔑 Google Maps API Key Check:', {
+    'Key detected': !!apiKey,
+    'Key length': apiKey?.length || 0,
+    'Key preview': apiKey ? apiKey.substring(0, 10) + '...' : 'NOT FOUND',
+    'import.meta.env available': !!import.meta.env,
+    'All VITE_ vars': Object.keys(import.meta.env || {}).filter(k => k.startsWith('VITE_')),
+  });
+
   if (!apiKey || apiKey === '') {
-    const errorMsg = 'VITE_GOOGLE_MAPS_API_KEY environment variable is not set or is empty. Please check your .env.local file.';
+    const errorMsg = '❌ VITE_GOOGLE_MAPS_API_KEY not found! Check .env.local and restart dev server.';
     console.error('Google Maps API Key Error:', errorMsg);
     console.error('Debug info:', {
       'import.meta.env available': !!import.meta.env,
