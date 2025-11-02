@@ -35,9 +35,12 @@ AI-powered dashboard untuk membantu pemilik café menemukan pairing kopi dan pas
    VITE_GEMINI_API_KEY=your_gemini_api_key_here
    VITE_SUPABASE_URL=your_supabase_project_url_here
    VITE_SUPABASE_ANON_KEY=your_supabase_anon_key_here
+   VITE_GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
    ```
    
-   **Note:** Jika tidak ada file `.env.local`, aplikasi akan menggunakan API keys yang sudah dikonfigurasi.
+   **⚠️ PENTING:** Untuk fitur location-based cafe discovery, Anda **WAJIB** setup Google Maps API Key. Lihat file `GOOGLE_MAPS_SETUP.md` untuk panduan lengkap.
+   
+   **Note:** Jika tidak ada file `.env.local`, aplikasi akan menggunakan API keys yang sudah dikonfigurasi (jika ada).
 
 3. **Run the app:**
    ```bash
@@ -96,9 +99,12 @@ AI-powered dashboard untuk membantu pemilik café menemukan pairing kopi dan pas
 | `VITE_GEMINI_API_KEY` | Google Gemini API key | Yes |
 | `VITE_SUPABASE_URL` | Supabase project URL | Yes |
 | `VITE_SUPABASE_ANON_KEY` | Supabase anonymous key | Yes |
+| `VITE_GOOGLE_MAPS_API_KEY` | Google Maps API key (untuk location features) | Yes (untuk fitur baru) |
 
 ## Troubleshooting
 
 - **API Key Error:** Pastikan `VITE_GEMINI_API_KEY` sudah di-set dengan benar
 - **Supabase Connection Error:** Check `VITE_SUPABASE_URL` dan `VITE_SUPABASE_ANON_KEY`
+- **Google Maps Error:** Pastikan `VITE_GOOGLE_MAPS_API_KEY` sudah di-set dan Maps JavaScript API + Places API sudah di-enable. Lihat `GOOGLE_MAPS_SETUP.md`
 - **Build Error:** Pastikan semua dependencies terinstall dengan `npm install`
+- **Location Picker tidak muncul:** Pastikan Places API sudah di-enable di Google Cloud Console

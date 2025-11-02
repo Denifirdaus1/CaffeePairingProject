@@ -31,6 +31,8 @@ export interface SignUpData {
   country?: string;
   phone?: string;
   website?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 // Rate limiting protection
@@ -106,7 +108,9 @@ export const authService = {
         city: data.city,
         country: data.country,
         phone: data.phone,
-        website: data.website
+        website: data.website,
+        latitude: data.latitude,
+        longitude: data.longitude
       })
       .select()
       .single();

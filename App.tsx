@@ -5,6 +5,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { AuthGuard } from './components/auth/AuthGuard';
 
 // Lazy load pages for code splitting
+const CustomerHomePage = lazy(() => import('./pages/CustomerHomePage').then(m => ({ default: m.CustomerHomePage })));
 const LandingPage = lazy(() => import('./pages/LandingPage').then(m => ({ default: m.LandingPage })));
 const LoginPage = lazy(() => import('./pages/LoginPage').then(m => ({ default: m.LoginPage })));
 const RegisterPage = lazy(() => import('./pages/RegisterPage').then(m => ({ default: m.RegisterPage })));
@@ -30,7 +31,8 @@ function App() {
       <Router>
         <Suspense fallback={<PageLoader />}>
           <Routes>
-            <Route path="/" element={<LandingPage />} />
+            <Route path="/" element={<CustomerHomePage />} />
+            <Route path="/business" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route 

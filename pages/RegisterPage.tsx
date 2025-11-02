@@ -5,6 +5,7 @@ import { CoffeeIcon } from '../components/icons/CoffeeIcon';
 import { ArrowLeftIcon } from '../components/icons/ArrowLeftIcon';
 import { Spinner } from '../components/Spinner';
 import { Toast } from '../components/Toast';
+import { LocationPickerManual } from '../components/LocationPickerManual';
 
 export const RegisterPage: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -18,8 +19,11 @@ export const RegisterPage: React.FC = () => {
     city: '',
     country: '',
     phone: '',
-    website: ''
+    website: '',
+    latitude: undefined as number | undefined,
+    longitude: undefined as number | undefined,
   });
+  const [locationError, setLocationError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [isRateLimited, setIsRateLimited] = useState(false);
@@ -35,9 +39,27 @@ export const RegisterPage: React.FC = () => {
     }));
   };
 
+  const handleLocationSelect = (location: {
+    formattedAddress: string;
+    location: { lat: number; lng: number };
+    city?: string;
+    country?: string;
+  }) => {
+    setFormData(prev => ({
+      ...prev,
+      address: location.formattedAddress,
+      city: location.city || '',
+      country: location.country || '',
+      latitude: location.location.lat,
+      longitude: location.location.lng,
+    }));
+    setLocationError(null);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setLocationError(null);
 
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
@@ -46,6 +68,11 @@ export const RegisterPage: React.FC = () => {
 
     if (formData.password.length < 6) {
       setError('Password must be at least 6 characters');
+      return;
+    }
+
+    if (!formData.latitude || !formData.longitude) {
+      setLocationError('Please select your café location');
       return;
     }
 
@@ -84,7 +111,7 @@ export const RegisterPage: React.FC = () => {
       {/* Back to Home Button */}
       <div className="max-w-2xl w-full mx-auto mb-4">
         <Link
-          to="/"
+          to="/business"
           className="inline-flex items-center gap-2 text-brand-text/70 hover:text-white transition-colors text-sm"
         >
           <ArrowLeftIcon className="h-4 w-4" />
@@ -204,41 +231,30 @@ export const RegisterPage: React.FC = () => {
               />
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2">
-              <div>
-                <label htmlFor="city" className="block text-sm font-medium text-brand-text/90 mb-2">
-                  City
-                </label>
-                <input
-                  id="city"
-                  name="city"
-                  type="text"
-                  value={formData.city}
-                  onChange={handleChange}
-                  className="w-full bg-brand-bg border border-brand-accent/50 rounded-xl p-3 text-brand-text focus:ring-brand-accent focus:border-brand-accent transition-colors"
-                  placeholder="Your city"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="country" className="block text-sm font-medium text-brand-text/90 mb-2">
-                  Country
-                </label>
-                <input
-                  id="country"
-                  name="country"
-                  type="text"
-                  value={formData.country}
-                  onChange={handleChange}
-                  className="w-full bg-brand-bg border border-brand-accent/50 rounded-xl p-3 text-brand-text focus:ring-brand-accent focus:border-brand-accent transition-colors"
-                  placeholder="Your country"
-                />
-              </div>
-            </div>
+              <LocationPickerManual
+                onLocationSelect={handleLocationSelect}
+                value={
+                  formData.latitude && formData.longitude
+                    ? {
+                        formattedAddress: formData.address || `${formData.latitude}, ${formData.longitude}`,
+                        location: { lat: formData.latitude, lng: formData.longitude },
+                        city: formData.city || undefined,
+                        country: formData.country || undefined,
+                      }
+                    : null
+                }
+                error={locationError || undefined}
+                required={true}
+              />
 
             {error && (
               <div className="rounded-xl bg-red-900/40 p-3 text-red-200 text-sm">
                 {error}
+              </div>
+            )}
+            {locationError && (
+              <div className="rounded-xl bg-red-900/40 p-3 text-red-200 text-sm">
+                {locationError}
               </div>
             )}
 

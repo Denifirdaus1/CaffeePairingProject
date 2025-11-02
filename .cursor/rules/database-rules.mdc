@@ -1,0 +1,5 @@
+---
+alwaysApply: true
+---
+
+kalo ada urusan dengan database langsung aja gunakan supabse mcp yang sudah terhubung ke cursor , jadi gausah bikin file migrasi lagi , langsung aja lakukan apa yang perlu dilakukan yang berurusan dengan db supabase nya ya.

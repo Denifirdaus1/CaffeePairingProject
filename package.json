@@ -10,7 +10,9 @@
   },
   "dependencies": {
     "@google/genai": "^1.27.0",
+    "@googlemaps/js-api-loader": "^2.0.2",
     "@supabase/supabase-js": "2",
+    "@types/google.maps": "^3.58.1",
     "@types/react-router-dom": "^5.3.3",
     "@vercel/speed-insights": "^1.2.0",
     "html2canvas": "1.4.1",

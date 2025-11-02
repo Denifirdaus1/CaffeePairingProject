@@ -34,7 +34,7 @@ export const LoginPage: React.FC = () => {
       {/* Back to Home Button */}
       <div className="max-w-md w-full mx-auto mb-4">
         <Link
-          to="/"
+          to="/business"
           className="inline-flex items-center gap-2 text-brand-text/70 hover:text-white transition-colors text-sm"
         >
           <ArrowLeftIcon className="h-4 w-4" />
