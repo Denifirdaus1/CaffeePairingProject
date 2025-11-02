@@ -1,6 +1,6 @@
 // Service Worker for Caching Strategy
-const CACHE_NAME = 'caffee-pairing-v2';
-const RUNTIME_CACHE = 'caffee-runtime-v2';
+const CACHE_NAME = 'caffee-pairing-v3';
+const RUNTIME_CACHE = 'caffee-runtime-v3';
 const IMAGE_CACHE = 'caffee-images-v1';
 
 // Assets to cache on install
@@ -39,6 +39,13 @@ self.addEventListener('fetch', (event) => {
 
   // Skip non-GET requests
   if (request.method !== 'GET') return;
+
+  // COMPLETELY BYPASS service worker for Google Maps API (CSP restrictions)
+  if (url.origin.includes('maps.googleapis.com') || 
+      url.origin.includes('maps.gstatic.com') ||
+      url.pathname.includes('/maps/api/js')) {
+    return; // Let browser handle directly, bypass service worker
+  }
 
   // Skip chrome extensions and other origins
   if (!url.origin.includes(self.location.origin) && 
