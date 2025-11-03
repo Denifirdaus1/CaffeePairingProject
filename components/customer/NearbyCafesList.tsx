@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CoffeeIcon } from '../icons/CoffeeIcon';
-import { formatDistance } from '../../services/googleMapsService';
+import { formatDistance, initGoogleMapsLoader } from '../../services/googleMapsService';
 import { OptimizedImage } from '../OptimizedImage';
 import { CafeDirectionsModal } from './CafeDirectionsModal';
 
@@ -38,6 +38,61 @@ export const NearbyCafesList: React.FC<NearbyCafesListProps> = ({
 }) => {
   const [selectedCafe, setSelectedCafe] = useState<Cafe | null>(null);
   const [isDirectionsModalOpen, setIsDirectionsModalOpen] = useState(false);
+  const [roadDistanceByCafeId, setRoadDistanceByCafeId] = useState<Record<string, number>>({});
+
+  // Compute road distances using Google Distance Matrix for visible cafes
+  useEffect(() => {
+    const computeMatrix = async () => {
+      if (!userLocation || cafes.length === 0) return;
+      try {
+        await initGoogleMapsLoader();
+        const service = new google.maps.DistanceMatrixService();
+        const destinations = cafes
+          .filter(c => c.latitude != null && c.longitude != null)
+          .map(c => ({ lat: c.latitude as number, lng: c.longitude as number }));
+        if (destinations.length === 0) return;
+
+        // Google allows up to 25 destinations per request
+        const batches: typeof destinations[] = [];
+        for (let i = 0; i < destinations.length; i += 25) {
+          batches.push(destinations.slice(i, i + 25));
+        }
+
+        const newMap: Record<string, number> = {};
+        for (const batch of batches) {
+          const result = await new Promise<google.maps.DistanceMatrixResponse>((resolve, reject) => {
+            service.getDistanceMatrix(
+              {
+                origins: [new google.maps.LatLng(userLocation.lat, userLocation.lng)],
+                destinations: batch.map(d => new google.maps.LatLng(d.lat, d.lng)),
+                travelMode: google.maps.TravelMode.DRIVING,
+                unitSystem: google.maps.UnitSystem.METRIC,
+              },
+              (res, status) => {
+                if (status === google.maps.DistanceMatrixStatus.OK && res) resolve(res);
+                else reject(new Error(`DistanceMatrix failed: ${status}`));
+              }
+            );
+          });
+
+          const elements = result.rows[0]?.elements || [];
+          let idx = 0;
+          for (let i = 0; i < cafes.length && idx < elements.length; i++) {
+            const cafe = cafes[i];
+            if (cafe.latitude == null || cafe.longitude == null) continue;
+            const el = elements[idx++];
+            if (el.status === 'OK' && el.distance?.value != null) {
+              newMap[cafe.id] = el.distance.value; // meters
+            }
+          }
+        }
+        setRoadDistanceByCafeId(newMap);
+      } catch (err) {
+        console.warn('Distance Matrix not available:', err);
+      }
+    };
+    computeMatrix();
+  }, [userLocation, JSON.stringify(cafes.map(c => c.id))]);
 
   const handleQuickView = (cafe: Cafe, e: React.MouseEvent) => {
     e.preventDefault();
@@ -184,7 +239,7 @@ export const NearbyCafesList: React.FC<NearbyCafesListProps> = ({
                     )}
                   </div>
                   
-                  {cafe.distance !== undefined && (
+                  {(roadDistanceByCafeId[cafe.id] != null || cafe.distance !== undefined) && (
                     <div className="flex-shrink-0">
                       <span className="inline-flex items-center gap-1 bg-brand-accent/20 text-brand-accent px-3 py-1 rounded-full text-sm font-semibold">
                         <svg
@@ -206,7 +261,7 @@ export const NearbyCafesList: React.FC<NearbyCafesListProps> = ({
                             d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                           />
                         </svg>
-                        {formatDistance(cafe.distance)}
+                        {formatDistance(roadDistanceByCafeId[cafe.id] ?? cafe.distance!)}
                       </span>
                     </div>
                   )}
