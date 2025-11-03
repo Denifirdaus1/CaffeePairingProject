@@ -4,6 +4,7 @@ import { CoffeeIcon } from '../icons/CoffeeIcon';
 import { formatDistance } from '../../services/googleMapsService';
 import { OptimizedImage } from '../OptimizedImage';
 import { CafeDirectionsModal } from './CafeDirectionsModal';
+import { CafeDetailModal } from './CafeDetailModal';
 
 interface Cafe {
   id: string;
@@ -38,16 +39,33 @@ export const NearbyCafesList: React.FC<NearbyCafesListProps> = ({
 }) => {
   const [selectedCafe, setSelectedCafe] = useState<Cafe | null>(null);
   const [isDirectionsModalOpen, setIsDirectionsModalOpen] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
-  const handleGetDirections = (cafe: Cafe, e: React.MouseEvent) => {
+  const handleQuickView = (cafe: Cafe, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setSelectedCafe(cafe);
+    setIsDetailModalOpen(true);
+  };
+
+  const handleGetDirections = (cafe?: Cafe, e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (cafe) {
+      setSelectedCafe(cafe);
+    }
+    setIsDetailModalOpen(false);
     setIsDirectionsModalOpen(true);
   };
 
   const handleCloseDirections = () => {
     setIsDirectionsModalOpen(false);
+  };
+
+  const handleCloseDetail = () => {
+    setIsDetailModalOpen(false);
     setSelectedCafe(null);
   };
 
@@ -261,11 +279,40 @@ export const NearbyCafesList: React.FC<NearbyCafesListProps> = ({
                 )}
 
                 <div className="mt-4 space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2 text-brand-accent text-sm font-medium">
-                      <span>View Menu</span>
+                  <div className="flex flex-wrap items-center gap-3">
+                    {/* Quick View Button - Shows detailed preview */}
+                    <button
+                      onClick={(e) => handleQuickView(cafe, e)}
+                      className="inline-flex items-center gap-1.5 bg-brand-accent/20 hover:bg-brand-accent/30 text-brand-accent px-4 py-2 rounded-lg text-sm font-semibold transition-colors border border-brand-accent/30"
+                    >
                       <svg
                         className="w-4 h-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                        />
+                      </svg>
+                      Quick View
+                    </button>
+                    
+                    {/* View Menu Link */}
+                    <div className="flex items-center gap-2 text-white text-sm font-medium">
+                      <span>or</span>
+                      <span className="text-brand-accent">View Full Menu</span>
+                      <svg
+                        className="w-4 h-4 text-brand-accent"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -278,28 +325,6 @@ export const NearbyCafesList: React.FC<NearbyCafesListProps> = ({
                         />
                       </svg>
                     </div>
-                    
-                    {userLocation && cafe.latitude && cafe.longitude && (
-                      <button
-                        onClick={(e) => handleGetDirections(cafe, e)}
-                        className="inline-flex items-center gap-1.5 bg-brand-accent/20 hover:bg-brand-accent/30 text-brand-accent px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors border border-brand-accent/30"
-                      >
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
-                          />
-                        </svg>
-                        Get Directions
-                      </button>
-                    )}
                   </div>
                   
                   {/* Google Attribution & Verification Badge */}
@@ -336,7 +361,22 @@ export const NearbyCafesList: React.FC<NearbyCafesListProps> = ({
           cafeAddress={selectedCafe.address}
         />
       )}
+
+      {/* Cafe Detail Modal */}
+      {selectedCafe && isDetailModalOpen && (
+        <CafeDetailModal
+          cafe={{
+            ...selectedCafe,
+            latitude: selectedCafe.latitude?.toString(),
+            longitude: selectedCafe.longitude?.toString(),
+          }}
+          userLocation={userLocation}
+          onClose={handleCloseDetail}
+          onGetDirections={() => handleGetDirections()}
+        />
+      )}
     </>
   );
 };
+
 
