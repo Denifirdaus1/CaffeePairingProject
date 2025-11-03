@@ -79,7 +79,7 @@ export const CustomerHomePage: React.FC = () => {
       const { data: cafes, error: cafesError } = await supabase.rpc('find_nearby_cafes', {
         user_lat: location.lat,
         user_lng: location.lng,
-        radius_km: 50, // Search within 50km radius
+        radius_km: 100, // Search within 100km radius (increased for better coverage)
         max_results: 50, // Max 50 results
       });
 

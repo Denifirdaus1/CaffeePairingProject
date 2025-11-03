@@ -12,6 +12,8 @@ interface Cafe {
   city?: string;
   country?: string;
   logo_url?: string;
+  latitude?: number;
+  longitude?: number;
   distance?: number; // in meters
 }
 
@@ -46,8 +48,13 @@ export const NearbyCafesList: React.FC<NearbyCafesListProps> = ({
             No cafés found nearby
           </h3>
           <p className="text-brand-text-muted mb-4">
-            Try searching for a different location or browse all partner cafés.
+            No cafés found within 100km of your location. Try searching for a different city or browse all partner cafés.
           </p>
+          {userLocation && (
+            <p className="text-brand-text-muted/70 text-sm mb-4">
+              📍 Your location: {userLocation.lat.toFixed(4)}, {userLocation.lng.toFixed(4)}
+            </p>
+          )}
           <Link
             to="/business#shops"
             className="inline-flex items-center gap-2 text-brand-accent hover:text-white transition-colors text-sm font-medium"
@@ -59,6 +66,12 @@ export const NearbyCafesList: React.FC<NearbyCafesListProps> = ({
     );
   }
 
+  const getDirectionsUrl = (cafe: Cafe) => {
+    if (!userLocation || !cafe.latitude || !cafe.longitude) return null;
+    
+    return `https://www.google.com/maps/dir/?api=1&origin=${userLocation.lat},${userLocation.lng}&destination=${cafe.latitude},${cafe.longitude}&travelmode=driving`;
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="text-center">
@@ -68,6 +81,11 @@ export const NearbyCafesList: React.FC<NearbyCafesListProps> = ({
         <p className="text-brand-text/80">
           Discover perfect coffee pairings at these nearby locations
         </p>
+        {userLocation && (
+          <p className="text-brand-text-muted/70 text-sm mt-2">
+            📍 Your location: {userLocation.lat.toFixed(4)}, {userLocation.lng.toFixed(4)}
+          </p>
+        )}
       </div>
 
       <div className="space-y-4">
@@ -141,21 +159,48 @@ export const NearbyCafesList: React.FC<NearbyCafesListProps> = ({
                   </p>
                 )}
 
-                <div className="mt-3 flex items-center gap-2 text-brand-accent text-sm font-medium">
-                  <span>Visit Café</span>
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
+                <div className="mt-4 flex items-center gap-3">
+                  <div className="flex items-center gap-2 text-brand-accent text-sm font-medium">
+                    <span>View Menu</span>
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5l7 7-7 7"
+                      />
+                    </svg>
+                  </div>
+                  
+                  {getDirectionsUrl(cafe) && (
+                    <a
+                      href={getDirectionsUrl(cafe)!}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="inline-flex items-center gap-1.5 bg-brand-accent/20 hover:bg-brand-accent/30 text-brand-accent px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors border border-brand-accent/30"
+                    >
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
+                        />
+                      </svg>
+                      Get Directions
+                    </a>
+                  )}
                 </div>
               </div>
             </div>
