@@ -7,6 +7,7 @@ import { PopularityIcon } from '../icons/PopularityIcon';
 import { SeasonIcon } from '../icons/SeasonIcon';
 import { OptimizedImage } from '../OptimizedImage';
 import { ThinkingIndicator } from '../ThinkingIndicator';
+import { useCart } from '../../contexts/CartContext';
 
 interface PublicPairingGeneratorProps {
   coffees: Coffee[];
@@ -53,6 +54,7 @@ export const PublicPairingGenerator: React.FC<PublicPairingGeneratorProps> = ({
   const [selectedItem, setSelectedItem] = useState<Coffee | Pastry | null>(null);
   const [pairingResults, setPairingResults] = useState<PairingResult[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
+  const { addToCart, isInCart } = useCart();
 
   const handleItemSelect = (item: Coffee | Pastry) => {
     setSelectedItem(item);
@@ -401,6 +403,82 @@ export const PublicPairingGenerator: React.FC<PublicPairingGeneratorProps> = ({
                     </div>
                     <div className="absolute inset-0 bg-gradient-to-r from-brand-accent/5 to-transparent" />
                   </div>
+
+                  {/* Add to Cart Section */}
+                  {(() => {
+                    // Get coffee and pastry based on selected type
+                    let coffee: Coffee | undefined;
+                    let pastry: Pastry | undefined;
+
+                    if (selectedType === 'coffee') {
+                      coffee = selectedItem as Coffee;
+                      pastry = pastries.find(p => p.id === result.pastry.id);
+                    } else {
+                      pastry = selectedItem as Pastry;
+                      coffee = coffees.find(c => c.id === result.pastry.id);
+                    }
+
+                    const coffeePrice = coffee?.price || 0;
+                    const pastryPrice = pastry?.price || 0;
+                    const combinedPrice = coffeePrice + pastryPrice;
+                    const hasBothPrices = coffee?.price != null && pastry?.price != null;
+                    
+                    // Create unique ID for this generated pairing
+                    const generatedPairingId = `generated-${coffee?.id}-${pastry?.id}`;
+                    const inCart = isInCart(generatedPairingId, 'pairing');
+
+                    return (
+                      <div className="p-6 border-t border-brand-border/30">
+                        {hasBothPrices ? (
+                          <>
+                            <div className="flex items-center justify-between mb-4">
+                              <div className="text-sm text-brand-text-muted">
+                                <div>Coffee: €{coffeePrice.toFixed(2)}</div>
+                                <div>Pastry: €{pastryPrice.toFixed(2)}</div>
+                              </div>
+                              <div className="text-2xl font-bold text-brand-accent">
+                                €{combinedPrice.toFixed(2)}
+                              </div>
+                            </div>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (coffee && pastry) {
+                                  addToCart({
+                                    type: 'pairing',
+                                    productId: generatedPairingId,
+                                    name: `${coffee.name} + ${pastry.name}`,
+                                    price: combinedPrice,
+                                    image_url: coffee.image_url || result.pastry.image,
+                                    coffeeName: coffee.name,
+                                    pastryName: pastry.name,
+                                    coffeeId: coffee.id,
+                                    pastryId: pastry.id,
+                                    coffeePrice,
+                                    pastryPrice,
+                                  });
+                                }
+                              }}
+                              className={`w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-semibold transition-all ${
+                                inCart
+                                  ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                                  : 'bg-brand-accent hover:bg-brand-accent/90 text-white shadow-lg hover:shadow-xl'
+                              }`}
+                            >
+                              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                              </svg>
+                              {inCart ? '✓ In Cart' : 'Add Pairing to Cart'}
+                            </button>
+                          </>
+                        ) : (
+                          <p className="text-sm text-brand-text-muted text-center py-2">
+                            Prices not available for this pairing
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
               ))}
             </div>
