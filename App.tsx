@@ -2,6 +2,7 @@ import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import { AuthProvider } from './contexts/AuthContext';
+import { CartProvider } from './contexts/CartContext';
 import { AuthGuard } from './components/auth/AuthGuard';
 
 // Lazy load pages for code splitting
@@ -28,31 +29,33 @@ const PageLoader = () => (
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <Suspense fallback={<PageLoader />}>
-          <Routes>
-            <Route path="/" element={<CustomerHomePage />} />
-            <Route path="/business" element={<LandingPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route 
-              path="/dashboard" 
-              element={
-                <AuthGuard>
-                  <DashboardPage />
-                </AuthGuard>
-              } 
-            />
-            {/* Public Shop Routes */}
-            <Route path="/s/:shop" element={<PublicShopPage />} />
-            <Route path="/s/:shop/coffee/:slug" element={<PublicCoffeePage />} />
-            <Route path="/s/:shop/pastry/:slug" element={<PublicPastryPage />} />
-            <Route path="/s/:shop/pairing/:slug" element={<PublicPairingPage />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </Suspense>
-        <SpeedInsights />
-      </Router>
+      <CartProvider>
+        <Router>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route path="/" element={<CustomerHomePage />} />
+              <Route path="/business" element={<LandingPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route 
+                path="/dashboard" 
+                element={
+                  <AuthGuard>
+                    <DashboardPage />
+                  </AuthGuard>
+                } 
+              />
+              {/* Public Shop Routes */}
+              <Route path="/s/:shop" element={<PublicShopPage />} />
+              <Route path="/s/:shop/coffee/:slug" element={<PublicCoffeePage />} />
+              <Route path="/s/:shop/pastry/:slug" element={<PublicPastryPage />} />
+              <Route path="/s/:shop/pairing/:slug" element={<PublicPairingPage />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Suspense>
+          <SpeedInsights />
+        </Router>
+      </CartProvider>
     </AuthProvider>
   );
 }

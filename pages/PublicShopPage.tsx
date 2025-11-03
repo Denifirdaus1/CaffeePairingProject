@@ -7,6 +7,8 @@ import { ArrowLeftIcon } from '../components/icons/ArrowLeftIcon';
 import { CoffeeSearch } from '../components/public/CoffeeSearch';
 import { PublicPairingGenerator } from '../components/public/PublicPairingGenerator';
 import { OptimizedImage } from '../components/OptimizedImage';
+import { ShoppingCart } from '../components/public/ShoppingCart';
+import { useCart } from '../contexts/CartContext';
 
 interface ShopData {
   id: string;
@@ -31,6 +33,7 @@ interface Coffee {
   is_main_shot: boolean;
   main_shot_until?: string;
   online_shop_url?: string;
+  price?: number;
 }
 
 interface Pastry {
@@ -41,6 +44,7 @@ interface Pastry {
   texture_tags?: string;
   image_url?: string;
   popularity_hint: number;
+  price?: number;
 }
 
 interface PublishedPairing {
@@ -56,6 +60,7 @@ interface PublishedPairing {
 
 export const PublicShopPage: React.FC = () => {
   const { shop } = useParams<{ shop: string }>();
+  const { getTotalItems } = useCart();
   const [shopData, setShopData] = useState<ShopData | null>(null);
   const [coffees, setCoffees] = useState<Coffee[]>([]);
   const [pastries, setPastries] = useState<Pastry[]>([]);
@@ -63,6 +68,7 @@ export const PublicShopPage: React.FC = () => {
   const [displayCoffees, setDisplayCoffees] = useState<Coffee[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
   useEffect(() => {
     if (!shop) return;
@@ -241,6 +247,22 @@ export const PublicShopPage: React.FC = () => {
               </div>
             </div>
             <div className="flex items-center gap-4">
+              {/* Shopping Cart Button */}
+              <button
+                onClick={() => setIsCartOpen(true)}
+                className="relative flex items-center gap-2 text-sm font-medium text-brand-text hover:text-white transition-colors hover:bg-brand-accent/10 px-3 py-2 rounded-lg"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                {getTotalItems() > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-brand-accent text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                    {getTotalItems()}
+                  </span>
+                )}
+                <span className="hidden sm:inline">Cart</span>
+              </button>
+              
               <button
                 onClick={handleShareShop}
                 className="flex items-center gap-2 text-sm font-medium text-brand-text hover:text-white transition-colors hover:bg-brand-accent/10 px-3 py-2 rounded-lg"
@@ -540,6 +562,9 @@ export const PublicShopPage: React.FC = () => {
           </div>
         </div>
       )}
+      
+      {/* Shopping Cart */}
+      <ShoppingCart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
     </div>
   );
 };
