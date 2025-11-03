@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { authService, User } from '../services/authService';
 import { supabase } from '../services/supabaseClient';
 
@@ -28,11 +29,20 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const location = useLocation();
 
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
-    
-    const checkAuth = async () => {
+    let timeoutId: NodeJS.Timeout | undefined;
+
+    const isProtectedRoute = location.pathname.startsWith('/dashboard');
+
+    const initializeAuth = async () => {
+      if (!isProtectedRoute) {
+        // For public routes, don't block rendering or force auth
+        setLoading(false);
+        return;
+      }
+
       try {
         console.log('Checking auth state...');
         const currentUser = await authService.getCurrentUser();
@@ -46,23 +56,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     };
 
-    // Add timeout to prevent infinite loading
-    timeoutId = setTimeout(() => {
-      console.log('Auth check timeout, setting loading to false');
-      setLoading(false);
-    }, 5000);
+    // Add timeout to prevent infinite loading on protected routes only
+    if (isProtectedRoute) {
+      timeoutId = setTimeout(() => {
+        console.log('Auth check timeout, setting loading to false');
+        setLoading(false);
+      }, 5000);
+    }
 
-    checkAuth();
+    // Start initial auth check
+    initializeAuth();
 
-    return () => {
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
-    };
-
-    // Listen for auth changes
+    // Listen for auth changes (single subscription with proper cleanup)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      async (_event, session) => {
+        if (!isProtectedRoute) {
+          // Ignore auth updates on public routes
+          return;
+        }
         if (session?.user) {
           const currentUser = await authService.getCurrentUser();
           setUser(currentUser);
@@ -73,8 +84,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     );
 
-    return () => subscription.unsubscribe();
-  }, []);
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      subscription.unsubscribe();
+    };
+  }, [location.pathname]);
 
   const signIn = async (email: string, password: string) => {
     setLoading(true);
