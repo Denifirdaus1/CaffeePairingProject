@@ -14,6 +14,7 @@ import { ApprovalWorkflow } from './ApprovalWorkflow';
 import { MainShotManager } from './MainShotManager';
 import { QRGenerator } from './QRGenerator';
 import { ItemDetailModal } from './ItemDetailModal';
+import { CafeSettingsModal } from './CafeSettingsModal';
 import { useAuth } from '../contexts/AuthContext';
 
 // Lazy load heavy components
@@ -57,6 +58,9 @@ export const Dashboard: React.FC = () => {
   // Item detail modal state
   const [detailModalItem, setDetailModalItem] = useState<Coffee | Pastry | null>(null);
   const [detailModalType, setDetailModalType] = useState<'coffee' | 'pastry' | null>(null);
+
+  // Settings modal state
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
 
   // Get café ID from user context
   const getCafeId = async () => {
@@ -423,6 +427,19 @@ export const Dashboard: React.FC = () => {
       </div>
 
       <Header />
+
+      {/* Settings Button (Fixed Position) */}
+      <button
+        onClick={() => setIsSettingsModalOpen(true)}
+        className="fixed top-20 right-6 z-40 p-3 bg-brand-accent/20 hover:bg-brand-accent/30 border border-brand-accent/30 rounded-xl transition-all hover:scale-105 group"
+        aria-label="Café Settings"
+        title="Café Settings"
+      >
+        <svg className="w-6 h-6 text-brand-accent group-hover:rotate-90 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      </button>
 
       <main className="relative z-10 mx-auto w-full max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
 
@@ -821,6 +838,25 @@ export const Dashboard: React.FC = () => {
           </Suspense>
         )}
       </main>
+      
+      {/* Settings Modal */}
+      {user?.cafe_profile && (
+        <CafeSettingsModal
+          isOpen={isSettingsModalOpen}
+          onClose={() => setIsSettingsModalOpen(false)}
+          cafeProfile={{
+            id: user.cafe_profile.id,
+            cafe_name: user.cafe_profile.cafe_name,
+            cafe_description: user.cafe_profile.cafe_description,
+            logo_url: user.cafe_profile.logo_url,
+            logo_path: (user.cafe_profile as any).logo_path,
+          }}
+          onUpdate={() => {
+            // Refetch user data to get updated profile
+            window.location.reload();
+          }}
+        />
+      )}
       
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       
