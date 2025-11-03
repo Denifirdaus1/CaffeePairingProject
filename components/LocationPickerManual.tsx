@@ -36,6 +36,13 @@ export const LocationPickerManual: React.FC<LocationPickerManualProps> = ({
   const [mapReady, setMapReady] = useState(false);
   const [mapError, setMapError] = useState<string>('');
 
+  // Normalize number input: accept both comma and dot as decimal separator
+  // Must be defined before useEffect hooks that use it
+  const normalizeNumber = (value: string): string => {
+    // Replace comma with dot for German/European locale compatibility
+    return value.replace(/,/g, '.');
+  };
+
   useEffect(() => {
     if (value) {
       setLatitude(value.location.lat.toString());
@@ -61,9 +68,9 @@ export const LocationPickerManual: React.FC<LocationPickerManualProps> = ({
     const initMap = async () => {
       if (!mapRef.current) return;
 
-      // Check if we have valid coordinates to initialize with
-      const lat = parseFloat(latitude);
-      const lng = parseFloat(longitude);
+      // Check if we have valid coordinates to initialize with (normalize comma to dot)
+      const lat = parseFloat(normalizeNumber(latitude));
+      const lng = parseFloat(normalizeNumber(longitude));
       const hasCoords = !isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
 
       if (!hasCoords) {
@@ -141,8 +148,8 @@ export const LocationPickerManual: React.FC<LocationPickerManualProps> = ({
 
   // Update marker position when coordinates change externally
   useEffect(() => {
-    const lat = parseFloat(latitude);
-    const lng = parseFloat(longitude);
+    const lat = parseFloat(normalizeNumber(latitude));
+    const lng = parseFloat(normalizeNumber(longitude));
     const isValid = !isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
 
     if (isValid && googleMapRef.current && markerRef.current) {
@@ -155,8 +162,11 @@ export const LocationPickerManual: React.FC<LocationPickerManualProps> = ({
   const handleLatChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setLatitude(val);
-    const lat = parseFloat(val);
-    const lng = parseFloat(longitude);
+    
+    // Normalize: replace comma with dot
+    const normalized = normalizeNumber(val);
+    const lat = parseFloat(normalized);
+    const lng = parseFloat(normalizeNumber(longitude));
     
     // Only update location if both lat and lng are valid
     if (!isNaN(lat) && lat >= -90 && lat <= 90 && !isNaN(lng) && lng >= -180 && lng <= 180) {
@@ -167,8 +177,11 @@ export const LocationPickerManual: React.FC<LocationPickerManualProps> = ({
   const handleLngChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setLongitude(val);
-    const lng = parseFloat(val);
-    const lat = parseFloat(latitude);
+    
+    // Normalize: replace comma with dot
+    const normalized = normalizeNumber(val);
+    const lng = parseFloat(normalized);
+    const lat = parseFloat(normalizeNumber(latitude));
     
     // Only update location if both lat and lng are valid
     if (!isNaN(lng) && lng >= -180 && lng <= 180 && !isNaN(lat) && lat >= -90 && lat <= 90) {
@@ -181,27 +194,28 @@ export const LocationPickerManual: React.FC<LocationPickerManualProps> = ({
     setCoordinateInput(val);
     
     // Try to parse different formats:
-    // "48.1499224875299, 11.577564934116047"
-    // "48.1499224875299,11.577564934116047"
-    // "11.577564934116047, 48.1499224875299" (reversed - also supported)
-    const cleaned = val.trim().replace(/\s+/g, '');
-    const parts = cleaned.split(',');
+    // "48.1499224875299, 11.577564934116047" (English format with dot)
+    // "48,1499224875299, 11,577564934116047" (German format with comma)
+    // "48.1499224875299,11.577564934116047" (no space)
+    // "11.577564934116047, 48.1499224875299" (reversed)
+    
+    // Strategy: Split by space, comma, or both
+    // Then normalize each part (replace comma with dot)
+    const parts = val.trim().split(/[\s,]+/).filter(p => p.length > 0);
     
     if (parts.length === 2) {
-      const num1 = parseFloat(parts[0]);
-      const num2 = parseFloat(parts[1]);
-      
-      // Check which one is latitude (must be -90 to 90)
-      let lat: number, lng: number;
+      // Normalize both parts: replace comma with dot
+      const num1 = parseFloat(normalizeNumber(parts[0]));
+      const num2 = parseFloat(normalizeNumber(parts[1]));
       
       if (!isNaN(num1) && !isNaN(num2)) {
-        // If first number is within latitude range, assume format is "lat, lng"
+        let lat: number, lng: number;
+        
+        // Auto-detect which is latitude (must be -90 to 90)
         if (num1 >= -90 && num1 <= 90) {
           lat = num1;
           lng = num2;
-        } 
-        // If second number is within latitude range, assume format is "lng, lat"
-        else if (num2 >= -90 && num2 <= 90) {
+        } else if (num2 >= -90 && num2 <= 90) {
           lat = num2;
           lng = num1;
         } else {
@@ -218,9 +232,9 @@ export const LocationPickerManual: React.FC<LocationPickerManualProps> = ({
     }
   };
 
-  // Check if we have valid coordinates
-  const currentLat = latitude ? parseFloat(latitude) : null;
-  const currentLng = longitude ? parseFloat(longitude) : null;
+  // Check if we have valid coordinates (normalize comma to dot)
+  const currentLat = latitude ? parseFloat(normalizeNumber(latitude)) : null;
+  const currentLng = longitude ? parseFloat(normalizeNumber(longitude)) : null;
   const hasValidCoordinates = currentLat !== null && !isNaN(currentLat) && currentLat >= -90 && currentLat <= 90 &&
                               currentLng !== null && !isNaN(currentLng) && currentLng >= -180 && currentLng <= 180;
 
@@ -260,34 +274,34 @@ export const LocationPickerManual: React.FC<LocationPickerManualProps> = ({
           <div>
             <label className="block text-xs text-brand-text-muted mb-1">Latitude</label>
             <input
-              type="number"
-              step="0.000001"
-              min="-90"
-              max="90"
+              type="text"
+              inputMode="decimal"
+              pattern="[+-]?([0-9]*[.,])?[0-9]+"
               value={latitude}
               onChange={handleLatChange}
-              placeholder="48.1351"
+              placeholder="48.1351 or 48,1351"
               className={`w-full bg-brand-bg border ${
                 error ? 'border-red-500' : 'border-brand-accent/50'
               } rounded-xl p-3 text-brand-text focus:ring-brand-accent focus:border-brand-accent transition-colors`}
               required={required}
             />
+            <p className="text-xs text-brand-text-muted/70 mt-1">-90 to 90</p>
           </div>
           <div>
             <label className="block text-xs text-brand-text-muted mb-1">Longitude</label>
             <input
-              type="number"
-              step="0.000001"
-              min="-180"
-              max="180"
+              type="text"
+              inputMode="decimal"
+              pattern="[+-]?([0-9]*[.,])?[0-9]+"
               value={longitude}
               onChange={handleLngChange}
-              placeholder="11.5820"
+              placeholder="11.5820 or 11,5820"
               className={`w-full bg-brand-bg border ${
                 error ? 'border-red-500' : 'border-brand-accent/50'
               } rounded-xl p-3 text-brand-text focus:ring-brand-accent focus:border-brand-accent transition-colors`}
               required={required}
             />
+            <p className="text-xs text-brand-text-muted/70 mt-1">-180 to 180</p>
           </div>
         </div>
 
