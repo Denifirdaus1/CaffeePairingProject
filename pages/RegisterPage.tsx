@@ -190,6 +190,60 @@ export const RegisterPage: React.FC = () => {
 
         <div className="glass-panel rounded-3xl p-8">
           <form className="space-y-6" onSubmit={handleSubmit}>
+            {/* Google Places Search or Manual Entry - MOVED TO TOP */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <label className="block text-sm font-medium text-brand-text/90">
+                  Café Location *
+                </label>
+                <button
+                  type="button"
+                  onClick={handleToggleManualEntry}
+                  className="text-xs text-brand-accent hover:text-white transition-colors"
+                >
+                  {useManualEntry ? '← Use Google Maps Search' : 'Enter Manually →'}
+                </button>
+              </div>
+
+              {!useManualEntry && !selectedPlace && (
+                <div>
+                  <PlacesAutocomplete
+                    onPlaceSelect={handlePlaceSelect}
+                    placeholder="Search for your café on Google Maps..."
+                    types={['cafe', 'restaurant', 'bakery', 'food']}
+                  />
+                </div>
+              )}
+
+              {!useManualEntry && selectedPlace && (
+                <div>
+                  <PlacePreviewCard
+                    place={selectedPlace}
+                    onConfirm={handleConfirmPlace}
+                    onCancel={handleCancelPlace}
+                  />
+                </div>
+              )}
+
+              {useManualEntry && (
+                <LocationPickerManual
+                  onLocationSelect={handleLocationSelect}
+                  value={
+                    formData.latitude && formData.longitude
+                      ? {
+                          formattedAddress: formData.address || `${formData.latitude}, ${formData.longitude}`,
+                          location: { lat: formData.latitude, lng: formData.longitude },
+                          city: formData.city || undefined,
+                          country: formData.country || undefined,
+                        }
+                      : null
+                  }
+                  error={locationError || undefined}
+                  required={true}
+                />
+              )}
+            </div>
+
             <div className="grid gap-6 md:grid-cols-2">
               <div>
                 <label htmlFor="full_name" className="block text-sm font-medium text-brand-text/90 mb-2">
@@ -298,60 +352,6 @@ export const RegisterPage: React.FC = () => {
                 className="w-full bg-brand-bg border border-brand-accent/50 rounded-xl p-3 text-brand-text focus:ring-brand-accent focus:border-brand-accent transition-colors"
                 placeholder="Tell us about your café..."
               />
-            </div>
-
-            {/* Google Places Search or Manual Entry */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <label className="block text-sm font-medium text-brand-text/90">
-                  Café Location *
-                </label>
-                <button
-                  type="button"
-                  onClick={handleToggleManualEntry}
-                  className="text-xs text-brand-accent hover:text-white transition-colors"
-                >
-                  {useManualEntry ? '← Use Google Maps Search' : 'Enter Manually →'}
-                </button>
-              </div>
-
-              {!useManualEntry && !selectedPlace && (
-                <div>
-                  <PlacesAutocomplete
-                    onPlaceSelect={handlePlaceSelect}
-                    placeholder="Search for your café on Google Maps..."
-                    types={['cafe', 'restaurant', 'bakery', 'food']}
-                  />
-                </div>
-              )}
-
-              {!useManualEntry && selectedPlace && (
-                <div>
-                  <PlacePreviewCard
-                    place={selectedPlace}
-                    onConfirm={handleConfirmPlace}
-                    onCancel={handleCancelPlace}
-                  />
-                </div>
-              )}
-
-              {useManualEntry && (
-                <LocationPickerManual
-                  onLocationSelect={handleLocationSelect}
-                  value={
-                    formData.latitude && formData.longitude
-                      ? {
-                          formattedAddress: formData.address || `${formData.latitude}, ${formData.longitude}`,
-                          location: { lat: formData.latitude, lng: formData.longitude },
-                          city: formData.city || undefined,
-                          country: formData.country || undefined,
-                        }
-                      : null
-                  }
-                  error={locationError || undefined}
-                  required={true}
-                />
-              )}
             </div>
 
             {error && (
