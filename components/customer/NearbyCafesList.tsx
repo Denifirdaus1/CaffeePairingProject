@@ -114,19 +114,18 @@ export const NearbyCafesList: React.FC<NearbyCafesListProps> = ({
             className="block glass-panel rounded-2xl p-6 hover:scale-[1.02] transition-transform cursor-pointer border-2 border-transparent hover:border-brand-accent/30"
           >
             <div className="flex items-start gap-4">
-              {/* Logo or Icon */}
+              {/* Google Photo or Logo */}
               <div className="flex-shrink-0">
-                {cafe.logo_url ? (
-                  <OptimizedImage
-                    src={cafe.logo_url}
+                {(cafe.google_photo_url || cafe.logo_url) ? (
+                  <img
+                    src={cafe.google_photo_url || cafe.logo_url}
                     alt={cafe.cafe_name}
-                    width={64}
-                    height={64}
-                    className="w-16 h-16 rounded-xl object-cover"
+                    className="w-20 h-20 rounded-xl object-cover border-2 border-white/10"
+                    loading="lazy"
                   />
                 ) : (
-                  <div className="w-16 h-16 rounded-xl bg-brand-accent/20 flex items-center justify-center">
-                    <CoffeeIcon className="h-8 w-8 text-brand-accent" />
+                  <div className="w-20 h-20 rounded-xl bg-brand-accent/20 flex items-center justify-center border-2 border-white/10">
+                    <CoffeeIcon className="h-10 w-10 text-brand-accent" />
                   </div>
                 )}
               </div>
@@ -135,9 +134,19 @@ export const NearbyCafesList: React.FC<NearbyCafesListProps> = ({
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-4 mb-2">
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-xl font-semibold text-white truncate">
+                    <h3 className="text-xl font-semibold text-white truncate mb-1">
                       {cafe.cafe_name}
                     </h3>
+                    
+                    {/* Price Range Badge */}
+                    {cafe.google_price_level && (
+                      <div className="inline-flex items-center bg-green-500/10 border border-green-500/20 px-2 py-0.5 rounded text-xs text-green-400 font-semibold mb-2">
+                        {cafe.google_price_level === 1 && '€1-5'}
+                        {cafe.google_price_level === 2 && '€5-10'}
+                        {cafe.google_price_level === 3 && '€10-20'}
+                        {cafe.google_price_level === 4 && '€20+'}
+                      </div>
+                    )}
                     
                     {/* Google Rating */}
                     {cafe.google_rating && (
@@ -293,11 +302,16 @@ export const NearbyCafesList: React.FC<NearbyCafesListProps> = ({
                     )}
                   </div>
                   
-                  {/* Google Attribution */}
+                  {/* Google Attribution & Verification Badge */}
                   {cafe.google_rating && (
-                    <div className="flex items-center gap-1.5 text-xs text-brand-text-muted/70">
-                      <span>Powered by</span>
-                      <span className="font-semibold text-brand-text-muted">Google</span>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 px-2 py-1 bg-white/5 rounded text-xs">
+                        <svg className="w-3 h-3 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                        <span className="text-brand-text-muted/90">Verified by</span>
+                        <span className="font-semibold text-white">Google</span>
+                      </div>
                     </div>
                   )}
                 </div>
