@@ -475,20 +475,23 @@ export const AddModal: React.FC<AddModalProps> = ({ type, onClose, onAddCoffee, 
 
                 <div>
                     <label htmlFor="price" className="block text-sm font-medium text-brand-text/90 mb-1">
-                        Harga (Price)
+                        Price (€)
                     </label>
-                    <input 
-                        id="price" 
-                        type="number" 
-                        name="price" 
-                        value={formData.price ?? ''} 
-                        onChange={handleChange} 
-                        placeholder="e.g., 45000" 
-                        min="0"
-                        step="0.01"
-                        className="w-full bg-brand-bg border border-brand-accent/50 rounded-md p-2 text-brand-text focus:ring-brand-accent focus:border-brand-accent" 
-                    />
-                    <p className="text-xs text-brand-text/70 mt-1">Masukkan harga dalam mata uang lokal (opsional).</p>
+                    <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-text/70">€</span>
+                        <input 
+                            id="price" 
+                            type="number" 
+                            name="price" 
+                            value={formData.price ?? ''} 
+                            onChange={handleChange} 
+                            placeholder="e.g., 4.50" 
+                            min="0"
+                            step="0.01"
+                            className="w-full bg-brand-bg border border-brand-accent/50 rounded-md p-2 pl-8 text-brand-text focus:ring-brand-accent focus:border-brand-accent" 
+                        />
+                    </div>
+                    <p className="text-xs text-brand-text/70 mt-1">Enter price in Euro (optional).</p>
                 </div>
                 
                 {type === 'coffee' ? renderCoffeeForm() : renderPastryForm()}
