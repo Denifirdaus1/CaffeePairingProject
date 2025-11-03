@@ -54,6 +54,13 @@ export const authService = {
 
     console.log('Starting signup process...');
 
+    // CRITICAL: Sign out any existing session first to prevent session conflicts
+    const { error: signOutError } = await supabase.auth.signOut();
+    if (signOutError) {
+      console.warn('Error signing out existing session:', signOutError);
+    }
+    console.log('✅ Cleared any existing auth session');
+
     // Sign up user with Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: data.email,
@@ -83,13 +90,6 @@ export const authService = {
 
     console.log('User created successfully:', authData.user.id);
     console.log('User email auto-confirmed via database trigger');
-
-    // Check current auth state
-    const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
-    console.log('Current user check:', { currentUser: currentUser?.id, userError });
-    
-    // Small delay to ensure auth state and cafe profile are set
-    await new Promise(resolve => setTimeout(resolve, 1000));
 
     // Create café profile immediately with the returned user
     console.log('Creating café profile...');
