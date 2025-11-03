@@ -107,6 +107,7 @@ export const getPlaceDetails = async (placeId: string): Promise<PlaceDetails> =>
             'address_components',
           ],
           sessionToken: token,
+          language: 'en', // Force English for consistent display
         },
         (place, status) => {
           if (status === google.maps.places.PlacesServiceStatus.OK && place) {
