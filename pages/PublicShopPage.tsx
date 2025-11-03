@@ -228,7 +228,15 @@ export const PublicShopPage: React.FC = () => {
                 Back to Home
               </Link>
               <div className="flex items-center gap-3 text-white">
-                <CoffeeIcon className="h-8 w-8 text-brand-accent" />
+                {shopData.logo_url ? (
+                  <img
+                    src={shopData.logo_url}
+                    alt={shopData.cafe_name}
+                    className="h-8 w-8 object-cover rounded-lg"
+                  />
+                ) : (
+                  <CoffeeIcon className="h-8 w-8 text-brand-accent" />
+                )}
                 <span className="text-xl font-bold">{shopData.cafe_name}</span>
               </div>
             </div>
@@ -503,7 +511,15 @@ export const PublicShopPage: React.FC = () => {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <div className="flex items-center justify-center gap-3 text-white mb-4">
-              <CoffeeIcon className="h-8 w-8 text-brand-accent" />
+              {shopData.logo_url ? (
+                <img
+                  src={shopData.logo_url}
+                  alt={shopData.cafe_name}
+                  className="h-8 w-8 object-cover rounded-lg"
+                />
+              ) : (
+                <CoffeeIcon className="h-8 w-8 text-brand-accent" />
+              )}
               <span className="text-xl font-bold">{shopData.cafe_name}</span>
             </div>
             {shopData.address && (

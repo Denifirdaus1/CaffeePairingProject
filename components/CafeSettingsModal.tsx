@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase, uploadImage, deleteImage } from '../services/supabaseClient';
 import { compressImage, isImageFile, formatFileSize } from '../utils/imageCompression';
 import { Spinner } from './Spinner';
+import { useAuth } from '../contexts/AuthContext';
 
 interface CafeProfile {
   id: string;
@@ -24,6 +26,9 @@ export const CafeSettingsModal: React.FC<CafeSettingsModalProps> = ({
   cafeProfile,
   onUpdate,
 }) => {
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
+  
   const [formData, setFormData] = useState({
     cafe_name: '',
     cafe_description: '',
@@ -33,6 +38,16 @@ export const CafeSettingsModal: React.FC<CafeSettingsModalProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      navigate('/login');
+    } catch (error) {
+      console.error('Error signing out:', error);
+      setError('Failed to sign out');
+    }
+  };
 
   useEffect(() => {
     if (cafeProfile) {
@@ -289,6 +304,29 @@ export const CafeSettingsModal: React.FC<CafeSettingsModalProps> = ({
               {success}
             </div>
           )}
+
+          {/* Danger Zone - Sign Out */}
+          <div className="pt-6 border-t border-red-600/20">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-semibold text-red-300">Sign Out</h3>
+                <p className="text-xs text-brand-text-muted mt-1">
+                  Sign out of your café account
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleSignOut}
+                disabled={isSaving}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-red-600/20 hover:bg-red-600/30 text-red-300 hover:text-white transition-all border border-red-600/30 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                Sign Out
+              </button>
+            </div>
+          </div>
 
           {/* Action Buttons */}
           <div className="flex gap-3">
