@@ -46,13 +46,15 @@ export const initGoogleMapsLoader = async (): Promise<typeof google.maps> => {
   // Get API key at runtime
   const apiKey = getApiKey();
 
-  // DEBUG: Log key detection (remove in production)
+  // DEBUG: Log key detection
   console.log('🔑 Google Maps API Key Check:', {
     'Key detected': !!apiKey,
     'Key length': apiKey?.length || 0,
-    'Key preview': apiKey ? apiKey.substring(0, 10) + '...' : 'NOT FOUND',
+    'Key preview': apiKey ? `${apiKey.substring(0, 12)}...${apiKey.substring(apiKey.length - 4)}` : 'NOT FOUND',
+    'Key full (for debug)': apiKey || 'EMPTY',
     'import.meta.env available': !!import.meta.env,
     'All VITE_ vars': Object.keys(import.meta.env || {}).filter(k => k.startsWith('VITE_')),
+    'Expected key': 'AIzaSyAv0vuZ...Td_Cc',
   });
 
   if (!apiKey || apiKey === '') {
