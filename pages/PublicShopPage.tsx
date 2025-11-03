@@ -246,11 +246,24 @@ export const PublicShopPage: React.FC = () => {
                 <span className="text-xl font-bold">{shopData.cafe_name}</span>
               </div>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              {/* Share Button - Icon Only */}
+              <button
+                onClick={handleShareShop}
+                className="relative flex items-center justify-center text-brand-text hover:text-white transition-all hover:bg-brand-accent/10 p-2.5 rounded-lg"
+                aria-label="Share Shop"
+                title="Share Shop"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                </svg>
+              </button>
+              
               {/* Shopping Cart Button */}
               <button
                 onClick={() => setIsCartOpen(true)}
-                className="relative flex items-center gap-2 text-sm font-medium text-brand-text hover:text-white transition-colors hover:bg-brand-accent/10 px-3 py-2 rounded-lg"
+                className="relative flex items-center gap-2 text-sm font-medium text-brand-text hover:text-white transition-all hover:bg-brand-accent/10 px-3 py-2 rounded-lg"
+                aria-label="Shopping Cart"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -261,15 +274,6 @@ export const PublicShopPage: React.FC = () => {
                   </span>
                 )}
                 <span className="hidden sm:inline">Cart</span>
-              </button>
-              
-              <button
-                onClick={handleShareShop}
-                className="flex items-center gap-2 text-sm font-medium text-brand-text hover:text-white transition-colors hover:bg-brand-accent/10 px-3 py-2 rounded-lg"
-              >
-                <QRCodeIcon className="h-4 w-4" />
-                <span className="hidden sm:inline">Share Shop</span>
-                <span className="sm:hidden">Share</span>
               </button>
             </div>
           </nav>
