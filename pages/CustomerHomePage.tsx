@@ -16,6 +16,13 @@ interface Cafe {
   logo_url?: string;
   latitude?: number;
   longitude?: number;
+  // Google Places data
+  google_rating?: number;
+  google_review_count?: number;
+  google_photo_url?: string;
+  google_opening_hours?: any;
+  google_business_status?: string;
+  google_price_level?: number;
 }
 
 interface NearbyCafe extends Cafe {
@@ -104,9 +111,17 @@ export const CustomerHomePage: React.FC = () => {
         address: cafe.address,
         city: cafe.city,
         country: cafe.country,
+        logo_url: cafe.logo_url,
         latitude: cafe.latitude,
         longitude: cafe.longitude,
         distance: cafe.distance_km * 1000, // Convert km to meters
+        // Google Places data
+        google_rating: cafe.google_rating,
+        google_review_count: cafe.google_review_count,
+        google_photo_url: cafe.google_photo_url,
+        google_opening_hours: cafe.google_opening_hours,
+        google_business_status: cafe.google_business_status,
+        google_price_level: cafe.google_price_level,
       }));
 
       setNearbyCafes(cafesWithDistance);

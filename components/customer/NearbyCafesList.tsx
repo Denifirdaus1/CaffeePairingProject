@@ -114,11 +114,11 @@ export const NearbyCafesList: React.FC<NearbyCafesListProps> = ({
             className="block glass-panel rounded-2xl p-6 hover:scale-[1.02] transition-transform cursor-pointer border-2 border-transparent hover:border-brand-accent/30"
           >
             <div className="flex items-start gap-4">
-              {/* Google Photo or Logo */}
+              {/* Cafe Logo (priority) or Google Photo */}
               <div className="flex-shrink-0">
-                {(cafe.google_photo_url || cafe.logo_url) ? (
+                {(cafe.logo_url || cafe.google_photo_url) ? (
                   <img
-                    src={cafe.google_photo_url || cafe.logo_url}
+                    src={cafe.logo_url || cafe.google_photo_url}
                     alt={cafe.cafe_name}
                     className="w-20 h-20 rounded-xl object-cover border-2 border-white/10"
                     loading="lazy"
