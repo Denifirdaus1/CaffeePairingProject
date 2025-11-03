@@ -3,6 +3,22 @@ import { existsSync } from 'fs';
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 
+// Custom plugin to inject environment variables into HTML
+const htmlEnvPlugin = (env: Record<string, string>) => {
+  return {
+    name: 'html-env-injection',
+    transformIndexHtml(html: string) {
+      // Replace %VITE_*% placeholders with actual values
+      let transformed = html;
+      Object.entries(env).forEach(([key, value]) => {
+        const placeholder = `%${key}%`;
+        transformed = transformed.replace(new RegExp(placeholder, 'g'), value || '');
+      });
+      return transformed;
+    }
+  };
+};
+
 export default defineConfig(({ mode }) => {
     // Load environment variables from file
     // Third parameter 'VITE_' filters only variables that start with VITE_
@@ -39,7 +55,10 @@ export default defineConfig(({ mode }) => {
         host: '0.0.0.0',
         historyApiFallback: true
       },
-      plugins: [react()],
+      plugins: [
+        react(),
+        htmlEnvPlugin(env)
+      ],
       build: {
         target: 'es2015',
         minify: 'esbuild',
