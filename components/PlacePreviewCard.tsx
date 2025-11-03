@@ -54,21 +54,23 @@ export const PlacePreviewCard: React.FC<PlacePreviewCardProps> = ({
 
       {/* Content */}
       <div className="p-6 space-y-4">
-        {/* Photo and Name Section */}
-        <div className="flex gap-4">
-          {/* Photo */}
-          {photoUrl && (
-            <div className="flex-shrink-0">
-              <img
-                src={photoUrl}
-                alt={place.name}
-                className="w-24 h-24 rounded-lg object-cover border-2 border-white/10"
-              />
-            </div>
-          )}
+        {/* Top Section: Photo, Name, and Map Preview */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Left: Photo and Basic Info */}
+          <div className="flex gap-4">
+            {/* Photo */}
+            {photoUrl && (
+              <div className="flex-shrink-0">
+                <img
+                  src={photoUrl}
+                  alt={place.name}
+                  className="w-24 h-24 rounded-lg object-cover border-2 border-white/10"
+                />
+              </div>
+            )}
 
-          {/* Name and Type */}
-          <div className="flex-1 min-w-0">
+            {/* Name and Type */}
+            <div className="flex-1 min-w-0">
             <h4 className="text-xl font-bold text-white mb-1">{place.name}</h4>
             
             {/* Type & Price */}
@@ -118,6 +120,21 @@ export const PlacePreviewCard: React.FC<PlacePreviewCardProps> = ({
               </div>
             )}
           </div>
+          </div>
+
+          {/* Right: Map Preview */}
+          {place.geometry?.location && (
+            <div className="rounded-lg overflow-hidden border-2 border-white/10 h-48 md:h-auto">
+              <iframe
+                title="Location Preview"
+                width="100%"
+                height="100%"
+                style={{ border: 0, minHeight: '200px' }}
+                loading="lazy"
+                src={`https://www.google.com/maps/embed/v1/place?key=${window.__GOOGLE_MAPS_API_KEY__}&q=place_id:${place.place_id}&zoom=16`}
+              />
+            </div>
+          )}
         </div>
 
         {/* Details Grid */}

@@ -261,6 +261,9 @@ export const RegisterPage: React.FC = () => {
             <div>
               <label htmlFor="cafe_name" className="block text-sm font-medium text-brand-text/90 mb-2">
                 Café Name *
+                {selectedPlace && formData.cafe_name && (
+                  <span className="ml-2 text-xs text-green-400">✓ Auto-filled from Google Maps</span>
+                )}
               </label>
               <input
                 id="cafe_name"
@@ -269,9 +272,17 @@ export const RegisterPage: React.FC = () => {
                 required
                 value={formData.cafe_name}
                 onChange={handleChange}
-                className="w-full bg-brand-bg border border-brand-accent/50 rounded-xl p-3 text-brand-text focus:ring-brand-accent focus:border-brand-accent transition-colors"
+                readOnly={selectedPlace !== null && formData.cafe_name !== ''}
+                className={`w-full bg-brand-bg border border-brand-accent/50 rounded-xl p-3 text-brand-text focus:ring-brand-accent focus:border-brand-accent transition-colors ${
+                  selectedPlace && formData.cafe_name ? 'bg-white/5 cursor-not-allowed' : ''
+                }`}
                 placeholder="Your café name"
               />
+              {selectedPlace && formData.cafe_name && (
+                <p className="mt-1.5 text-xs text-brand-text-muted">
+                  💡 Café name is auto-filled from Google Maps and cannot be edited
+                </p>
+              )}
             </div>
 
             <div>
