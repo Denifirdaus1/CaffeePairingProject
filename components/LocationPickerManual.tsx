@@ -276,32 +276,30 @@ export const LocationPickerManual: React.FC<LocationPickerManualProps> = ({
             <input
               type="text"
               inputMode="decimal"
-              pattern="[+-]?([0-9]*[.,])?[0-9]+"
               value={latitude}
               onChange={handleLatChange}
-              placeholder="48.1351 or 48,1351"
+              placeholder="48.1351"
               className={`w-full bg-brand-bg border ${
                 error ? 'border-red-500' : 'border-brand-accent/50'
               } rounded-xl p-3 text-brand-text focus:ring-brand-accent focus:border-brand-accent transition-colors`}
               required={required}
             />
-            <p className="text-xs text-brand-text-muted/70 mt-1">-90 to 90</p>
+            <p className="text-xs text-brand-text-muted/70 mt-1">Range: -90 to 90</p>
           </div>
           <div>
             <label className="block text-xs text-brand-text-muted mb-1">Longitude</label>
             <input
               type="text"
               inputMode="decimal"
-              pattern="[+-]?([0-9]*[.,])?[0-9]+"
               value={longitude}
               onChange={handleLngChange}
-              placeholder="11.5820 or 11,5820"
+              placeholder="11.5820"
               className={`w-full bg-brand-bg border ${
                 error ? 'border-red-500' : 'border-brand-accent/50'
               } rounded-xl p-3 text-brand-text focus:ring-brand-accent focus:border-brand-accent transition-colors`}
               required={required}
             />
-            <p className="text-xs text-brand-text-muted/70 mt-1">-180 to 180</p>
+            <p className="text-xs text-brand-text-muted/70 mt-1">Range: -180 to 180</p>
           </div>
         </div>
 
