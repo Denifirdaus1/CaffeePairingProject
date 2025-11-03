@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
 import { authService, User } from '../services/authService';
 import { supabase } from '../services/supabaseClient';
 
@@ -29,12 +28,11 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const location = useLocation();
 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout | undefined;
-
-    const isProtectedRoute = location.pathname.startsWith('/dashboard');
+    const pathname = typeof window !== 'undefined' ? window.location.pathname : '/';
+    const isProtectedRoute = pathname.startsWith('/dashboard');
 
     const initializeAuth = async () => {
       if (!isProtectedRoute) {
@@ -88,7 +86,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (timeoutId) clearTimeout(timeoutId);
       subscription.unsubscribe();
     };
-  }, [location.pathname]);
+  }, []);
 
   const signIn = async (email: string, password: string) => {
     setLoading(true);
