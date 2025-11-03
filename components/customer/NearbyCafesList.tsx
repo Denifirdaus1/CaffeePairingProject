@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CoffeeIcon } from '../icons/CoffeeIcon';
 import { formatDistance } from '../../services/googleMapsService';
 import { OptimizedImage } from '../OptimizedImage';
+import { CafeDirectionsModal } from './CafeDirectionsModal';
 
 interface Cafe {
   id: string;
@@ -28,6 +29,21 @@ export const NearbyCafesList: React.FC<NearbyCafesListProps> = ({
   userLocation,
   loading = false,
 }) => {
+  const [selectedCafe, setSelectedCafe] = useState<Cafe | null>(null);
+  const [isDirectionsModalOpen, setIsDirectionsModalOpen] = useState(false);
+
+  const handleGetDirections = (cafe: Cafe, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setSelectedCafe(cafe);
+    setIsDirectionsModalOpen(true);
+  };
+
+  const handleCloseDirections = () => {
+    setIsDirectionsModalOpen(false);
+    setSelectedCafe(null);
+  };
+
   if (loading) {
     return (
       <div className="max-w-4xl mx-auto">
@@ -66,13 +82,8 @@ export const NearbyCafesList: React.FC<NearbyCafesListProps> = ({
     );
   }
 
-  const getDirectionsUrl = (cafe: Cafe) => {
-    if (!userLocation || !cafe.latitude || !cafe.longitude) return null;
-    
-    return `https://www.google.com/maps/dir/?api=1&origin=${userLocation.lat},${userLocation.lng}&destination=${cafe.latitude},${cafe.longitude}&travelmode=driving`;
-  };
-
   return (
+    <>
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="text-center">
         <h2 className="text-3xl font-bold text-white mb-2">
@@ -177,12 +188,9 @@ export const NearbyCafesList: React.FC<NearbyCafesListProps> = ({
                     </svg>
                   </div>
                   
-                  {getDirectionsUrl(cafe) && (
-                    <a
-                      href={getDirectionsUrl(cafe)!}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
+                  {userLocation && cafe.latitude && cafe.longitude && (
+                    <button
+                      onClick={(e) => handleGetDirections(cafe, e)}
                       className="inline-flex items-center gap-1.5 bg-brand-accent/20 hover:bg-brand-accent/30 text-brand-accent px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors border border-brand-accent/30"
                     >
                       <svg
@@ -199,7 +207,7 @@ export const NearbyCafesList: React.FC<NearbyCafesListProps> = ({
                         />
                       </svg>
                       Get Directions
-                    </a>
+                    </button>
                   )}
                 </div>
               </div>
@@ -208,6 +216,22 @@ export const NearbyCafesList: React.FC<NearbyCafesListProps> = ({
         ))}
       </div>
     </div>
+
+      {/* Directions Modal */}
+      {selectedCafe && userLocation && (
+        <CafeDirectionsModal
+          isOpen={isDirectionsModalOpen}
+          onClose={handleCloseDirections}
+          cafeName={selectedCafe.cafe_name}
+          userLocation={userLocation}
+          cafeLocation={{
+            lat: selectedCafe.latitude!,
+            lng: selectedCafe.longitude!,
+          }}
+          cafeAddress={selectedCafe.address}
+        />
+      )}
+    </>
   );
 };
 
