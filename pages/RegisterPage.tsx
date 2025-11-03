@@ -6,6 +6,9 @@ import { ArrowLeftIcon } from '../components/icons/ArrowLeftIcon';
 import { Spinner } from '../components/Spinner';
 import { Toast } from '../components/Toast';
 import { LocationPickerManual } from '../components/LocationPickerManual';
+import { PlacesAutocomplete } from '../components/PlacesAutocomplete';
+import { PlacePreviewCard } from '../components/PlacePreviewCard';
+import { PlaceDetails, placeDetailsToDbFormat } from '../services/googlePlacesService';
 
 export const RegisterPage: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -28,6 +31,10 @@ export const RegisterPage: React.FC = () => {
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [isRateLimited, setIsRateLimited] = useState(false);
   const [cooldownTime, setCooldownTime] = useState(0);
+  
+  // Google Places integration
+  const [selectedPlace, setSelectedPlace] = useState<PlaceDetails | null>(null);
+  const [useManualEntry, setUseManualEntry] = useState(false);
   
   const { signUp, loading } = useAuth();
   const navigate = useNavigate();
@@ -54,6 +61,57 @@ export const RegisterPage: React.FC = () => {
       longitude: location.location.lng,
     }));
     setLocationError(null);
+  };
+
+  const handlePlaceSelect = (place: PlaceDetails) => {
+    console.log('📍 Selected place from Google:', place);
+    setSelectedPlace(place);
+    setLocationError(null);
+  };
+
+  const handleConfirmPlace = () => {
+    if (!selectedPlace) return;
+    
+    const placeData = placeDetailsToDbFormat(selectedPlace);
+    
+    setFormData(prev => ({
+      ...prev,
+      cafe_name: placeData.cafe_name,
+      address: placeData.address,
+      city: placeData.city || '',
+      country: placeData.country || '',
+      phone: placeData.phone || '',
+      website: placeData.website || '',
+      latitude: placeData.latitude,
+      longitude: placeData.longitude,
+      // Pass all Google Places data
+      google_place_id: placeData.google_place_id,
+      google_rating: placeData.google_rating,
+      google_review_count: placeData.google_review_count,
+      google_photo_url: placeData.google_photo_url,
+      google_formatted_phone: placeData.google_formatted_phone,
+      google_international_phone: placeData.google_international_phone,
+      google_website: placeData.google_website,
+      google_opening_hours: placeData.google_opening_hours,
+      google_business_status: placeData.google_business_status,
+      google_price_level: placeData.google_price_level,
+      google_types: placeData.google_types,
+    } as any));
+    
+    setLocationError(null);
+    setToast({
+      message: '✓ Café information imported from Google Maps',
+      type: 'success',
+    });
+  };
+
+  const handleCancelPlace = () => {
+    setSelectedPlace(null);
+  };
+
+  const handleToggleManualEntry = () => {
+    setUseManualEntry(!useManualEntry);
+    setSelectedPlace(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -231,21 +289,59 @@ export const RegisterPage: React.FC = () => {
               />
             </div>
 
-              <LocationPickerManual
-                onLocationSelect={handleLocationSelect}
-                value={
-                  formData.latitude && formData.longitude
-                    ? {
-                        formattedAddress: formData.address || `${formData.latitude}, ${formData.longitude}`,
-                        location: { lat: formData.latitude, lng: formData.longitude },
-                        city: formData.city || undefined,
-                        country: formData.country || undefined,
-                      }
-                    : null
-                }
-                error={locationError || undefined}
-                required={true}
-              />
+            {/* Google Places Search or Manual Entry */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <label className="block text-sm font-medium text-brand-text/90">
+                  Café Location *
+                </label>
+                <button
+                  type="button"
+                  onClick={handleToggleManualEntry}
+                  className="text-xs text-brand-accent hover:text-white transition-colors"
+                >
+                  {useManualEntry ? '← Use Google Maps Search' : 'Enter Manually →'}
+                </button>
+              </div>
+
+              {!useManualEntry && !selectedPlace && (
+                <div>
+                  <PlacesAutocomplete
+                    onPlaceSelect={handlePlaceSelect}
+                    placeholder="Search for your café on Google Maps..."
+                    types={['cafe', 'restaurant', 'bakery', 'food', 'establishment']}
+                  />
+                </div>
+              )}
+
+              {!useManualEntry && selectedPlace && (
+                <div>
+                  <PlacePreviewCard
+                    place={selectedPlace}
+                    onConfirm={handleConfirmPlace}
+                    onCancel={handleCancelPlace}
+                  />
+                </div>
+              )}
+
+              {useManualEntry && (
+                <LocationPickerManual
+                  onLocationSelect={handleLocationSelect}
+                  value={
+                    formData.latitude && formData.longitude
+                      ? {
+                          formattedAddress: formData.address || `${formData.latitude}, ${formData.longitude}`,
+                          location: { lat: formData.latitude, lng: formData.longitude },
+                          city: formData.city || undefined,
+                          country: formData.country || undefined,
+                        }
+                      : null
+                  }
+                  error={locationError || undefined}
+                  required={true}
+                />
+              )}
+            </div>
 
             {error && (
               <div className="rounded-xl bg-red-900/40 p-3 text-red-200 text-sm">

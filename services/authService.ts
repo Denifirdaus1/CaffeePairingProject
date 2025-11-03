@@ -33,6 +33,18 @@ export interface SignUpData {
   website?: string;
   latitude?: number;
   longitude?: number;
+  // Google Places data (optional)
+  google_place_id?: string;
+  google_rating?: number;
+  google_review_count?: number;
+  google_photo_url?: string;
+  google_formatted_phone?: string;
+  google_international_phone?: string;
+  google_website?: string;
+  google_opening_hours?: any;
+  google_business_status?: string;
+  google_price_level?: number;
+  google_types?: string[];
 }
 
 // Rate limiting protection
@@ -98,7 +110,7 @@ export const authService = {
       cafe_name: data.cafe_name
     });
     
-    const { data: profileData, error: profileError } = await supabase
+    const { data: profileData, error: profileError} = await supabase
       .from('cafe_profiles')
       .insert({
         user_id: authData.user.id,
@@ -110,7 +122,20 @@ export const authService = {
         phone: data.phone,
         website: data.website,
         latitude: data.latitude,
-        longitude: data.longitude
+        longitude: data.longitude,
+        // Google Places data (if available)
+        google_place_id: data.google_place_id,
+        google_rating: data.google_rating,
+        google_review_count: data.google_review_count,
+        google_photo_url: data.google_photo_url,
+        google_formatted_phone: data.google_formatted_phone,
+        google_international_phone: data.google_international_phone,
+        google_website: data.google_website,
+        google_opening_hours: data.google_opening_hours,
+        google_business_status: data.google_business_status,
+        google_price_level: data.google_price_level,
+        google_types: data.google_types,
+        google_data_synced_at: data.google_place_id ? new Date().toISOString() : null,
       })
       .select()
       .single();
