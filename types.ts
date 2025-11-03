@@ -15,6 +15,7 @@ export interface Coffee {
   image_url?: string;
   image_path?: string;
   online_shop_link?: string;
+  price?: number;
   // New fields
   roast_type?: string;
   preparation?: string;
@@ -38,6 +39,7 @@ export interface Pastry {
   image_url?: string;
   image_path?: string;
   allergen_info?: string;
+  price?: number;
   // New fields
   sweetness?: number; // 1-5
   richness?: number; // 1-5

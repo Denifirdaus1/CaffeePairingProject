@@ -10,7 +10,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-export const uploadImage = async (file: File, bucket: 'coffee-images' | 'pastry-images'): Promise<{ publicUrl: string; path: string }> => {
+export const uploadImage = async (file: File, bucket: 'coffee-images' | 'pastry-images' | 'cafe-logos'): Promise<{ publicUrl: string; path: string }> => {
     const fileExt = file.name.split('.').pop();
     const fileName = `${crypto.randomUUID()}.${fileExt}`;
     const filePath = fileName;
@@ -27,7 +27,7 @@ export const uploadImage = async (file: File, bucket: 'coffee-images' | 'pastry-
     return { publicUrl: data.publicUrl, path: filePath };
 };
 
-export const deleteImage = async (bucket: 'coffee-images' | 'pastry-images', path: string): Promise<void> => {
+export const deleteImage = async (bucket: 'coffee-images' | 'pastry-images' | 'cafe-logos', path: string): Promise<void> => {
     if (!path) return;
     const { error } = await supabase.storage.from(bucket).remove([path]);
     if (error) {

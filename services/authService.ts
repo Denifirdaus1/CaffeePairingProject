@@ -1,4 +1,4 @@
-import { supabase } from './supabaseClient';
+import { supabase, uploadImage } from './supabaseClient';
 
 export interface User {
   id: string;
@@ -52,7 +52,7 @@ let lastSignupAttempt = 0;
 const SIGNUP_COOLDOWN = 6000; // 6 seconds cooldown
 
 export const authService = {
-  async signUp(data: SignUpData) {
+  async signUp(data: SignUpData, logoFile?: File | null) {
     // Check rate limiting
     const now = Date.now();
     const timeSinceLastAttempt = now - lastSignupAttempt;
@@ -72,6 +72,22 @@ export const authService = {
       console.warn('Error signing out existing session:', signOutError);
     }
     console.log('✅ Cleared any existing auth session');
+
+    // Upload logo if provided
+    let logoUrl: string | undefined;
+    let logoPath: string | undefined;
+    if (logoFile) {
+      console.log('Uploading cafe logo...');
+      try {
+        const { publicUrl, path } = await uploadImage(logoFile, 'cafe-logos');
+        logoUrl = publicUrl;
+        logoPath = path;
+        console.log('✅ Logo uploaded successfully:', logoUrl);
+      } catch (error) {
+        console.error('Logo upload failed:', error);
+        // Don't fail signup if logo upload fails
+      }
+    }
 
     // Sign up user with Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -107,7 +123,8 @@ export const authService = {
     console.log('Creating café profile...');
     console.log('Inserting data:', {
       user_id: authData.user.id,
-      cafe_name: data.cafe_name
+      cafe_name: data.cafe_name,
+      has_logo: !!logoUrl
     });
     
     const { data: profileData, error: profileError} = await supabase
@@ -123,6 +140,8 @@ export const authService = {
         website: data.website,
         latitude: data.latitude,
         longitude: data.longitude,
+        logo_url: logoUrl,
+        logo_path: logoPath,
         // Google Places data (if available)
         google_place_id: data.google_place_id,
         google_rating: data.google_rating,

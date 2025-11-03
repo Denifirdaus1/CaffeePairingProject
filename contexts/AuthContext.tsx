@@ -6,7 +6,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (data: any) => Promise<void>;
+  signUp: (data: any, logoFile?: File | null) => Promise<void>;
   signOut: () => Promise<void>;
   updateProfile: (data: any) => Promise<void>;
 }
@@ -89,10 +89,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const signUp = async (data: any) => {
+  const signUp = async (data: any, logoFile?: File | null) => {
     setLoading(true);
     try {
-      const result = await authService.signUp(data);
+      const result = await authService.signUp(data, logoFile);
       console.log('Signup successful:', result);
       // Set user immediately after successful signup
       setUser({
