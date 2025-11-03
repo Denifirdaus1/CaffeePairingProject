@@ -340,6 +340,44 @@ export const Dashboard: React.FC = () => {
     setIsAddModalOpen(true);
   }, []);
 
+  // Handle QR code generation and download
+  const handleGenerateQR = useCallback(async (item: Coffee | Pastry, type: 'coffee' | 'pastry') => {
+    try {
+      const shopSlug = user?.cafe_profile?.shop_slug;
+      if (!shopSlug) {
+        setToast({ message: 'Shop slug not found', type: 'error' });
+        return;
+      }
+
+      const publicUrl = `${window.location.origin}/s/${shopSlug}/${type}/${item.slug}`;
+      const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(publicUrl)}`;
+      
+      // Show loading toast
+      setToast({ message: 'Generating QR code...', type: 'info' });
+      
+      // Fetch QR code image
+      const response = await fetch(qrCodeUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      
+      // Create download link
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${item.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_qr_code.png`;
+      document.body.appendChild(a);
+      a.click();
+      
+      // Cleanup
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      setToast({ message: `QR code downloaded for ${item.name}!`, type: 'success' });
+    } catch (error) {
+      console.error('Error generating QR code:', error);
+      setToast({ message: 'Failed to generate QR code. Please try again.', type: 'error' });
+    }
+  }, [user]);
+
   // Memoized coffee list for performance
   const coffeeList = useMemo(() => {
     if (inventoryLoading) return <div className="flex w-full justify-center py-6"><Spinner /></div>;
@@ -353,9 +391,10 @@ export const Dashboard: React.FC = () => {
         type="coffee"
         onEdit={() => setEditingCoffee(coffee)}
         onDelete={() => handleDeleteCoffee(coffee.id, coffee.name)}
+        onGenerateQR={() => handleGenerateQR(coffee, 'coffee')}
       />
     ));
-  }, [coffees, inventoryLoading, inventoryError]);
+  }, [coffees, inventoryLoading, inventoryError, handleGenerateQR]);
 
   // Memoized pastry list for performance
   const pastryList = useMemo(() => {
@@ -370,9 +409,10 @@ export const Dashboard: React.FC = () => {
         type="pastry"
         onEdit={() => setEditingPastry(pastry)}
         onDelete={() => handleDeletePastry(pastry.id, pastry.name)}
+        onGenerateQR={() => handleGenerateQR(pastry, 'pastry')}
       />
     ));
-  }, [pastries, inventoryLoading, inventoryError]);
+  }, [pastries, inventoryLoading, inventoryError, handleGenerateQR]);
 
   // Memoized coffee selection list
   const coffeeSelectionList = useMemo(() => {
