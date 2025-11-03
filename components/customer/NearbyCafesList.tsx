@@ -117,31 +117,9 @@ export const NearbyCafesList: React.FC<NearbyCafesListProps> = ({
     );
   }
 
+  // Don't show anything if no cafes - parent component handles this with expand search option
   if (cafes.length === 0) {
-    return (
-      <div className="max-w-4xl mx-auto">
-        <div className="glass-panel rounded-3xl p-8 text-center">
-          <CoffeeIcon className="h-16 w-16 text-brand-accent/50 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-white mb-2">
-            No cafés found nearby
-          </h3>
-          <p className="text-brand-text-muted mb-4">
-            No cafés found within 100km of your location. Try searching for a different city or browse all partner cafés.
-          </p>
-          {userLocation && (
-            <p className="text-brand-text-muted/70 text-sm mb-4">
-              📍 Your location: {userLocation.lat.toFixed(4)}, {userLocation.lng.toFixed(4)}
-            </p>
-          )}
-          <Link
-            to="/business#shops"
-            className="inline-flex items-center gap-2 text-brand-accent hover:text-white transition-colors text-sm font-medium"
-          >
-            View All Partner Cafés
-          </Link>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   return (

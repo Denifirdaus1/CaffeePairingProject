@@ -90,19 +90,20 @@ export const CustomerHomePage: React.FC = () => {
     setAllCafes([]);
   };
 
-  const fetchNearbyCafes = async (location: { lat: number; lng: number }) => {
+  const fetchNearbyCafes = async (location: { lat: number; lng: number }, expandedRadius: boolean = false) => {
     try {
       setLoading(true);
       setError(null);
 
-      console.log('🗺️ Searching for ALL cafes from user GPS location:', location);
+      const searchRadius = expandedRadius ? 500 : 100; // 100km normal, 500km expanded
+      console.log(`🗺️ Searching for cafes within ${searchRadius}km from GPS location:`, location);
 
-      // Search with very large radius to get all cafes, sorted by distance
+      // Search within realistic radius
       const { data: cafes, error: cafesError } = await supabase.rpc('find_nearby_cafes', {
         user_lat: location.lat,
         user_lng: location.lng,
-        radius_km: 50000, // 50,000 km = essentially worldwide
-        max_results: 100, // Get more cafes for better filtering
+        radius_km: searchRadius,
+        max_results: 100,
       });
 
       if (cafesError) {
@@ -110,7 +111,7 @@ export const CustomerHomePage: React.FC = () => {
         throw new Error(`Failed to fetch cafés: ${cafesError.message}`);
       }
 
-      console.log(`✅ Found ${cafes?.length || 0} cafes (sorted by distance from your GPS location)`);
+      console.log(`✅ Found ${cafes?.length || 0} cafes within ${searchRadius}km`);
 
       if (!cafes || cafes.length === 0) {
         setNearbyCafes([]);
@@ -149,6 +150,12 @@ export const CustomerHomePage: React.FC = () => {
       setPhase('results');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleExpandSearch = () => {
+    if (userLocation) {
+      fetchNearbyCafes(userLocation, true);
     }
   };
 
@@ -273,17 +280,56 @@ export const CustomerHomePage: React.FC = () => {
                     </svg>
                   </div>
                   <p className="text-xs text-brand-text-muted mt-2 text-center">
-                    💡 Distances are calculated from your real GPS location: {userLocation ? `(${userLocation.lat.toFixed(4)}, ${userLocation.lng.toFixed(4)})` : ''}
+                    📍 Your GPS: {userLocation ? `(${userLocation.lat.toFixed(4)}, ${userLocation.lng.toFixed(4)})` : ''} • Showing cafés within 100km
                   </p>
                 </div>
               </div>
             )}
 
-            <NearbyCafesList
-              cafes={nearbyCafes}
-              userLocation={userLocation || undefined}
-              loading={loading}
-            />
+            {/* No Cafes Found - Show Expand Option */}
+            {phase === 'results' && allCafes.length === 0 && !loading && (
+              <div className="max-w-2xl mx-auto">
+                <div className="glass-panel rounded-3xl p-8 text-center">
+                  <div className="mx-auto w-20 h-20 rounded-full bg-brand-accent/20 flex items-center justify-center mb-4">
+                    <svg className="w-10 h-10 text-brand-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-2xl font-bold text-white mb-3">
+                    No Cafés Found Nearby
+                  </h3>
+                  <p className="text-brand-text/80 mb-2">
+                    We couldn't find any partner cafés within 100km of your location.
+                  </p>
+                  <p className="text-sm text-brand-text-muted mb-6">
+                    📍 Your GPS: {userLocation ? `(${userLocation.lat.toFixed(4)}, ${userLocation.lng.toFixed(4)})` : ''}
+                  </p>
+                  
+                  <button
+                    onClick={handleExpandSearch}
+                    disabled={loading}
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-brand-accent hover:bg-brand-accent/90 text-white font-semibold transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    Expand Search to 500km
+                  </button>
+
+                  <p className="text-xs text-brand-text-muted mt-4">
+                    💡 Or try refreshing your location if you've moved recently
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {allCafes.length > 0 && (
+              <NearbyCafesList
+                cafes={nearbyCafes}
+                userLocation={userLocation || undefined}
+                loading={loading}
+              />
+            )}
           </>
         )}
 
