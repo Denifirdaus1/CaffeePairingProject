@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { initAutocomplete } from '../../services/googleMapsService';
 
 interface LocationSearchFallbackProps {
@@ -42,11 +41,14 @@ export const LocationSearchFallback: React.FC<LocationSearchFallbackProps> = ({
     <div className="max-w-2xl mx-auto space-y-6">
       <div className="glass-panel rounded-3xl p-8">
         <div className="text-center mb-6">
-          <h2 className="text-3xl font-bold text-white mb-3">
-            Search for Cafés
+          <h2 className="text-2xl font-bold text-white mb-3">
+            Search Cafés by City
           </h2>
-          <p className="text-brand-text/80">
-            Enter a city or area to find partner cafés nearby
+          <p className="text-brand-text/80 text-sm">
+            Find partner cafés in any city or area
+          </p>
+          <p className="text-brand-text-muted text-xs mt-2">
+            💡 Distance will still be calculated from your GPS location
           </p>
         </div>
 
@@ -79,28 +81,6 @@ export const LocationSearchFallback: React.FC<LocationSearchFallbackProps> = ({
                 />
               </svg>
             )}
-          </div>
-
-          <div className="text-center">
-            <Link
-              to="/business#shops"
-              className="inline-flex items-center gap-2 text-brand-accent hover:text-white transition-colors text-sm font-medium"
-            >
-              <span>Or view all partner cafés</span>
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
-            </Link>
           </div>
         </div>
       </div>

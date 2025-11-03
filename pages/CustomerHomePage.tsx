@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../services/supabaseClient';
 import { getCurrentLocation } from '../services/googleMapsService';
 import { LocationPermissionPrompt } from '../components/customer/LocationPermissionPrompt';
+import { LocationSearchFallback } from '../components/customer/LocationSearchFallback';
 import { NearbyCafesList } from '../components/customer/NearbyCafesList';
 import { CoffeeIcon } from '../components/icons/CoffeeIcon';
 
@@ -90,19 +91,18 @@ export const CustomerHomePage: React.FC = () => {
     setAllCafes([]);
   };
 
-  const fetchNearbyCafes = async (location: { lat: number; lng: number }, expandedRadius: boolean = false) => {
+  const fetchNearbyCafes = async (location: { lat: number; lng: number }) => {
     try {
       setLoading(true);
       setError(null);
 
-      const searchRadius = expandedRadius ? 500 : 100; // 100km normal, 500km expanded
-      console.log(`🗺️ Searching for cafes within ${searchRadius}km from GPS location:`, location);
+      console.log(`🗺️ Searching for cafes within 100km from GPS location:`, location);
 
-      // Search within realistic radius
+      // Search within 100km radius (realistic for "near you")
       const { data: cafes, error: cafesError } = await supabase.rpc('find_nearby_cafes', {
         user_lat: location.lat,
         user_lng: location.lng,
-        radius_km: searchRadius,
+        radius_km: 100,
         max_results: 100,
       });
 
@@ -111,7 +111,7 @@ export const CustomerHomePage: React.FC = () => {
         throw new Error(`Failed to fetch cafés: ${cafesError.message}`);
       }
 
-      console.log(`✅ Found ${cafes?.length || 0} cafes within ${searchRadius}km`);
+      console.log(`✅ Found ${cafes?.length || 0} cafes within 100km`);
 
       if (!cafes || cafes.length === 0) {
         setNearbyCafes([]);
@@ -153,9 +153,89 @@ export const CustomerHomePage: React.FC = () => {
     }
   };
 
-  const handleExpandSearch = () => {
-    if (userLocation) {
-      fetchNearbyCafes(userLocation, true);
+  // Search cafes by city location (but distance still from user GPS!)
+  const handleCitySearch = async (cityLocation: { lat: number; lng: number }) => {
+    if (!userLocation) return;
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      console.log(`🗺️ Searching cafes near city:`, cityLocation);
+      console.log(`📍 Distance will be calculated from user GPS:`, userLocation);
+
+      // Fetch cafes near the searched city (100km radius around city)
+      const { data: cafes, error: cafesError } = await supabase.rpc('find_nearby_cafes', {
+        user_lat: cityLocation.lat,
+        user_lng: cityLocation.lng,
+        radius_km: 100,
+        max_results: 100,
+      });
+
+      if (cafesError) {
+        console.error('Error fetching cafes near city:', cafesError);
+        throw new Error(`Failed to fetch cafés: ${cafesError.message}`);
+      }
+
+      console.log(`✅ Found ${cafes?.length || 0} cafes near searched city`);
+
+      if (!cafes || cafes.length === 0) {
+        setNearbyCafes([]);
+        setAllCafes([]);
+        setPhase('results');
+        return;
+      }
+
+      // IMPORTANT: Recalculate ALL distances from USER GPS (single RPC call)
+      const { data: cafesFromUserLocation } = await supabase.rpc('find_nearby_cafes', {
+        user_lat: userLocation.lat,
+        user_lng: userLocation.lng,
+        radius_km: 50000, // Large radius to get all cafes with distance from user
+        max_results: 200,
+      });
+
+      // Create a map of cafe_id to real distance from user GPS
+      const distanceMap = new Map<string, number>();
+      if (cafesFromUserLocation) {
+        cafesFromUserLocation.forEach((cafe: any) => {
+          distanceMap.set(cafe.id, cafe.distance_km * 1000); // Convert to meters
+        });
+      }
+
+      // Map cafes with REAL distance from user GPS
+      const cafesWithRealDistance: NearbyCafe[] = cafes.map((cafe) => ({
+        id: cafe.id,
+        cafe_name: cafe.cafe_name,
+        shop_slug: cafe.shop_slug,
+        address: cafe.address,
+        city: cafe.city,
+        country: cafe.country,
+        logo_url: cafe.logo_url,
+        latitude: cafe.latitude,
+        longitude: cafe.longitude,
+        distance: distanceMap.get(cafe.id) || 0, // REAL distance from user GPS!
+        google_rating: cafe.google_rating,
+        google_review_count: cafe.google_review_count,
+        google_photo_url: cafe.google_photo_url,
+        google_opening_hours: cafe.google_opening_hours,
+        google_business_status: cafe.google_business_status,
+        google_price_level: cafe.google_price_level,
+      }));
+
+      // Sort by distance from user GPS
+      cafesWithRealDistance.sort((a, b) => a.distance - b.distance);
+
+      console.log(`✅ Recalculated distances from user GPS, closest: ${cafesWithRealDistance[0]?.distance / 1000} km`);
+
+      setAllCafes(cafesWithRealDistance);
+      setNearbyCafes(cafesWithRealDistance);
+      setPhase('results');
+    } catch (err: any) {
+      console.error('❌ Error searching cafes by city:', err);
+      setError(err.message || 'Failed to search cafés');
+      setPhase('results');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -286,9 +366,9 @@ export const CustomerHomePage: React.FC = () => {
               </div>
             )}
 
-            {/* No Cafes Found - Show Expand Option */}
+            {/* No Cafes Found - Show City Search */}
             {phase === 'results' && allCafes.length === 0 && !loading && (
-              <div className="max-w-2xl mx-auto">
+              <div className="max-w-2xl mx-auto space-y-6">
                 <div className="glass-panel rounded-3xl p-8 text-center">
                   <div className="mx-auto w-20 h-20 rounded-full bg-brand-accent/20 flex items-center justify-center mb-4">
                     <svg className="w-10 h-10 text-brand-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -304,22 +384,10 @@ export const CustomerHomePage: React.FC = () => {
                   <p className="text-sm text-brand-text-muted mb-6">
                     📍 Your GPS: {userLocation ? `(${userLocation.lat.toFixed(4)}, ${userLocation.lng.toFixed(4)})` : ''}
                   </p>
-                  
-                  <button
-                    onClick={handleExpandSearch}
-                    disabled={loading}
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-brand-accent hover:bg-brand-accent/90 text-white font-semibold transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                    Expand Search to 500km
-                  </button>
-
-                  <p className="text-xs text-brand-text-muted mt-4">
-                    💡 Or try refreshing your location if you've moved recently
-                  </p>
                 </div>
+
+                {/* City Search Option */}
+                <LocationSearchFallback onLocationSelect={handleCitySearch} />
               </div>
             )}
 
