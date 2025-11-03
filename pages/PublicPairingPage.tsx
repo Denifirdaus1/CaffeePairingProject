@@ -4,6 +4,8 @@ import { supabase } from '../services/supabaseClient';
 import { CoffeeIcon } from '../components/icons/CoffeeIcon';
 import { ArrowLeftIcon } from '../components/icons/ArrowLeftIcon';
 import { OptimizedImage } from '../components/OptimizedImage';
+import { useCart } from '../contexts/CartContext';
+import { ShoppingCart } from '../components/public/ShoppingCart';
 
 // Sanitize URL params to remove hidden characters from QR/PDF scans
 const cleanse = (s: string = '') => {
@@ -21,6 +23,7 @@ interface Coffee {
   slug: string;
   flavor_notes?: string;
   image_url?: string;
+  price?: number;
 }
 
 interface Pastry {
@@ -29,6 +32,7 @@ interface Pastry {
   flavor_tags?: string;
   texture_tags?: string;
   image_url?: string;
+  price?: number;
 }
 
 interface Pairing {
@@ -59,6 +63,9 @@ export const PublicPairingPage: React.FC = () => {
   const [shopData, setShopData] = useState<ShopData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  
+  const { addToCart, getTotalItems } = useCart();
 
   useEffect(() => {
     if (!slug) return;
@@ -166,14 +173,14 @@ export const PublicPairingPage: React.FC = () => {
         // Fetch coffee data separately
         const { data: coffeeData, error: coffeeError } = await supabase
           .from('coffees')
-          .select('id, name, slug, flavor_notes, image_url')
+          .select('id, name, slug, flavor_notes, image_url, price')
           .eq('id', pairingData.coffee_id)
           .single();
 
         // Fetch pastry data separately
         const { data: pastryData, error: pastryError } = await supabase
           .from('pastries')
-          .select('id, name, flavor_tags, texture_tags, image_url')
+          .select('id, name, flavor_tags, texture_tags, image_url, price')
           .eq('id', pairingData.pastry_id)
           .single();
 
@@ -264,127 +271,261 @@ export const PublicPairingPage: React.FC = () => {
     );
   }
 
+  const coffeePrice = pairing?.coffees.price || 0;
+  const pastryPrice = pairing?.pastries.price || 0;
+  const combinedPrice = coffeePrice + pastryPrice;
+  const hasBothPrices = pairing?.coffees.price != null && pairing?.pastries.price != null;
+
+  const handleAddToCart = () => {
+    if (!pairing || !hasBothPrices) return;
+    
+    addToCart({
+      type: 'pairing',
+      productId: pairing.id,
+      name: `${pairing.coffees.name} + ${pairing.pastries.name}`,
+      price: combinedPrice,
+      image_url: pairing.coffees.image_url,
+      coffeeName: pairing.coffees.name,
+      pastryName: pairing.pastries.name,
+      coffeeId: pairing.coffees.id,
+      pastryId: pairing.pastries.id,
+      coffeePrice,
+      pastryPrice,
+    });
+    
+    // Show success feedback
+    setIsCartOpen(true);
+  };
+
+  const handleWhatsAppChat = () => {
+    const message = `Hi! I'm interested in the pairing: ${pairing?.coffees.name} + ${pairing?.pastries.name}`;
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-bg via-brand-primary to-brand-surface">
-      {/* Header */}
-      <header className="relative z-50">
+    <div className="min-h-screen bg-gradient-to-br from-brand-bg via-brand-primary to-brand-surface pb-20">
+      {/* Fixed Header */}
+      <header className="sticky top-0 z-50 bg-brand-surface/95 backdrop-blur-sm border-b border-brand-border/30">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <nav className="flex items-center justify-between py-6">
-            <div className="flex items-center gap-4">
-              <Link
-                to={`/s/${shop}`}
-                className="inline-flex items-center gap-2 text-sm font-medium text-brand-text/70 hover:text-white transition-colors"
-              >
-                <ArrowLeftIcon className="h-4 w-4" />
-                Back to {shopData.cafe_name}
-              </Link>
-            </div>
-            <div className="flex items-center gap-4">
-              <Link
-                to="/"
-                className="inline-flex items-center gap-2 text-sm font-medium text-brand-text/70 hover:text-white transition-colors"
-              >
-                <ArrowLeftIcon className="h-4 w-4" />
-                Back to Home
-              </Link>
-            </div>
+          <nav className="flex items-center justify-between py-4">
+            <Link
+              to={`/s/${shop}`}
+              className="inline-flex items-center gap-2 text-sm font-medium text-brand-text/70 hover:text-white transition-colors"
+            >
+              <ArrowLeftIcon className="h-4 w-4" />
+              <span className="hidden sm:inline">Back to {shopData.cafe_name}</span>
+              <span className="sm:hidden">Back</span>
+            </Link>
+            
+            {/* Cart Button */}
+            <button
+              onClick={() => setIsCartOpen(true)}
+              className="relative flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-brand-accent/10 transition-colors"
+            >
+              <svg className="w-5 h-5 text-brand-text" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              {getTotalItems() > 0 && (
+                <span className="absolute -top-1 -right-1 bg-brand-accent text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                  {getTotalItems()}
+                </span>
+              )}
+              <span className="hidden sm:inline text-brand-text">Cart</span>
+            </button>
           </nav>
         </div>
       </header>
 
-      {/* Pairing Hero Section */}
-      <section className="py-12 px-4">
+      {/* Main Content */}
+      <main className="py-6 sm:py-12 px-4">
         <div className="max-w-4xl mx-auto">
-          {/* Pairing Card */}
-          <div className="glass-panel rounded-3xl p-8 mb-8">
-            <div className="flex items-center justify-center gap-3 mb-6">
+          
+          {/* Hero Badge */}
+          <div className="text-center mb-6">
+            <div className="inline-block bg-gradient-to-r from-brand-accent to-amber-400 text-white px-6 py-3 rounded-full shadow-xl">
+              <div className="flex items-center gap-2">
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+                <span className="font-bold text-lg">{Math.round(pairing.score * 100)}% Perfect Match</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Pairing Images - Mobile Optimized */}
+          <div className="glass-panel rounded-3xl p-4 sm:p-8 mb-6">
+            <div className="grid grid-cols-2 gap-3 sm:gap-6 mb-6">
+              {/* Coffee */}
               {pairing.coffees.image_url && (
-                <div className="flex-1">
+                <div className="space-y-3">
                   <OptimizedImage
                     src={pairing.coffees.image_url}
                     alt={pairing.coffees.name}
                     width={400}
-                    height={192}
+                    height={400}
                     priority={true}
-                    className="w-full h-48 object-cover rounded-2xl shadow-lg"
+                    className="w-full aspect-square object-cover rounded-2xl shadow-lg"
                   />
-                  <h2 className="text-2xl font-bold text-white mt-4 text-center">
-                    {pairing.coffees.name}
-                  </h2>
+                  <div className="text-center">
+                    <h2 className="text-lg sm:text-2xl font-bold text-white">
+                      {pairing.coffees.name}
+                    </h2>
+                    {pairing.coffees.flavor_notes && (
+                      <p className="text-xs sm:text-sm text-brand-text-muted mt-1">
+                        {pairing.coffees.flavor_notes}
+                      </p>
+                    )}
+                    {pairing.coffees.price != null && (
+                      <p className="text-brand-accent font-bold text-lg mt-2">
+                        €{pairing.coffees.price.toFixed(2)}
+                      </p>
+                    )}
+                  </div>
                 </div>
               )}
               
-              <div className="flex items-center gap-4 text-4xl text-brand-accent">
-                +
-              </div>
-              
+              {/* Pastry */}
               {pairing.pastries.image_url && (
-                <div className="flex-1">
+                <div className="space-y-3">
                   <OptimizedImage
                     src={pairing.pastries.image_url}
                     alt={pairing.pastries.name}
                     width={400}
-                    height={192}
+                    height={400}
                     priority={true}
-                    className="w-full h-48 object-cover rounded-2xl shadow-lg"
+                    className="w-full aspect-square object-cover rounded-2xl shadow-lg"
                   />
-                  <h2 className="text-2xl font-bold text-white mt-4 text-center">
-                    {pairing.pastries.name}
-                  </h2>
+                  <div className="text-center">
+                    <h2 className="text-lg sm:text-2xl font-bold text-white">
+                      {pairing.pastries.name}
+                    </h2>
+                    {pairing.pastries.texture_tags && (
+                      <p className="text-xs sm:text-sm text-brand-text-muted mt-1">
+                        {pairing.pastries.texture_tags}
+                      </p>
+                    )}
+                    {pairing.pastries.price != null && (
+                      <p className="text-brand-accent font-bold text-lg mt-2">
+                        €{pairing.pastries.price.toFixed(2)}
+                      </p>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
 
-            {/* Score */}
-            <div className="text-center mb-6">
-              <div className="inline-block bg-gradient-to-r from-brand-accent to-amber-400 text-white px-8 py-4 rounded-2xl shadow-xl">
-                <div className="text-sm font-semibold mb-1">PERFECT MATCH</div>
-                <div className="text-5xl font-bold">
-                  {Math.round(pairing.score * 100)}%
+            {/* Total Price & Actions */}
+            {hasBothPrices && (
+              <div className="border-t border-white/10 pt-6 mt-6 space-y-4">
+                <div className="flex items-center justify-between px-4">
+                  <div>
+                    <p className="text-sm text-brand-text-muted">Total Price</p>
+                    <p className="text-3xl font-bold text-brand-accent">
+                      €{combinedPrice.toFixed(2)}
+                    </p>
+                    <p className="text-xs text-brand-text-muted mt-1">
+                      Coffee + Pastry Pairing
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <div className="inline-flex items-center gap-2 bg-green-500/20 text-green-400 px-4 py-2 rounded-full border border-green-500/30">
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                      <span className="font-semibold">Available</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <button
+                    onClick={handleAddToCart}
+                    className="w-full py-4 rounded-xl bg-gradient-to-r from-brand-accent to-amber-400 text-white font-bold text-lg shadow-lg hover:shadow-xl transition-all hover:scale-105 flex items-center justify-center gap-2"
+                  >
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    Add to Cart
+                  </button>
+                  
+                  <button
+                    onClick={handleWhatsAppChat}
+                    className="w-full py-4 rounded-xl bg-green-600 hover:bg-green-700 text-white font-bold text-lg shadow-lg transition-all hover:scale-105 flex items-center justify-center gap-2"
+                  >
+                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                    </svg>
+                    Chat on WhatsApp
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Why This Pairing Works */}
+          {pairing.why && (
+            <div className="glass-panel rounded-2xl p-6 sm:p-8 mb-6">
+              <div className="flex items-start gap-3 mb-4">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-brand-accent/20 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-brand-accent" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-xl sm:text-2xl font-bold text-white mb-3">
+                    Why This Pairing Works
+                  </h3>
+                  <p className="text-brand-text leading-relaxed text-sm sm:text-base">
+                    {pairing.why}
+                  </p>
                 </div>
               </div>
             </div>
+          )}
 
-            {/* Why */}
-            {pairing.why && (
-              <div className="glass-panel rounded-2xl p-6 mb-6">
-                <h3 className="text-xl font-semibold text-white mb-4">Why This Pairing Works</h3>
-                <p className="text-brand-text-muted leading-relaxed">
-                  {pairing.why}
-                </p>
-              </div>
-            )}
-
-            {/* Flavor Tags */}
-            {pairing.pastries.flavor_tags && (
-              <div className="flex flex-wrap gap-2 justify-center">
+          {/* Flavor Tags */}
+          {pairing.pastries.flavor_tags && (
+            <div className="glass-panel rounded-2xl p-6 sm:p-8 mb-6">
+              <h3 className="text-lg font-semibold text-white mb-4">Flavor Profile</h3>
+              <div className="flex flex-wrap gap-2">
                 {pairing.pastries.flavor_tags.split(',').map((tag, index) => (
                   <span
                     key={index}
-                    className="bg-brand-primary/50 text-brand-text px-4 py-2 rounded-full text-sm font-semibold"
+                    className="bg-brand-accent/20 text-brand-accent px-4 py-2 rounded-full text-sm font-semibold border border-brand-accent/30"
                   >
                     {tag.trim()}
                   </span>
                 ))}
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
-          {/* Shop Info */}
-          <div className="glass-panel rounded-2xl p-6">
+          {/* Cafe Info */}
+          <div className="glass-panel rounded-2xl p-6 sm:p-8">
             <div className="flex items-center gap-3 mb-4">
-              <CoffeeIcon className="h-8 w-8 text-brand-accent" />
-              <span className="text-xl font-bold text-white">{shopData.cafe_name}</span>
+              <CoffeeIcon className="h-10 w-10 text-brand-accent" />
+              <div>
+                <p className="text-sm text-brand-text-muted">Available at</p>
+                <h3 className="text-xl font-bold text-white">{shopData.cafe_name}</h3>
+              </div>
             </div>
             <Link
               to={`/s/${shop}`}
-              className="text-brand-accent hover:text-brand-accent/80 transition-colors text-sm inline-flex items-center gap-2"
+              className="inline-flex items-center gap-2 text-brand-accent hover:text-white transition-colors font-semibold"
             >
-              View all coffees and pairings →
+              View all menu items & pairings
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
             </Link>
           </div>
         </div>
-      </section>
+      </main>
+
+      {/* Shopping Cart Modal */}
+      <ShoppingCart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
 
       {/* Footer */}
       <footer className="border-t border-brand-border/30 bg-brand-primary/50 py-12">
