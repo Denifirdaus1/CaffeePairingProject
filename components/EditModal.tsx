@@ -263,6 +263,24 @@ export const EditModal: React.FC<EditModalProps> = ({ item, type, onClose, onSav
                     <input id="name" type="text" name="name" value={formData.name || ''} onChange={handleChange} placeholder="Item Name" required className="w-full bg-brand-bg border border-brand-accent/50 rounded-md p-2 text-brand-text focus:ring-brand-accent focus:border-brand-accent" />
                     <p className="text-xs text-brand-text/70 mt-1">The public-facing name of the item.</p>
                 </div>
+
+                <div>
+                    <label htmlFor="price" className="block text-sm font-medium text-brand-text/90 mb-1">
+                        Harga (Price)
+                    </label>
+                    <input 
+                        id="price" 
+                        type="number" 
+                        name="price" 
+                        value={formData.price ?? ''} 
+                        onChange={handleChange} 
+                        placeholder="e.g., 45000" 
+                        min="0"
+                        step="0.01"
+                        className="w-full bg-brand-bg border border-brand-accent/50 rounded-md p-2 text-brand-text focus:ring-brand-accent focus:border-brand-accent" 
+                    />
+                    <p className="text-xs text-brand-text/70 mt-1">Masukkan harga dalam mata uang lokal (opsional).</p>
+                </div>
                 
                 {type === 'coffee' ? renderCoffeeForm() : renderPastryForm()}
                 

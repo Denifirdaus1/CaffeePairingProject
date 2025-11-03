@@ -37,7 +37,8 @@ const initialCoffeeState: Omit<CoffeeInsert, 'cafe_id' | 'image_path' | 'image_u
     preparation: '',
     sort_blend: '',
     origin: '',
-    acidity: 3
+    acidity: 3,
+    price: undefined
 };
 
 const initialPastryState: Omit<PastryInsert, 'cafe_id' | 'image_path' | 'image_url'> = {
@@ -47,7 +48,8 @@ const initialPastryState: Omit<PastryInsert, 'cafe_id' | 'image_path' | 'image_u
     popularity_hint: 0.3,
     allergen_info: '',
     sweetness: 3,
-    richness: 3
+    richness: 3,
+    price: undefined
 };
 
 interface AddModalProps {
@@ -469,6 +471,24 @@ export const AddModal: React.FC<AddModalProps> = ({ type, onClose, onAddCoffee, 
                     <p className="text-xs text-brand-text/70 mt-1">
                         Enter the name, then click "AI Auto-Fill" to automatically generate all metadata using Google Search.
                     </p>
+                </div>
+
+                <div>
+                    <label htmlFor="price" className="block text-sm font-medium text-brand-text/90 mb-1">
+                        Harga (Price)
+                    </label>
+                    <input 
+                        id="price" 
+                        type="number" 
+                        name="price" 
+                        value={formData.price ?? ''} 
+                        onChange={handleChange} 
+                        placeholder="e.g., 45000" 
+                        min="0"
+                        step="0.01"
+                        className="w-full bg-brand-bg border border-brand-accent/50 rounded-md p-2 text-brand-text focus:ring-brand-accent focus:border-brand-accent" 
+                    />
+                    <p className="text-xs text-brand-text/70 mt-1">Masukkan harga dalam mata uang lokal (opsional).</p>
                 </div>
                 
                 {type === 'coffee' ? renderCoffeeForm() : renderPastryForm()}
