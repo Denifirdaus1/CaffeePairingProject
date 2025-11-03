@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   PlaceDetails,
   formatOpeningHours,
@@ -20,10 +20,24 @@ export const PlacePreviewCard: React.FC<PlacePreviewCardProps> = ({
   onCancel,
   showActions = true,
 }) => {
+  const [showAllHours, setShowAllHours] = useState(false);
+  
   const openStatus = isPlaceOpen(place.opening_hours);
   const openingHoursText = formatOpeningHours(place.opening_hours);
   const priceLevel = formatPriceLevel(place.price_level);
   const businessStatus = formatBusinessStatus(place.business_status);
+  
+  // Get current day index (0 = Sunday, 1 = Monday, etc.)
+  const currentDayIndex = new Date().getDay();
+  const currentDayText = openingHoursText[currentDayIndex] || openingHoursText[0];
+  
+  // Format price range (€1-10 style)
+  const getPriceRange = (level?: number) => {
+    if (!level) return null;
+    const prices = ['€1-5', '€5-10', '€10-20', '€20+'];
+    return prices[level - 1] || null;
+  };
+  const priceRange = getPriceRange(place.price_level);
   
   // Get main photo
   const photoUrl = place.photos?.[0]?.getUrl({ maxWidth: 800 });
@@ -74,15 +88,15 @@ export const PlacePreviewCard: React.FC<PlacePreviewCardProps> = ({
             <h4 className="text-xl font-bold text-white mb-1">{place.name}</h4>
             
             {/* Type & Price */}
-            {(place.types || priceLevel) && (
+            {(place.types || priceRange) && (
               <div className="flex items-center gap-2 text-sm text-brand-text-muted mb-2">
                 {place.types?.[0] && (
                   <span className="capitalize bg-white/5 px-2 py-0.5 rounded">
                     {place.types[0].replace(/_/g, ' ')}
                   </span>
                 )}
-                {priceLevel && (
-                  <span className="text-brand-accent font-semibold">{priceLevel}</span>
+                {priceRange && (
+                  <span className="text-green-400 font-semibold">{priceRange}</span>
                 )}
               </div>
             )}
@@ -139,6 +153,63 @@ export const PlacePreviewCard: React.FC<PlacePreviewCardProps> = ({
 
         {/* Details Grid */}
         <div className="space-y-2.5 pt-3 border-t border-white/10">
+          {/* Opening Hours - Top Position with Dropdown */}
+          {openingHoursText.length > 0 && (
+            <div className="p-3 bg-brand-accent/5 rounded-lg border border-brand-accent/20">
+              <button
+                onClick={() => setShowAllHours(!showAllHours)}
+                className="w-full flex items-center justify-between text-left hover:bg-white/5 transition-colors rounded p-1 -m-1"
+              >
+                <div className="flex items-center gap-2">
+                  <svg
+                    className={`w-4 h-4 ${openStatus.isOpen ? 'text-green-500' : 'text-red-500'}`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  <span className={`text-sm font-medium ${openStatus.isOpen ? 'text-green-400' : 'text-red-400'}`}>
+                    {openStatus.text}
+                  </span>
+                </div>
+                <svg
+                  className={`w-4 h-4 text-brand-text-muted transition-transform ${showAllHours ? 'rotate-180' : ''}`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              
+              <div className="mt-2 space-y-1">
+                {/* Current Day - Always Visible */}
+                {currentDayText && (
+                  <p className="text-brand-text text-xs font-mono leading-relaxed">
+                    {currentDayText}
+                  </p>
+                )}
+                
+                {/* All Days - Collapsible */}
+                {showAllHours && (
+                  <div className="mt-2 pt-2 border-t border-white/10 space-y-1">
+                    {openingHoursText.filter((_, idx) => idx !== currentDayIndex).map((text, index) => (
+                      <p key={index} className="text-brand-text-muted text-xs font-mono leading-relaxed">
+                        {text}
+                      </p>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          
           {/* Address */}
           <div className="flex items-start gap-2.5">
               <svg
@@ -210,28 +281,6 @@ export const PlacePreviewCard: React.FC<PlacePreviewCardProps> = ({
             </div>
           )}
 
-          {/* Opening Status */}
-          {place.opening_hours && (
-            <div className="flex items-center gap-2.5">
-              <svg
-                className={`w-4 h-4 ${openStatus.isOpen ? 'text-green-500' : 'text-red-500'}`}
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <span className={`text-sm font-medium ${openStatus.isOpen ? 'text-green-400' : 'text-red-400'}`}>
-                {openStatus.text}
-              </span>
-            </div>
-          )}
-
           {/* Business Status */}
           {place.business_status && place.business_status !== 'OPERATIONAL' && (
             <div className="flex items-center gap-2 px-3 py-1.5 bg-yellow-500/10 rounded-lg border border-yellow-500/20">
@@ -252,35 +301,6 @@ export const PlacePreviewCard: React.FC<PlacePreviewCardProps> = ({
             </div>
           )}
         </div>
-
-        {/* Opening Hours Details */}
-        {openingHoursText.length > 0 && (
-          <div className="p-3.5 bg-white/5 rounded-lg border border-white/10">
-            <h5 className="text-xs font-semibold text-white/80 mb-2.5 uppercase tracking-wide flex items-center gap-1.5">
-              <svg
-                className="w-3.5 h-3.5 text-brand-accent"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              Opening Hours
-            </h5>
-            <div className="space-y-1">
-              {openingHoursText.map((text, index) => (
-                <p key={index} className="text-brand-text text-xs leading-relaxed font-mono">
-                  {text}
-                </p>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Info Badge */}
         <div className="p-3 bg-brand-accent/10 rounded-lg border border-brand-accent/20">
