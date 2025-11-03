@@ -293,48 +293,104 @@ export const PublicShopPage: React.FC = () => {
               Recommended Pairings
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {publishedPairings.map(pairing => (
-                <div
-                  key={pairing.id}
-                  className="glass-panel rounded-2xl p-6 hover:scale-105 transition-transform border-2 border-brand-accent/20 cursor-pointer"
-                  onClick={() => window.location.href = `/s/${shop}/pairing/${pairing.pairing_slug}`}
-                >
-                  <div className="flex items-center gap-4 mb-4">
-                    {pairing.coffees.image_url && (
-                      <OptimizedImage
-                        src={pairing.coffees.image_url}
-                        alt={pairing.coffees.name}
-                        width={64}
-                        height={64}
-                        className="w-16 h-16 rounded-lg object-cover"
-                      />
-                    )}
-                    {pairing.pastries.image_url && (
-                      <OptimizedImage
-                        src={pairing.pastries.image_url}
-                        alt={pairing.pastries.name}
-                        width={64}
-                        height={64}
-                        className="w-16 h-16 rounded-lg object-cover"
-                      />
-                    )}
+              {publishedPairings.map(pairing => {
+                const { addToCart, isInCart } = useCart();
+                const coffeePrice = pairing.coffees.price || 0;
+                const pastryPrice = pairing.pastries.price || 0;
+                const combinedPrice = coffeePrice + pastryPrice;
+                const hasBothPrices = pairing.coffees.price != null && pairing.pastries.price != null;
+                const inCart = isInCart(pairing.id, 'pairing');
+                
+                return (
+                  <div
+                    key={pairing.id}
+                    className="glass-panel rounded-2xl p-6 hover:scale-105 transition-transform border-2 border-brand-accent/20"
+                  >
+                    <div onClick={() => window.location.href = `/s/${shop}/pairing/${pairing.pairing_slug}`} className="cursor-pointer">
+                      <div className="flex items-center gap-4 mb-4">
+                        {pairing.coffees.image_url && (
+                          <OptimizedImage
+                            src={pairing.coffees.image_url}
+                            alt={pairing.coffees.name}
+                            width={64}
+                            height={64}
+                            className="w-16 h-16 rounded-lg object-cover"
+                          />
+                        )}
+                        {pairing.pastries.image_url && (
+                          <OptimizedImage
+                            src={pairing.pastries.image_url}
+                            alt={pairing.pastries.name}
+                            width={64}
+                            height={64}
+                            className="w-16 h-16 rounded-lg object-cover"
+                          />
+                        )}
+                      </div>
+                      <h3 className="text-lg font-semibold text-white mb-2">
+                        {pairing.coffees.name} + {pairing.pastries.name}
+                      </h3>
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="text-brand-accent font-bold">
+                          {Math.round(pairing.score * 100)}% Match
+                        </span>
+                      </div>
+                      {pairing.why && (
+                        <p className="text-brand-text-muted text-sm line-clamp-2">{pairing.why}</p>
+                      )}
+                    </div>
+                    
+                    {/* Price and Add to Cart */}
+                    <div className="mt-4 pt-4 border-t border-white/10">
+                      {hasBothPrices ? (
+                        <>
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="text-sm text-brand-text-muted">
+                              <div>Coffee: €{coffeePrice.toFixed(2)}</div>
+                              <div>Pastry: €{pastryPrice.toFixed(2)}</div>
+                            </div>
+                            <div className="text-2xl font-bold text-brand-accent">
+                              €{combinedPrice.toFixed(2)}
+                            </div>
+                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              addToCart({
+                                type: 'pairing',
+                                productId: pairing.id,
+                                name: `${pairing.coffees.name} + ${pairing.pastries.name}`,
+                                price: combinedPrice,
+                                image_url: pairing.coffees.image_url,
+                                coffeeName: pairing.coffees.name,
+                                pastryName: pairing.pastries.name,
+                                coffeeId: pairing.coffees.id,
+                                pastryId: pairing.pastries.id,
+                                coffeePrice,
+                                pastryPrice,
+                              });
+                            }}
+                            className={`w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all ${
+                              inCart
+                                ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                                : 'bg-brand-accent/20 hover:bg-brand-accent/30 text-brand-accent border border-brand-accent/30'
+                            }`}
+                          >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                            {inCart ? 'In Cart' : 'Add Pairing to Cart'}
+                          </button>
+                        </>
+                      ) : (
+                        <p className="text-sm text-brand-text-muted text-center">
+                          Prices not available
+                        </p>
+                      )}
+                    </div>
                   </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">
-                    {pairing.coffees.name} + {pairing.pastries.name}
-                  </h3>
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="text-brand-accent font-bold">
-                      {Math.round(pairing.score * 100)}% Match
-                    </span>
-                  </div>
-                  {pairing.why && (
-                    <p className="text-brand-text-muted text-sm line-clamp-2">{pairing.why}</p>
-                  )}
-                  <div className="mt-4 flex items-center justify-end">
-                    <span className="text-brand-text-muted text-sm">View Details →</span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </section>
@@ -449,40 +505,76 @@ export const PublicShopPage: React.FC = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {displayCoffees.map((coffee) => (
-                <div
-                  key={coffee.id}
-                  className="glass-panel rounded-2xl p-6 hover:scale-105 transition-transform cursor-pointer"
-                  onClick={() => window.location.href = `/s/${shop}/coffee/${coffee.slug}`}
-                >
-                  {coffee.image_url && (
-                    <OptimizedImage
-                      src={coffee.image_url}
-                      alt={coffee.name}
-                      width={400}
-                      height={192}
-                      className="w-full h-48 object-cover rounded-lg mb-4"
-                    />
-                  )}
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-xl font-semibold text-white">{coffee.name}</h3>
-                    {coffee.is_main_shot && (
-                      <span className="bg-brand-accent text-white px-2 py-1 rounded-full text-xs font-semibold">
-                        Main Shot
-                      </span>
-                    )}
+              {displayCoffees.map((coffee) => {
+                const { addToCart, isInCart } = useCart();
+                const inCart = isInCart(coffee.id, 'coffee');
+                
+                return (
+                  <div
+                    key={coffee.id}
+                    className="glass-panel rounded-2xl p-6 hover:scale-105 transition-transform"
+                  >
+                    <div onClick={() => window.location.href = `/s/${shop}/coffee/${coffee.slug}`} className="cursor-pointer">
+                      {coffee.image_url && (
+                        <OptimizedImage
+                          src={coffee.image_url}
+                          alt={coffee.name}
+                          width={400}
+                          height={192}
+                          className="w-full h-48 object-cover rounded-lg mb-4"
+                        />
+                      )}
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-xl font-semibold text-white">{coffee.name}</h3>
+                        {coffee.is_main_shot && (
+                          <span className="bg-brand-accent text-white px-2 py-1 rounded-full text-xs font-semibold">
+                            Main Shot
+                          </span>
+                        )}
+                      </div>
+                      {coffee.flavor_notes && (
+                        <p className="text-brand-text-muted text-sm mb-3">{coffee.flavor_notes}</p>
+                      )}
+                    </div>
+                    
+                    {/* Price and Add to Cart */}
+                    <div className="mt-4 pt-4 border-t border-white/10 flex items-center justify-between">
+                      {coffee.price != null ? (
+                        <span className="text-2xl font-bold text-brand-accent">
+                          €{coffee.price.toFixed(2)}
+                        </span>
+                      ) : (
+                        <span className="text-sm text-brand-text-muted">Price not set</span>
+                      )}
+                      
+                      {coffee.price != null && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            addToCart({
+                              type: 'coffee',
+                              productId: coffee.id,
+                              name: coffee.name,
+                              price: coffee.price!,
+                              image_url: coffee.image_url,
+                            });
+                          }}
+                          className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all ${
+                            inCart
+                              ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                              : 'bg-brand-accent/20 hover:bg-brand-accent/30 text-brand-accent border border-brand-accent/30'
+                          }`}
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                          </svg>
+                          {inCart ? 'In Cart' : 'Add to Cart'}
+                        </button>
+                      )}
+                    </div>
                   </div>
-                  {coffee.flavor_notes && (
-                    <p className="text-brand-text-muted text-sm mb-3">{coffee.flavor_notes}</p>
-                  )}
-                  <div className="flex items-center justify-between">
-                    <span className="text-brand-accent font-semibold">
-                      Popularity: {Math.round(coffee.popularity_hint * 100)}%
-                    </span>
-                    <span className="text-brand-text-muted text-sm">View Pairings →</span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -496,33 +588,72 @@ export const PublicShopPage: React.FC = () => {
               Our Pastries
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {pastries.filter(pastry => pastry.slug).map((pastry) => (
-                <button
-                  key={pastry.id}
-                  onClick={() => window.location.href = `/s/${shop}/pastry/${pastry.slug}`}
-                  className="glass-panel rounded-2xl p-6 hover:scale-105 transition-transform cursor-pointer text-left"
-                >
-                  {pastry.image_url && (
-                    <OptimizedImage
-                      src={pastry.image_url}
-                      alt={pastry.name}
-                      width={400}
-                      height={192}
-                      className="w-full h-48 object-cover rounded-lg mb-4"
-                    />
-                  )}
-                  <h3 className="text-xl font-semibold text-white mb-2">{pastry.name}</h3>
-                  {pastry.flavor_tags && (
-                    <p className="text-brand-text-muted text-sm">{pastry.flavor_tags}</p>
-                  )}
-                  {pastry.texture_tags && (
-                    <p className="text-brand-text-muted text-xs mt-2">Texture: {pastry.texture_tags}</p>
-                  )}
-                  <div className="mt-4 text-brand-accent text-sm font-semibold">
-                    View Details →
+              {pastries.filter(pastry => pastry.slug).map((pastry) => {
+                const { addToCart, isInCart } = useCart();
+                const inCart = isInCart(pastry.id, 'pastry');
+                
+                return (
+                  <div
+                    key={pastry.id}
+                    className="glass-panel rounded-2xl p-6 hover:scale-105 transition-transform"
+                  >
+                    <div onClick={() => window.location.href = `/s/${shop}/pastry/${pastry.slug}`} className="cursor-pointer">
+                      {pastry.image_url && (
+                        <OptimizedImage
+                          src={pastry.image_url}
+                          alt={pastry.name}
+                          width={400}
+                          height={192}
+                          className="w-full h-48 object-cover rounded-lg mb-4"
+                        />
+                      )}
+                      <h3 className="text-xl font-semibold text-white mb-2">{pastry.name}</h3>
+                      {pastry.flavor_tags && (
+                        <p className="text-brand-text-muted text-sm">{pastry.flavor_tags}</p>
+                      )}
+                      {pastry.texture_tags && (
+                        <p className="text-brand-text-muted text-xs mt-2">Texture: {pastry.texture_tags}</p>
+                      )}
+                    </div>
+                    
+                    {/* Price and Add to Cart */}
+                    <div className="mt-4 pt-4 border-t border-white/10 flex items-center justify-between">
+                      {pastry.price != null ? (
+                        <span className="text-2xl font-bold text-brand-accent">
+                          €{pastry.price.toFixed(2)}
+                        </span>
+                      ) : (
+                        <span className="text-sm text-brand-text-muted">Price not set</span>
+                      )}
+                      
+                      {pastry.price != null && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            addToCart({
+                              type: 'pastry',
+                              productId: pastry.id,
+                              name: pastry.name,
+                              price: pastry.price!,
+                              image_url: pastry.image_url,
+                            });
+                          }}
+                          className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all ${
+                            inCart
+                              ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                              : 'bg-brand-accent/20 hover:bg-brand-accent/30 text-brand-accent border border-brand-accent/30'
+                          }`}
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                          </svg>
+                          {inCart ? 'In Cart' : 'Add to Cart'}
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </button>
-              ))}
+                );
+              })}
             </div>
           </div>
         </section>
