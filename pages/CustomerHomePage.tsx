@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../services/supabaseClient';
-import { getCurrentLocation, calculateDistance } from '../services/googleMapsService';
+import { getCurrentLocation } from '../services/googleMapsService';
 import { LocationPermissionPrompt } from '../components/customer/LocationPermissionPrompt';
 import { LocationSearchFallback } from '../components/customer/LocationSearchFallback';
 import { NearbyCafesList } from '../components/customer/NearbyCafesList';
@@ -73,17 +73,22 @@ export const CustomerHomePage: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      // Fetch all cafes with shop_slug and location data
-      const { data: cafes, error: cafesError } = await supabase
-        .from('cafe_profiles')
-        .select('id, cafe_name, shop_slug, address, city, country, logo_url, latitude, longitude')
-        .not('shop_slug', 'is', null)
-        .not('latitude', 'is', null)
-        .not('longitude', 'is', null);
+      console.log('🗺️ Searching for nearby cafes at:', location);
+
+      // Use database function for efficient nearby search (Haversine formula)
+      const { data: cafes, error: cafesError } = await supabase.rpc('find_nearby_cafes', {
+        user_lat: location.lat,
+        user_lng: location.lng,
+        radius_km: 50, // Search within 50km radius
+        max_results: 50, // Max 50 results
+      });
 
       if (cafesError) {
+        console.error('Error calling find_nearby_cafes:', cafesError);
         throw new Error(`Failed to fetch cafés: ${cafesError.message}`);
       }
+
+      console.log(`✅ Found ${cafes?.length || 0} cafes nearby`);
 
       if (!cafes || cafes.length === 0) {
         setNearbyCafes([]);
@@ -91,41 +96,23 @@ export const CustomerHomePage: React.FC = () => {
         return;
       }
 
-      // Calculate distances for each cafe
-      const cafesWithDistance = await Promise.all(
-        cafes.map(async (cafe) => {
-          if (!cafe.latitude || !cafe.longitude) {
-            return null;
-          }
+      // Convert distance_km to meters for compatibility
+      const cafesWithDistance: NearbyCafe[] = cafes.map((cafe) => ({
+        id: cafe.id,
+        cafe_name: cafe.cafe_name,
+        shop_slug: cafe.shop_slug,
+        address: cafe.address,
+        city: cafe.city,
+        country: cafe.country,
+        latitude: cafe.latitude,
+        longitude: cafe.longitude,
+        distance: cafe.distance_km * 1000, // Convert km to meters
+      }));
 
-          try {
-            const distance = await calculateDistance(
-              location.lat,
-              location.lng,
-              cafe.latitude,
-              cafe.longitude
-            );
-
-            return {
-              ...cafe,
-              distance,
-            } as NearbyCafe;
-          } catch (err) {
-            console.error(`Error calculating distance for ${cafe.cafe_name}:`, err);
-            return null;
-          }
-        })
-      );
-
-      // Filter out nulls and sort by distance
-      const validCafes = cafesWithDistance
-        .filter((cafe): cafe is NearbyCafe => cafe !== null)
-        .sort((a, b) => a.distance - b.distance);
-
-      setNearbyCafes(validCafes);
+      setNearbyCafes(cafesWithDistance);
       setPhase('results');
     } catch (err: any) {
-      console.error('Error fetching nearby cafés:', err);
+      console.error('❌ Error fetching nearby cafés:', err);
       setError(err.message || 'Failed to load nearby cafés');
       setPhase('results');
     } finally {
