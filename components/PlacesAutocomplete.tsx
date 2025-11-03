@@ -11,7 +11,7 @@ interface PlacesAutocompleteProps {
 export const PlacesAutocomplete: React.FC<PlacesAutocompleteProps> = ({
   onPlaceSelect,
   placeholder = 'Search for your café on Google Maps...',
-  types = ['cafe', 'restaurant', 'establishment'],
+  types = ['cafe', 'restaurant', 'bakery', 'food'],
   className = '',
 }) => {
   const [query, setQuery] = useState('');

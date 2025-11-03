@@ -309,7 +309,7 @@ export const RegisterPage: React.FC = () => {
                   <PlacesAutocomplete
                     onPlaceSelect={handlePlaceSelect}
                     placeholder="Search for your café on Google Maps..."
-                    types={['cafe', 'restaurant', 'bakery', 'food', 'establishment']}
+                    types={['cafe', 'restaurant', 'bakery', 'food']}
                   />
                 </div>
               )}
