@@ -2,7 +2,7 @@ import React from 'react';
 
 interface LocationPermissionPromptProps {
   onRequestPermission: () => void;
-  onSkip: () => void;
+  onSkip?: () => void; // Optional now
 }
 
 export const LocationPermissionPrompt: React.FC<LocationPermissionPromptProps> = ({
@@ -38,7 +38,10 @@ export const LocationPermissionPrompt: React.FC<LocationPermissionPromptProps> =
             Find Cafés Near You
           </h2>
           <p className="text-brand-text/80 text-lg">
-            Allow us to access your location to show you the nearest partner cafés and their perfect coffee pairings.
+            We need access to your GPS location to calculate accurate distances to cafés.
+          </p>
+          <p className="text-brand-text-muted text-sm mt-2">
+            📍 Your real GPS coordinates will be used to show exact distances.
           </p>
         </div>
 
@@ -47,19 +50,21 @@ export const LocationPermissionPrompt: React.FC<LocationPermissionPromptProps> =
             onClick={onRequestPermission}
             className="w-full button-primary-pulse rounded-xl bg-gradient-to-r from-brand-accent via-brand-accent/90 to-amber-400/70 px-6 py-4 text-base font-semibold text-white shadow-lg transition-all hover:brightness-110"
           >
-            Allow Location Access
+            Allow GPS Location Access
           </button>
-          <button
-            onClick={onSkip}
-            className="w-full rounded-xl bg-brand-surface/50 border border-brand-accent/30 px-6 py-4 text-base font-medium text-brand-text hover:bg-brand-surface/70 transition-colors"
-          >
-            Search by City or Area Instead
-          </button>
+          {onSkip && (
+            <button
+              onClick={onSkip}
+              className="w-full rounded-xl bg-brand-surface/50 border border-brand-accent/30 px-6 py-4 text-base font-medium text-brand-text hover:bg-brand-surface/70 transition-colors"
+            >
+              Search by City or Area Instead
+            </button>
+          )}
         </div>
 
         <div className="mt-6 pt-6 border-t border-brand-accent/20">
           <p className="text-sm text-brand-text-muted">
-            Your location data is only used to find nearby cafés and is never stored or shared.
+            🔒 Your GPS location is only used to calculate distances and is never stored or shared.
           </p>
         </div>
       </div>
