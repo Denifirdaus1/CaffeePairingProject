@@ -143,7 +143,7 @@ export const CustomerHomePage: React.FC = () => {
           <nav className="flex items-center justify-between py-6">
             <div className="flex items-center gap-3 text-white">
               <CoffeeIcon className="h-8 w-8 text-brand-accent" />
-              <span className="text-xl font-bold">kaffeCihuy</span>
+              <span className="text-xl font-bold">Café Pairing</span>
             </div>
             <div className="flex items-center gap-4">
               <a
