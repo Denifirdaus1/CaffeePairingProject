@@ -1,5 +1,5 @@
 import { GoogleGenAI } from '@google/genai';
-import type { Coffee, Pastry, PairingResponse } from '../types';
+import type { Coffee, Pastry, PairingResponse, Bean, Preparation } from '../types';
 import { calculateBunamoScore } from './bunamoService';
 
 // Get API key from environment with fallback
@@ -315,5 +315,82 @@ export const generatePairings = async (
         },
     };
     return errorResponse;
+  }
+};
+
+// Beans-first version: include preparations and let Gemini 2.5 Pro (thinking) choose the best preparation per pairing
+export const generatePairingsForBean = async (
+  selectedBean: Bean,
+  beanPreparations: Preparation[],
+  allPastries: Pastry[]
+): Promise<PairingResponse> => {
+  try {
+    const prompt = `You are Café Pairing AI using a beans-first menu. A bean can be prepared with different methods, each with its own price. Choose the best preparation for pairing.
+
+CONTEXT:
+Bean:
+${JSON.stringify(selectedBean, null, 2)}
+
+Available preparations (choose the BEST one for each pairing based on flavor/texture rationale; do NOT assume lowest price):
+${JSON.stringify(beanPreparations.map(p => ({ method_name: p.method_name, price: p.price })), null, 2)}
+
+Candidate pastries:
+${JSON.stringify(allPastries, null, 2)}
+
+TASK:
+1) Score ALL bean-preparation × pastry combinations using flavor/texture/popularity/season thinking.
+2) For each of the TOP 3 pastries, pick ONE recommended bean preparation (method) and explain briefly why.
+3) Output JSON ONLY with this exact shape:
+{
+  "coffee": { "id": "${selectedBean.id}", "name": "${selectedBean.name}", "image": "${selectedBean.image_url || ''}" },
+  "pairs": [
+    {
+      "pastry": { "id": "...", "name": "...", "image": "..." },
+      "score": 0.00,
+      "score_breakdown": { "flavor": 0.0, "texture": 0.0, "popularity": 0.0, "season": 0.0 },
+      "reasoning": {
+        "flavor": "...",
+        "texture": "...",
+        "popularity": "...",
+        "season": "...",
+        "fallback_note": ""
+      },
+      "why_marketing": "...",
+      "facts": [],
+      "badges": [],
+      "flavor_tags_standardized": [],
+      "allergen_info": "",
+      "recommended_preparation": { "method_name": "...", "price": 0.00 }
+    }
+  ],
+  "ui": { "layout": "cards", "show_downloads": ["pdf"], "notes": "Beans-first with preparation-aware pairing." }
+}
+
+Think step-by-step (use chain-of-thought internally). Return ONLY the final JSON.`;
+
+    // Call Gemini 2.5 Pro with thinking mode
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-pro',
+      contents: prompt,
+      config: {
+        thinkingConfig: { thinkingBudget: 8192 }
+      }
+    });
+
+    let text = response.text?.trim() || '';
+    if (text.startsWith('```json')) text = text.slice(7, -3).trim();
+    else if (text.startsWith('```')) text = text.slice(3, -3).trim();
+
+    const parsed = JSON.parse(text);
+
+    // Ensure backward compatibility with PairingResponse type
+    return parsed as PairingResponse;
+  } catch (error) {
+    console.error('Error generating beans-first pairings:', error);
+    return {
+      coffee: { id: selectedBean.id, name: selectedBean.name, image: selectedBean.image_url || '' },
+      pairs: [],
+      ui: { layout: 'error', show_downloads: [], notes: 'Failed to generate beans-first pairings.' }
+    };
   }
 };
