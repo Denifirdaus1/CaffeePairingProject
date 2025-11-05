@@ -125,7 +125,8 @@ export const Dashboard: React.FC = () => {
       setInventoryError(null);
 
       const [coffeeRes, pastryRes] = await Promise.all([
-        supabase.from('coffees').select('*').eq('cafe_id', cafeId),
+        // Beans-first: load beans in place of coffees for now
+        supabase.from('beans').select('*').eq('cafe_id', cafeId),
         supabase.from('pastries').select('*').eq('cafe_id', cafeId)
       ]);
 
@@ -534,7 +535,7 @@ export const Dashboard: React.FC = () => {
         {/* Tab Content */}
         {activeTab === 'inventory' && (
           <>
-            {/* Coffee Inventory */}
+            {/* Bean Inventory */}
             <section className="glass-panel rounded-3xl p-6 lg:p-8">
               <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
@@ -542,23 +543,23 @@ export const Dashboard: React.FC = () => {
                     <CoffeeIcon className="h-6 w-6" />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-semibold text-white">Coffee Inventory</h2>
-                    <p className="text-sm text-brand-text/70">Click on any coffee to view details and generate QR code</p>
+                    <h2 className="text-2xl font-semibold text-white">Bean Inventory</h2>
+                    <p className="text-sm text-brand-text/70">Click on any bean to view details and generate QR code</p>
                   </div>
                 </div>
                 <button
-                  onClick={() => openAddModal('coffee')}
+                  onClick={() => setToast({ message: 'Add Bean form coming next step', type: 'info' })}
                   className="button-primary-pulse inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-brand-accent via-brand-accent/80 to-amber-400/70 px-6 py-3 text-sm font-semibold text-white shadow-lg transition hover:brightness-110"
                 >
                   <span>+</span>
-                  Add Coffee
+                  Add Bean
                 </button>
               </div>
 
               {coffees.length === 0 ? (
                 <div className="text-center py-12">
                   <CoffeeIcon className="h-16 w-16 text-brand-accent/30 mx-auto mb-4" />
-                  <p className="text-brand-text-muted">No coffees yet. Add your first coffee to get started.</p>
+                  <p className="text-brand-text-muted">No beans yet. Add your first bean to get started.</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

@@ -24,6 +24,34 @@ export interface Coffee {
   acidity?: number; // 1-5
 }
 
+export interface Bean {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  cafe_id: string;
+  name: string;
+  slug?: string;
+  is_core?: boolean;
+  is_guest?: boolean;
+  flavor_notes?: string;
+  image_url?: string;
+  image_path?: string;
+  roast_type?: string;
+  sort_blend?: string;
+  origin?: string;
+  acidity?: number; // 1-5
+}
+
+export interface Preparation {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  bean_id: string;
+  cafe_id: string;
+  method_name: string; // e.g., Espresso, Cappuccino
+  price: number;
+}
+
 export interface Pastry {
   id: string;
   created_at: string;
