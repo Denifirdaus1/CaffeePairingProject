@@ -378,9 +378,15 @@ export const PublicShopPage: React.FC = () => {
                     
                     {/* Price and Add to Cart - Beans-first (uses cheapest preparation) */}
                     {(() => {
-                      const beanPreps = preparationsByBean[pairing.beans?.id || ''] || [];
-                      const cheapest = [...beanPreps].sort((a, b) => Number(a.price) - Number(b.price))[0];
-                      const beanPrice = cheapest ? Number(cheapest.price) : null;
+                      const beanPreps = (preparationsByBean[pairing.beans?.id || ''] || []).filter(Boolean as any);
+                      const cheapest = beanPreps.length
+                        ? beanPreps.reduce((min, p) => {
+                            const mp = Number((min as any)?.price ?? Infinity);
+                            const pp = Number((p as any)?.price ?? Infinity);
+                            return pp < mp ? p : min;
+                          })
+                        : null;
+                      const beanPrice = cheapest && (cheapest as any).price != null ? Number((cheapest as any).price) : null;
                       const pastryPrice = pairing.pastries.price ?? null;
                       const hasBothPrices = beanPrice != null && pastryPrice != null;
                       const combinedPrice = hasBothPrices ? (beanPrice! + pastryPrice!) : null;
