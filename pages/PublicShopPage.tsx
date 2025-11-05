@@ -22,6 +22,24 @@ interface ShopData {
   logo_url?: string;
 }
 
+interface Bean {
+  id: string;
+  cafe_id: string;
+  name: string;
+  origin?: string;
+  roast_type?: string;
+  flavor_notes?: string;
+  image_url?: string;
+}
+
+interface Preparation {
+  id: string;
+  bean_id: string;
+  cafe_id: string;
+  method_name: string;
+  price: number;
+}
+
 interface Coffee {
   id: string;
   name: string;
@@ -54,7 +72,7 @@ interface PublishedPairing {
   score: number;
   why: string;
   pairing_slug: string;
-  coffees: Coffee;
+  beans: Bean;
   pastries: Pastry;
 }
 
@@ -62,10 +80,10 @@ export const PublicShopPage: React.FC = () => {
   const { shop } = useParams<{ shop: string }>();
   const { getTotalItems } = useCart();
   const [shopData, setShopData] = useState<ShopData | null>(null);
-  const [coffees, setCoffees] = useState<Coffee[]>([]);
+  const [beans, setBeans] = useState<Bean[]>([]);
+  const [preparationsByBean, setPreparationsByBean] = useState<Record<string, Preparation[]>>({});
   const [pastries, setPastries] = useState<Pastry[]>([]);
   const [publishedPairings, setPublishedPairings] = useState<PublishedPairing[]>([]);
-  const [displayCoffees, setDisplayCoffees] = useState<Coffee[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -92,27 +110,34 @@ export const PublicShopPage: React.FC = () => {
 
         setShopData(shopData);
 
-        // Fetch coffees for this shop
-        const { data: coffeesData, error: coffeesError } = await supabase
-          .from('coffees')
+        // Fetch beans for this shop
+        const { data: beansData, error: beansError } = await supabase
+          .from('beans')
           .select('*')
           .eq('cafe_id', shopData.id)
-          .order('is_main_shot', { ascending: false })
-          .order('popularity_hint', { ascending: false });
+          .order('name', { ascending: true });
 
-        if (coffeesError) {
-          console.error('Error fetching coffees:', coffeesError);
+        if (beansError) {
+          console.error('Error fetching beans:', beansError);
         } else {
-          // Filter out coffees without slugs and log warning
-          const validCoffees = (coffeesData || []).filter(coffee => {
-            if (!coffee.slug) {
-              console.warn('Coffee without slug detected:', coffee.name, coffee.id);
-              return false;
-            }
-            return true;
+          setBeans(beansData || []);
+        }
+
+        // Fetch preparations for this shop and group by bean
+        const { data: prepData, error: prepError } = await supabase
+          .from('preparations')
+          .select('*')
+          .eq('cafe_id', shopData.id);
+
+        if (prepError) {
+          console.error('Error fetching preparations:', prepError);
+        } else {
+          const grouped: Record<string, Preparation[]> = {};
+          (prepData || []).forEach((p) => {
+            if (!grouped[p.bean_id]) grouped[p.bean_id] = [];
+            grouped[p.bean_id].push(p as unknown as Preparation);
           });
-          setCoffees(validCoffees);
-          setDisplayCoffees(validCoffees);
+          setPreparationsByBean(grouped);
         }
 
         // Fetch pastries for this shop
@@ -128,12 +153,12 @@ export const PublicShopPage: React.FC = () => {
           setPastries(pastriesData || []);
         }
 
-        // Fetch published pairings for this shop
+        // Fetch published pairings for this shop (beans instead of coffees)
         const { data: pairingsData, error: pairingsError } = await supabase
           .from('pairings')
           .select(`
             *,
-            coffees (*),
+            beans (*),
             pastries (*)
           `)
           .eq('cafe_id', shopData.id)
@@ -158,8 +183,8 @@ export const PublicShopPage: React.FC = () => {
 
   const [shareToast, setShareToast] = useState<string | null>(null);
 
-  const handleCoffeeSelect = (coffee: Coffee) => {
-    window.location.href = `/s/${shop}/coffee/${coffee.slug}`;
+  const handleBeanSelect = (bean: Bean) => {
+    // For future: navigate to bean detail if needed
   };
 
   const generateQRCode = () => {
@@ -280,14 +305,7 @@ export const PublicShopPage: React.FC = () => {
         </div>
       </header>
 
-      {/* Interactive Pairing Generator - Moved to Top */}
-      {coffees.length > 0 && pastries.length > 0 && (
-        <PublicPairingGenerator
-          coffees={coffees}
-          pastries={pastries}
-          shopSlug={shop || ''}
-        />
-      )}
+      {/* Interactive Pairing Generator - Disabled until beans-first integration is complete for generator */}
 
       {/* Recommended Pairings Section - Right After Pairing Generator */}
       {publishedPairings.length > 0 && (
@@ -312,10 +330,10 @@ export const PublicShopPage: React.FC = () => {
                   >
                     <div onClick={() => window.location.href = `/s/${shop}/pairing/${pairing.pairing_slug}`} className="cursor-pointer">
                       <div className="flex items-center gap-4 mb-4">
-                        {pairing.coffees.image_url && (
+                        {pairing.beans?.image_url && (
                           <OptimizedImage
-                            src={pairing.coffees.image_url}
-                            alt={pairing.coffees.name}
+                            src={pairing.beans.image_url}
+                            alt={pairing.beans.name}
                             width={64}
                             height={64}
                             className="w-16 h-16 rounded-lg object-cover"
@@ -332,7 +350,7 @@ export const PublicShopPage: React.FC = () => {
                         )}
                       </div>
                       <h3 className="text-lg font-semibold text-white mb-2">
-                        {pairing.coffees.name} + {pairing.pastries.name}
+                        {pairing.beans?.name} + {pairing.pastries.name}
                       </h3>
                       <div className="flex items-center gap-2 mb-3">
                         <span className="text-brand-accent font-bold">
@@ -344,54 +362,7 @@ export const PublicShopPage: React.FC = () => {
                       )}
                     </div>
                     
-                    {/* Price and Add to Cart */}
-                    <div className="mt-4 pt-4 border-t border-white/10">
-                      {hasBothPrices ? (
-                        <>
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="text-sm text-brand-text-muted">
-                              <div>Coffee: €{coffeePrice.toFixed(2)}</div>
-                              <div>Pastry: €{pastryPrice.toFixed(2)}</div>
-                            </div>
-                            <div className="text-2xl font-bold text-brand-accent">
-                              €{combinedPrice.toFixed(2)}
-                            </div>
-                          </div>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              addToCart({
-                                type: 'pairing',
-                                productId: pairing.id,
-                                name: `${pairing.coffees.name} + ${pairing.pastries.name}`,
-                                price: combinedPrice,
-                                image_url: pairing.coffees.image_url,
-                                coffeeName: pairing.coffees.name,
-                                pastryName: pairing.pastries.name,
-                                coffeeId: pairing.coffees.id,
-                                pastryId: pairing.pastries.id,
-                                coffeePrice,
-                                pastryPrice,
-                              });
-                            }}
-                            className={`w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all ${
-                              inCart
-                                ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                                : 'bg-brand-accent/20 hover:bg-brand-accent/30 text-brand-accent border border-brand-accent/30'
-                            }`}
-                          >
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                            </svg>
-                            {inCart ? 'In Cart' : 'Add Pairing to Cart'}
-                          </button>
-                        </>
-                      ) : (
-                        <p className="text-sm text-brand-text-muted text-center">
-                          Prices not available
-                        </p>
-                      )}
-                    </div>
+                    {/* (Price & cart for pairings will be reworked under beans-first; hidden for now) */}
                   </div>
                 );
               })}
@@ -400,180 +371,89 @@ export const PublicShopPage: React.FC = () => {
         </section>
       )}
 
-      {/* Search Bar Section */}
-      <section className="py-8 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="max-w-2xl mx-auto">
-            <CoffeeSearch
-              coffees={coffees}
-              onCoffeeSelect={handleCoffeeSelect}
-              placeholder="Search coffees and pastries..."
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* Today's Main Shot - Ultra Light */}
-      {coffees.some(coffee => coffee.is_main_shot) && (
-        <section className="py-4 px-4">
-          <div className="max-w-7xl mx-auto">
-            {coffees
-              .filter(coffee => coffee.is_main_shot)
-              .map(coffee => (
-                <div 
-                  key={coffee.id}
-                  className="bg-brand-surface/50 rounded-xl p-3 md:p-4 border border-brand-accent/30 cursor-pointer"
-                  onClick={() => window.location.href = `/s/${shop}/coffee/${coffee.slug}`}
-                >
-                  {/* Compact Badge */}
-                  <div className="flex items-center gap-1.5 bg-brand-accent text-white px-2.5 py-1 rounded-md mb-3 w-fit text-xs font-semibold">
-                    <span>⭐</span>
-                    <span>TODAY'S MAIN SHOT</span>
-                  </div>
-
-                  {/* Horizontal Layout */}
-                  <div className="flex flex-col md:flex-row gap-3">
-                    {/* Image - Smaller */}
-                    {coffee.image_url && (
-                      <OptimizedImage
-                        src={coffee.image_url}
-                        alt={coffee.name}
-                        width={300}
-                        height={180}
-                        priority={true}
-                        className="w-full md:w-48 h-36 object-cover rounded-lg flex-shrink-0"
-                      />
-                    )}
-
-                    {/* Details - Compact */}
-                    <div className="flex flex-col justify-center space-y-2 flex-1 min-w-0">
-                      <h2 className="text-xl md:text-2xl font-bold text-white truncate">
-                        {coffee.name}
-                      </h2>
-                      
-                      {/* Flavor Notes - Max 3, smaller */}
-                      {coffee.flavor_notes && (
-                        <div className="flex flex-wrap gap-1.5">
-                          {coffee.flavor_notes.split(',').slice(0, 3).map((note, idx) => (
-                            <span 
-                              key={idx} 
-                              className="bg-brand-accent/15 text-white px-2 py-0.5 rounded text-xs"
-                            >
-                              {note.trim()}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Compact Stats */}
-                      <div className="flex items-center gap-3 text-xs">
-                        <span className="text-brand-accent font-semibold">
-                          {Math.round(coffee.popularity_hint * 100)}%
-                        </span>
-                        {coffee.main_shot_until && (
-                          <span className="text-brand-text-muted">
-                            {new Date(coffee.main_shot_until).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Small Button */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          window.location.href = `/s/${shop}/coffee/${coffee.slug}`}}
-                        className="bg-brand-accent text-white px-4 py-1.5 rounded-md font-medium text-xs w-fit mt-1"
-                      >
-                        View Details →
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-          </div>
-        </section>
-      )}
-
-      {/* Coffee Grid */}
+      {/* Beans Section */}
       <section className="py-12 px-4">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-3xl font-bold text-white mb-8 text-center">
-            Our Coffee Collection
+            Our Beans & Preparations
           </h2>
-          
-          {displayCoffees.length === 0 ? (
+
+          {beans.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-brand-text-muted text-lg">
-                No coffees available yet.
+                No beans available yet.
               </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {displayCoffees.map((coffee) => {
-                const { addToCart, isInCart } = useCart();
-                const inCart = isInCart(coffee.id, 'coffee');
-                
+              {beans.map((bean) => {
+                const preps = preparationsByBean[bean.id] || [];
                 return (
-                  <div
-                    key={coffee.id}
-                    className="glass-panel rounded-2xl p-6 hover:scale-105 transition-transform"
-                  >
-                    <div onClick={() => window.location.href = `/s/${shop}/coffee/${coffee.slug}`} className="cursor-pointer">
-                      {coffee.image_url && (
-                        <OptimizedImage
-                          src={coffee.image_url}
-                          alt={coffee.name}
-                          width={400}
-                          height={192}
-                          className="w-full h-48 object-cover rounded-lg mb-4"
-                        />
-                      )}
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-xl font-semibold text-white">{coffee.name}</h3>
-                        {coffee.is_main_shot && (
-                          <span className="bg-brand-accent text-white px-2 py-1 rounded-full text-xs font-semibold">
-                            Main Shot
-                          </span>
-                        )}
-                      </div>
-                      {coffee.flavor_notes && (
-                        <p className="text-brand-text-muted text-sm mb-3">{coffee.flavor_notes}</p>
-                      )}
+                  <div key={bean.id} className="glass-panel rounded-2xl p-6 hover:scale-105 transition-transform">
+                    {bean.image_url && (
+                      <OptimizedImage
+                        src={bean.image_url}
+                        alt={bean.name}
+                        width={400}
+                        height={192}
+                        className="w-full h-48 object-cover rounded-lg mb-4"
+                      />
+                    )}
+
+                    <h3 className="text-xl font-semibold text-white mb-1">{bean.name}</h3>
+                    <div className="text-brand-text-muted text-sm mb-3">
+                      {[bean.origin, bean.roast_type].filter(Boolean).join(' • ')}
                     </div>
-                    
-                    {/* Price and Add to Cart */}
-                    <div className="mt-4 pt-4 border-t border-white/10 flex items-center justify-between">
-                      {coffee.price != null ? (
-                        <span className="text-2xl font-bold text-brand-accent">
-                          €{coffee.price.toFixed(2)}
-                        </span>
+                    {bean.flavor_notes && (
+                      <div className="flex flex-wrap gap-1.5 mb-4">
+                        {bean.flavor_notes.split(',').slice(0, 4).map((note, idx) => (
+                          <span key={idx} className="bg-brand-accent/15 text-white px-2 py-0.5 rounded text-xs">
+                            {note.trim()}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="mt-4 pt-4 border-t border-white/10">
+                      {preps.length === 0 ? (
+                        <p className="text-sm text-brand-text-muted">No preparation methods yet.</p>
                       ) : (
-                        <span className="text-sm text-brand-text-muted">Price not set</span>
-                      )}
-                      
-                      {coffee.price != null && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            addToCart({
-                              type: 'coffee',
-                              productId: coffee.id,
-                              name: coffee.name,
-                              price: coffee.price!,
-                              image_url: coffee.image_url,
-                            });
-                          }}
-                          className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all ${
-                            inCart
-                              ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                              : 'bg-brand-accent/20 hover:bg-brand-accent/30 text-brand-accent border border-brand-accent/30'
-                          }`}
-                        >
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                          </svg>
-                          {inCart ? 'In Cart' : 'Add to Cart'}
-                        </button>
+                        <div className="space-y-2">
+                          {preps.sort((a,b)=> Number(a.price) - Number(b.price)).map((prep) => {
+                            const { addToCart, isInCart } = useCart();
+                            const inCart = isInCart(prep.id, 'coffee');
+                            return (
+                              <div key={prep.id} className="flex items-center justify-between">
+                                <div className="text-sm text-white/90">{prep.method_name}</div>
+                                <div className="flex items-center gap-3">
+                                  <div className="text-brand-accent font-bold">€{Number(prep.price).toFixed(2)}</div>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      addToCart({
+                                        type: 'coffee',
+                                        productId: prep.id,
+                                        name: `${bean.name} - ${prep.method_name}`,
+                                        price: Number(prep.price),
+                                        image_url: bean.image_url,
+                                      });
+                                    }}
+                                    className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${
+                                      inCart
+                                        ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                                        : 'bg-brand-accent/20 hover:bg-brand-accent/30 text-brand-accent border border-brand-accent/30'
+                                    }`}
+                                  >
+                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                                    </svg>
+                                    {inCart ? 'In Cart' : 'Add'}
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
                       )}
                     </div>
                   </div>
@@ -583,6 +463,8 @@ export const PublicShopPage: React.FC = () => {
           )}
         </div>
       </section>
+
+      {/* (Removed legacy Coffee sections in beans-first model) */}
 
       {/* Pastries Section */}
       {pastries.length > 0 && (
