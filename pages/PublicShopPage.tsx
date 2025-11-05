@@ -362,7 +362,66 @@ export const PublicShopPage: React.FC = () => {
                       )}
                     </div>
                     
-                    {/* (Price & cart for pairings will be reworked under beans-first; hidden for now) */}
+                    {/* Price and Add to Cart - Beans-first (uses cheapest preparation) */}
+                    {(() => {
+                      const beanPreps = preparationsByBean[pairing.beans?.id || ''] || [];
+                      const cheapest = [...beanPreps].sort((a, b) => Number(a.price) - Number(b.price))[0];
+                      const beanPrice = cheapest ? Number(cheapest.price) : null;
+                      const pastryPrice = pairing.pastries.price ?? null;
+                      const hasBothPrices = beanPrice != null && pastryPrice != null;
+                      const combinedPrice = hasBothPrices ? (beanPrice! + pastryPrice!) : null;
+                      const { addToCart, isInCart } = useCart();
+                      const inCart = isInCart(pairing.id, 'pairing');
+
+                      return (
+                        <div className="mt-4 pt-4 border-t border-white/10">
+                          {hasBothPrices ? (
+                            <>
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="text-sm text-brand-text-muted">
+                                  <div>Bean: €{beanPrice!.toFixed(2)}{cheapest?.method_name ? ` (${cheapest.method_name})` : ''}</div>
+                                  <div>Pastry: €{(pastryPrice as number).toFixed(2)}</div>
+                                </div>
+                                <div className="text-2xl font-bold text-brand-accent">
+                                  €{combinedPrice!.toFixed(2)}
+                                </div>
+                              </div>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (!cheapest) return;
+                                  addToCart({
+                                    type: 'pairing',
+                                    productId: pairing.id,
+                                    name: `${pairing.beans?.name} + ${pairing.pastries.name}${cheapest?.method_name ? ` (${cheapest.method_name})` : ''}`,
+                                    price: combinedPrice!,
+                                    image_url: pairing.beans?.image_url,
+                                    coffeeName: pairing.beans?.name, // keep keys for compatibility
+                                    pastryName: pairing.pastries.name,
+                                    coffeeId: pairing.beans?.id,
+                                    pastryId: pairing.pastries.id,
+                                    coffeePrice: beanPrice!,
+                                    pastryPrice: pastryPrice!,
+                                  });
+                                }}
+                                className={`w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all ${
+                                  inCart
+                                    ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                                    : 'bg-brand-accent/20 hover:bg-brand-accent/30 text-brand-accent border border-brand-accent/30'
+                                }`}
+                              >
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
+                                {inCart ? 'In Cart' : 'Add Pairing to Cart'}
+                              </button>
+                            </>
+                          ) : (
+                            <p className="text-sm text-brand-text-muted text-center">Prices not available</p>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
                 );
               })}
