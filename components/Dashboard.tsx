@@ -36,6 +36,7 @@ export const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const [coffees, setCoffees] = useState<Coffee[]>([]);
   const [pastries, setPastries] = useState<Pastry[]>([]);
+  const [preparationsByBean, setPreparationsByBean] = useState<Record<string, { id: string; method_name: string; price: number }[]>>({});
   const [inventoryLoading, setInventoryLoading] = useState(true);
   const [inventoryError, setInventoryError] = useState<string | null>(null);
 
@@ -124,10 +125,11 @@ export const Dashboard: React.FC = () => {
       setInventoryLoading(true);
       setInventoryError(null);
 
-      const [coffeeRes, pastryRes] = await Promise.all([
+      const [coffeeRes, pastryRes, prepRes] = await Promise.all([
         // Beans-first: load beans in place of coffees for now
         supabase.from('beans').select('*').eq('cafe_id', cafeId),
-        supabase.from('pastries').select('*').eq('cafe_id', cafeId)
+        supabase.from('pastries').select('*').eq('cafe_id', cafeId),
+        supabase.from('preparations').select('id, bean_id, method_name, price').eq('cafe_id', cafeId)
       ]);
 
       if (coffeeRes.error) {
@@ -142,8 +144,20 @@ export const Dashboard: React.FC = () => {
         return;
       }
 
+      if (prepRes.error) {
+        const message = prepRes.error.message;
+        setInventoryError(message);
+        return;
+      }
+
       setCoffees(coffeeRes.data || []);
       setPastries(pastryRes.data || []);
+      const grouped: Record<string, { id: string; method_name: string; price: number }[]> = {};
+      (prepRes.data || []).forEach((p: any) => {
+        if (!grouped[p.bean_id]) grouped[p.bean_id] = [];
+        grouped[p.bean_id].push({ id: p.id, method_name: p.method_name, price: Number(p.price) });
+      });
+      setPreparationsByBean(grouped);
     } catch (error: any) {
       const message = error.message;
       setInventoryError(message);
@@ -587,10 +601,17 @@ export const Dashboard: React.FC = () => {
                           {coffee.flavor_notes}
                         </p>
                       )}
-                      <div className="mt-3 flex items-center justify-between text-xs">
-                        <span className="text-brand-accent">{Math.round(coffee.popularity_hint * 100)}% popular</span>
-                        {coffee.is_main_shot && (
-                          <span className="bg-brand-accent/20 text-brand-accent px-2 py-1 rounded-full">Main Shot</span>
+                      {/* Preparations list */}
+                      <div className="mt-3 border-t border-white/10 pt-3 space-y-2">
+                        {(preparationsByBean[coffee.id] || []).length === 0 ? (
+                          <p className="text-xs text-brand-text-muted">No preparation methods yet.</p>
+                        ) : (
+                          (preparationsByBean[coffee.id] || []).map(p => (
+                            <div key={p.id} className="flex items-center justify-between text-xs">
+                              <span className="text-white/90">{p.method_name}</span>
+                              <span className="text-brand-accent font-semibold">€{p.price.toFixed(2)}</span>
+                            </div>
+                          ))
                         )}
                       </div>
                     </button>
