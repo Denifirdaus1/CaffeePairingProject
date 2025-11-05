@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo, lazy, Suspense } from 'react';
 import { Header } from './Header';
+import { BeanAddModal } from './BeanAddModal';
 import { generatePairings } from '../services/geminiService';
 import type { Coffee, Pastry, PairingResponse } from '../types';
 import { CoffeeIcon } from './icons/CoffeeIcon';
@@ -44,6 +45,7 @@ export const Dashboard: React.FC = () => {
   const [editingPastry, setEditingPastry] = useState<Pastry | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [addModalType, setAddModalType] = useState<'coffee' | 'pastry' | null>(null);
+  const [isBeanModalOpen, setIsBeanModalOpen] = useState(false);
 
   const [selectedCoffee, setSelectedCoffee] = useState<Coffee | null>(null);
   const [pairingResult, setPairingResult] = useState<PairingResponse | null>(null);
@@ -562,7 +564,7 @@ export const Dashboard: React.FC = () => {
                   </div>
                 </div>
                 <button
-                  onClick={() => setToast({ message: 'Add Bean form coming next step', type: 'info' })}
+                  onClick={() => setIsBeanModalOpen(true)}
                   className="button-primary-pulse inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-brand-accent via-brand-accent/80 to-amber-400/70 px-6 py-3 text-sm font-semibold text-white shadow-lg transition hover:brightness-110"
                 >
                   <span>+</span>
@@ -903,6 +905,48 @@ export const Dashboard: React.FC = () => {
           onUpdate={() => {
             // Refetch user data to get updated profile
             window.location.reload();
+          }}
+        />
+      )}
+
+      {isBeanModalOpen && (
+        <BeanAddModal
+          onClose={() => setIsBeanModalOpen(false)}
+          onSave={async (bean, prepList) => {
+            try {
+              const cafeId = await getCafeId();
+              let publicUrl: string | undefined;
+              let imagePath: string | undefined;
+              if (bean.imageFile) {
+                const uploaded = await uploadImage(bean.imageFile, 'coffee-images');
+                publicUrl = uploaded.publicUrl;
+                imagePath = uploaded.path;
+              }
+              const { data: beanRow, error: beanErr } = await supabase.from('beans').insert({
+                cafe_id: cafeId,
+                name: bean.name,
+                origin: bean.origin,
+                roast_type: bean.roast_type,
+                flavor_notes: bean.flavor_notes,
+                image_url: publicUrl,
+                image_path: imagePath,
+                is_core: true,
+                is_guest: false,
+              }).select().single();
+              if (beanErr) throw beanErr;
+
+              if (prepList.length > 0) {
+                const rows = prepList.map(p => ({ bean_id: beanRow.id, cafe_id: cafeId, method_name: p.method_name, price: p.price }));
+                const { error: prepErr } = await supabase.from('preparations').insert(rows);
+                if (prepErr) throw prepErr;
+              }
+
+              setIsBeanModalOpen(false);
+              await fetchInventory();
+              setToast({ message: 'Bean added successfully!', type: 'success' });
+            } catch (e: any) {
+              setToast({ message: `Error adding bean: ${e.message}`, type: 'error' });
+            }
           }}
         />
       )}
