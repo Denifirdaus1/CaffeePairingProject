@@ -78,7 +78,7 @@ interface PublishedPairing {
 
 export const PublicShopPage: React.FC = () => {
   const { shop } = useParams<{ shop: string }>();
-  const { getTotalItems } = useCart();
+  const { getTotalItems, addToCart } = useCart();
   const [shopData, setShopData] = useState<ShopData | null>(null);
   const [beans, setBeans] = useState<Bean[]>([]);
   const [preparationsByBean, setPreparationsByBean] = useState<Record<string, Preparation[]>>({});
@@ -87,6 +87,10 @@ export const PublicShopPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [beanModalOpen, setBeanModalOpen] = useState(false);
+  const [beanForModal, setBeanForModal] = useState<Bean | null>(null);
+  const [selectedPreparationId, setSelectedPreparationId] = useState<string | null>(null);
+  const [autoPairBeanId, setAutoPairBeanId] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     if (!shop) return;
@@ -312,6 +316,8 @@ export const PublicShopPage: React.FC = () => {
           preparationsByBean={preparationsByBean}
           pastries={pastries}
           shopSlug={shop || ''}
+          initialBeanId={autoPairBeanId}
+          autoGenerate={!!autoPairBeanId}
         />
       )}
 
@@ -453,79 +459,38 @@ export const PublicShopPage: React.FC = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {beans.map((bean) => {
-                const preps = preparationsByBean[bean.id] || [];
-                return (
-                  <div key={bean.id} className="glass-panel rounded-2xl p-6 hover:scale-105 transition-transform">
-                    {bean.image_url && (
-                      <OptimizedImage
-                        src={bean.image_url}
-                        alt={bean.name}
-                        width={400}
-                        height={192}
-                        className="w-full h-48 object-cover rounded-lg mb-4"
-                      />
-                    )}
-
-                    <h3 className="text-xl font-semibold text-white mb-1">{bean.name}</h3>
-                    <div className="text-brand-text-muted text-sm mb-3">
-                      {[bean.origin, bean.roast_type].filter(Boolean).join(' • ')}
-                    </div>
-                    {bean.flavor_notes && (
-                      <div className="flex flex-wrap gap-1.5 mb-4">
-                        {bean.flavor_notes.split(',').slice(0, 4).map((note, idx) => (
-                          <span key={idx} className="bg-brand-accent/15 text-white px-2 py-0.5 rounded text-xs">
-                            {note.trim()}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-
-                    <div className="mt-4 pt-4 border-t border-white/10">
-                      {preps.length === 0 ? (
-                        <p className="text-sm text-brand-text-muted">No preparation methods yet.</p>
-                      ) : (
-                        <div className="space-y-2">
-                          {preps.sort((a,b)=> Number(a.price) - Number(b.price)).map((prep) => {
-                            const { addToCart, isInCart } = useCart();
-                            const inCart = isInCart(prep.id, 'coffee');
-                            return (
-                              <div key={prep.id} className="flex items-center justify-between">
-                                <div className="text-sm text-white/90">{prep.method_name}</div>
-                                <div className="flex items-center gap-3">
-                                  <div className="text-brand-accent font-bold">€{Number(prep.price).toFixed(2)}</div>
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      addToCart({
-                                        type: 'coffee',
-                                        productId: prep.id,
-                                        name: `${bean.name} - ${prep.method_name}`,
-                                        price: Number(prep.price),
-                                        image_url: bean.image_url,
-                                      });
-                                    }}
-                                    className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${
-                                      inCart
-                                        ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                                        : 'bg-brand-accent/20 hover:bg-brand-accent/30 text-brand-accent border border-brand-accent/30'
-                                    }`}
-                                  >
-                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                                    </svg>
-                                    {inCart ? 'In Cart' : 'Add'}
-                                  </button>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
+              {beans.map((bean) => (
+                <div key={bean.id} className="glass-panel rounded-2xl p-6 hover:scale-105 transition-transform">
+                  {bean.image_url && (
+                    <OptimizedImage
+                      src={bean.image_url}
+                      alt={bean.name}
+                      width={400}
+                      height={192}
+                      className="w-full h-48 object-cover rounded-lg mb-4"
+                    />
+                  )}
+                  <h3 className="text-xl font-semibold text-white mb-1">{bean.name}</h3>
+                  <div className="text-brand-text-muted text-sm mb-3">
+                    {[bean.origin, bean.roast_type].filter(Boolean).join(' • ')}
                   </div>
-                );
-              })}
+                  {bean.flavor_notes && (
+                    <div className="flex flex-wrap gap-1.5 mb-4">
+                      {bean.flavor_notes.split(',').slice(0, 4).map((note, idx) => (
+                        <span key={idx} className="bg-brand-accent/15 text-white px-2 py-0.5 rounded text-xs">
+                          {note.trim()}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  <button
+                    onClick={() => { setBeanForModal(bean); setSelectedPreparationId(null); setBeanModalOpen(true); }}
+                    className="w-full mt-2 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all bg-brand-accent/20 hover:bg-brand-accent/30 text-brand-accent border border-brand-accent/30"
+                  >
+                    Pilih Biji Ini
+                  </button>
+                </div>
+              ))}
             </div>
           )}
         </div>
@@ -649,6 +614,59 @@ export const PublicShopPage: React.FC = () => {
       
       {/* Shopping Cart */}
       <ShoppingCart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+
+      {/* Bean Preparation Modal */}
+      {beanModalOpen && beanForModal && (
+        <div className="fixed inset-0 bg-black/70 flex justify-center items-center z-50" onClick={() => setBeanModalOpen(false)}>
+          <div className="bg-brand-primary rounded-lg shadow-2xl p-6 w-full max-w-xl m-4" onClick={e => e.stopPropagation()}>
+            <h3 className="text-xl font-bold text-white mb-2">Pilih Cara Penyajian untuk:</h3>
+            <p className="text-brand-accent font-semibold mb-4">{beanForModal.name}</p>
+            <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
+              {(preparationsByBean[beanForModal.id] || []).map(prep => (
+                <label key={prep.id} className="flex items-center justify-between bg-white/5 rounded-md px-3 py-2 cursor-pointer">
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="radio"
+                      name="prep"
+                      checked={selectedPreparationId === prep.id}
+                      onChange={() => setSelectedPreparationId(prep.id)}
+                      className="accent-brand-accent"
+                    />
+                    <span className="text-white/90">{prep.method_name}</span>
+                  </div>
+                  <span className="text-brand-accent font-semibold">€{Number(prep.price).toFixed(2)}</span>
+                </label>
+              ))}
+              {(preparationsByBean[beanForModal.id] || []).length === 0 && (
+                <p className="text-sm text-brand-text-muted">No preparation methods yet.</p>
+              )}
+            </div>
+            <div className="flex justify-end gap-3 pt-4 border-t border-white/10 mt-4">
+              <button onClick={() => setBeanModalOpen(false)} className="bg-gray-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-gray-500">Cancel</button>
+              <button
+                disabled={!selectedPreparationId}
+                onClick={() => {
+                  if (!selectedPreparationId || !beanForModal) return;
+                  const prep = (preparationsByBean[beanForModal.id] || []).find(p => p.id === selectedPreparationId);
+                  if (!prep) return;
+                  addToCart({
+                    type: 'coffee',
+                    productId: prep.id,
+                    name: `${beanForModal.name} - ${prep.method_name}`,
+                    price: Number(prep.price),
+                    image_url: beanForModal.image_url,
+                  });
+                  setBeanModalOpen(false);
+                  setAutoPairBeanId(beanForModal.id);
+                }}
+                className={`bg-brand-accent text-white font-bold py-2 px-6 rounded-lg ${!selectedPreparationId ? 'opacity-60 cursor-not-allowed' : ''}`}
+              >
+                Tambahkan ke Pesanan
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

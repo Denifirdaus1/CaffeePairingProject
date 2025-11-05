@@ -14,6 +14,8 @@ interface PublicPairingGeneratorProps {
   preparationsByBean: Record<string, Preparation[]>;
   pastries: Pastry[];
   shopSlug: string;
+  initialBeanId?: string;
+  autoGenerate?: boolean;
 }
 
 interface PairingResult {
@@ -51,11 +53,31 @@ export const PublicPairingGenerator: React.FC<PublicPairingGeneratorProps> = ({
   preparationsByBean,
   pastries,
   shopSlug,
+  initialBeanId,
+  autoGenerate,
 }) => {
   const [selectedType, setSelectedType] = useState<'coffee' | 'pastry'>('coffee');
   const [selectedItem, setSelectedItem] = useState<Bean | Pastry | null>(null);
   const [pairingResults, setPairingResults] = useState<PairingResult[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
+
+  // Preselect bean and optionally auto-generate
+  React.useEffect(() => {
+    if (initialBeanId) {
+      const b = beans.find(x => x.id === initialBeanId) || null;
+      if (b) {
+        setSelectedType('coffee');
+        setSelectedItem(b);
+        if (autoGenerate) {
+          // delay to ensure state applied
+          setTimeout(() => {
+            handleGeneratePairing();
+          }, 0);
+        }
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialBeanId]);
   const { addToCart, isInCart } = useCart();
 
   const handleItemSelect = (item: Bean | Pastry) => {
