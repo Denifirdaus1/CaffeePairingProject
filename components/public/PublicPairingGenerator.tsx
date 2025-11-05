@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Coffee, Pastry } from '../../types';
-import { generatePairings } from '../../services/geminiService';
+import { Bean, Pastry, Preparation, Coffee } from '../../types';
+import { generatePairingsForBean, generatePairings } from '../../services/geminiService';
 import { FlavorIcon } from '../icons/FlavorIcon';
 import { TextureIcon } from '../icons/TextureIcon';
 import { PopularityIcon } from '../icons/PopularityIcon';
@@ -10,7 +10,8 @@ import { ThinkingIndicator } from '../ThinkingIndicator';
 import { useCart } from '../../contexts/CartContext';
 
 interface PublicPairingGeneratorProps {
-  coffees: Coffee[];
+  beans: Bean[];
+  preparationsByBean: Record<string, Preparation[]>;
   pastries: Pastry[];
   shopSlug: string;
 }
@@ -46,17 +47,18 @@ interface PairingResult {
 }
 
 export const PublicPairingGenerator: React.FC<PublicPairingGeneratorProps> = ({
-  coffees,
+  beans,
+  preparationsByBean,
   pastries,
   shopSlug,
 }) => {
   const [selectedType, setSelectedType] = useState<'coffee' | 'pastry'>('coffee');
-  const [selectedItem, setSelectedItem] = useState<Coffee | Pastry | null>(null);
+  const [selectedItem, setSelectedItem] = useState<Bean | Pastry | null>(null);
   const [pairingResults, setPairingResults] = useState<PairingResult[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const { addToCart, isInCart } = useCart();
 
-  const handleItemSelect = (item: Coffee | Pastry) => {
+  const handleItemSelect = (item: Bean | Pastry) => {
     setSelectedItem(item);
     setPairingResults([]);
   };
@@ -70,11 +72,10 @@ export const PublicPairingGenerator: React.FC<PublicPairingGeneratorProps> = ({
       let results: PairingResult[] = [];
 
       if (selectedType === 'coffee') {
-        // Coffee selected, use full AI pairing generation
-        const coffee = selectedItem as Coffee;
-        const aiResponse = await generatePairings(coffee, pastries);
-        
-        // Map AI response to our result format with full details
+        // Bean selected → use beans-first generator with preparation awareness
+        const bean = selectedItem as Bean;
+        const preps = preparationsByBean[bean.id] || [];
+        const aiResponse = await generatePairingsForBean(bean, preps, pastries);
         results = aiResponse.pairs.slice(0, 3).map(pair => ({
           pastry: pair.pastry,
           score: pair.score,
@@ -87,19 +88,19 @@ export const PublicPairingGenerator: React.FC<PublicPairingGeneratorProps> = ({
           allergen_info: pair.allergen_info,
         }));
       } else {
-        // Pastry selected, generate pairings for each coffee
+        // Pastry selected → each bean competes with its best preparation
         const pastry = selectedItem as Pastry;
-        
-        // Generate pairing for each coffee with the selected pastry
-        const pairingPromises = coffees.map(async (coffee) => {
-          const aiResponse = await generatePairings(coffee, [pastry]);
+        const pairingPromises = beans.map(async (bean) => {
+          const preps = preparationsByBean[bean.id] || [];
+          const aiResponse = await generatePairingsForBean(bean, preps, [pastry]);
           if (aiResponse.pairs.length > 0) {
             const pair = aiResponse.pairs[0];
+            // Map to UI model by showing the competing bean as the card primary (reuse pastry slot as display container)
             return {
               pastry: {
-                id: coffee.id,
-                name: coffee.name,
-                image: coffee.image_url || '',
+                id: bean.id,
+                name: bean.name,
+                image: bean.image_url || '',
               },
               score: pair.score,
               score_breakdown: pair.score_breakdown,
@@ -109,17 +110,12 @@ export const PublicPairingGenerator: React.FC<PublicPairingGeneratorProps> = ({
               flavor_tags_standardized: pair.flavor_tags_standardized,
               facts: pair.facts,
               allergen_info: pair.allergen_info,
-            };
+            } as PairingResult;
           }
           return null;
         });
-
-        const allPairings = (await Promise.all(pairingPromises)).filter(p => p !== null) as PairingResult[];
-        
-        // Sort by score and take top 3
-        results = allPairings
-          .sort((a, b) => b.score - a.score)
-          .slice(0, 3);
+        const allPairings = (await Promise.all(pairingPromises)).filter(Boolean) as PairingResult[];
+        results = allPairings.sort((a, b) => b.score - a.score).slice(0, 3);
       }
 
       setPairingResults(results);

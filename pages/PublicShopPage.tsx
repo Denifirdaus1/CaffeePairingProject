@@ -305,7 +305,15 @@ export const PublicShopPage: React.FC = () => {
         </div>
       </header>
 
-      {/* Interactive Pairing Generator - Disabled until beans-first integration is complete for generator */}
+      {/* Interactive Pairing Generator - Beans-first */}
+      {beans.length > 0 && pastries.length > 0 && (
+        <PublicPairingGenerator
+          beans={beans}
+          preparationsByBean={preparationsByBean}
+          pastries={pastries}
+          shopSlug={shop || ''}
+        />
+      )}
 
       {/* Recommended Pairings Section - Right After Pairing Generator */}
       {publishedPairings.length > 0 && (
